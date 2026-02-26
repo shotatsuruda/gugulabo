@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ログイン | ググラボ</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
+    <style>
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg);
+        }
+        .login-wrap {
+            width: 100%;
+            max-width: 400px;
+            padding: 1rem;
+        }
+        .login-logo {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .login-logo-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--dark);
+            letter-spacing: 0.02em;
+        }
+        .login-logo-sub {
+            font-size: 0.75rem;
+            color: var(--muted);
+            margin-top: 0.2rem;
+        }
+        .login-card {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 2rem;
+            box-shadow: var(--shadow);
+        }
+        .login-card h2 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+        .login-footer {
+            text-align: center;
+            margin-top: 1.5rem;
+            font-size: 0.75rem;
+            color: var(--muted);
+        }
+    </style>
+</head>
+<body>
+<div class="login-wrap">
+    <!-- ロゴ -->
+    <div class="login-logo">
+        <div class="login-logo-title">ググラボ</div>
+        <div class="login-logo-sub">店舗専用管理ページ</div>
+    </div>
+
+    <!-- ログインカード -->
+    <div class="login-card">
+        <h2>ログイン</h2>
+
+        {% if error %}
+        <div class="alert py-2 mb-3" style="background:#fef2f2;border:1px solid #fecaca;border-radius:var(--radius-sm);color:#dc2626;font-size:0.82rem;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:5px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>{{ error }}
+        </div>
+        {% endif %}
+
+        <form method="POST" action="/login">
+            <div class="mb-3">
+                <label for="email" class="form-label">メールアドレス</label>
+                <input type="email" class="form-control" id="email" name="email"
+                       placeholder="admin@example.com" required autofocus
+                       value="{{ request.form.get('email', '') }}">
+            </div>
+            <div class="mb-4">
+                <label for="password" class="form-label">パスワード</label>
+                <input type="password" class="form-control" id="password" name="password"
+                       placeholder="パスワードを入力" required>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:6px;"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>ログイン
+            </button>
+        </form>
+
+        <div class="text-center mt-3" style="font-size:0.82rem;color:var(--muted);">
+            アカウントをお持ちでない方は
+            <a href="/register" style="color:var(--copper);text-decoration:none;font-weight:600;">新規登録はこちら</a>
+        </div>
+    </div>
+
+    <div class="login-footer">
+        &copy; ググラボ
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

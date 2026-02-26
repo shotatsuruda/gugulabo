@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>新規登録 | ググラボ</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
+    <style>
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg);
+        }
+        .login-wrap {
+            width: 100%;
+            max-width: 400px;
+            padding: 1rem;
+        }
+        .login-logo {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .login-logo-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--dark);
+            letter-spacing: 0.02em;
+        }
+        .login-logo-sub {
+            font-size: 0.75rem;
+            color: var(--muted);
+            margin-top: 0.2rem;
+        }
+        .login-card {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 2rem;
+            box-shadow: var(--shadow);
+        }
+        .login-card h2 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+        .login-footer {
+            text-align: center;
+            margin-top: 1.5rem;
+            font-size: 0.75rem;
+            color: var(--muted);
+        }
+        .field-error {
+            font-size: 0.78rem;
+            color: #dc2626;
+            margin-top: 0.3rem;
+        }
+        .form-control.is-invalid {
+            border-color: #fca5a5;
+            background-image: none;
+        }
+    </style>
+</head>
+<body>
+<div class="login-wrap">
+    <!-- ロゴ -->
+    <div class="login-logo">
+        <div class="login-logo-title">ググラボ</div>
+        <div class="login-logo-sub">店舗専用管理ページ</div>
+    </div>
+
+    <!-- 登録カード -->
+    <div class="login-card">
+        <h2>新規登録</h2>
+
+        <form method="POST" action="/register">
+            <!-- 名前 -->
+            <div class="mb-3">
+                <label for="name" class="form-label">名前</label>
+                <input type="text" class="form-control{% if errors.name %} is-invalid{% endif %}"
+                       id="name" name="name" placeholder="例：田中 太郎" required
+                       value="{{ form.get('name', '') }}">
+                {% if errors.name %}
+                <div class="field-error">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:3px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>{{ errors.name }}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- メールアドレス -->
+            <div class="mb-3">
+                <label for="email" class="form-label">メールアドレス</label>
+                <input type="email" class="form-control{% if errors.email %} is-invalid{% endif %}"
+                       id="email" name="email" placeholder="user@example.com" required
+                       value="{{ form.get('email', '') }}">
+                {% if errors.email %}
+                <div class="field-error">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:3px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>{{ errors.email }}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- パスワード -->
+            <div class="mb-3">
+                <label for="password" class="form-label">パスワード</label>
+                <input type="password" class="form-control{% if errors.password %} is-invalid{% endif %}"
+                       id="password" name="password" placeholder="6文字以上" required minlength="6">
+                {% if errors.password %}
+                <div class="field-error">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:3px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>{{ errors.password }}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- パスワード確認 -->
+            <div class="mb-4">
+                <label for="password_conf" class="form-label">パスワード（確認）</label>
+                <input type="password" class="form-control{% if errors.password_conf %} is-invalid{% endif %}"
+                       id="password_conf" name="password_conf" placeholder="もう一度入力" required>
+                {% if errors.password_conf %}
+                <div class="field-error">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:3px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>{{ errors.password_conf }}
+                </div>
+                {% endif %}
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:6px;"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>アカウントを作成
+            </button>
+        </form>
+
+        <div class="text-center mt-3" style="font-size:0.82rem;color:var(--muted);">
+            すでにアカウントをお持ちの方は
+            <a href="/login" style="color:var(--copper);text-decoration:none;font-weight:600;">ログイン</a>
+        </div>
+    </div>
+
+    <div class="login-footer">
+        &copy; ググラボ
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

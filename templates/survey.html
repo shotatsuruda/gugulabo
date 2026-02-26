@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>{{ shop.name }} | ググラボ</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* ===== リセット・ベース ===== */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --dark:   #2C2C2C;
+            --copper: #8C7B6B;
+            --bg:     #F5F3F0;
+            --border: #E8E4DF;
+            --white:  #FFFFFF;
+            --muted:  #9A9A9A;
+        }
+
+        body {
+            background-color: var(--bg);
+            min-height: 100vh;
+            font-family: 'Noto Sans JP', -apple-system, BlinkMacSystemFont, 'Hiragino Sans', sans-serif;
+            color: var(--dark);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ===== ページコンテナ ===== */
+        .page {
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 2.5rem 1.25rem 4rem;
+        }
+
+        /* ===== 店舗ヘッダー ===== */
+        .shop-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .shop-icon {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 0.625rem;
+            color: var(--copper);
+        }
+        .shop-name {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--dark);
+            letter-spacing: 0.01em;
+        }
+
+        /* ===== セクション表示切替 ===== */
+        .section { display: none; }
+        .section.active {
+            display: block;
+            animation: fadeUp 0.35s ease both;
+        }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(14px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ===== カード ===== */
+        .card {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 2rem 1.5rem;
+            border: 1px solid var(--border);
+            box-shadow: 0 1px 8px rgba(0, 0, 0, 0.05);
+            margin-bottom: 1rem;
+        }
+
+        /* ===== 見出し・サブテキスト ===== */
+        .heading {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--dark);
+            text-align: center;
+            margin-bottom: 0.375rem;
+        }
+        .subtext {
+            font-size: 0.875rem;
+            color: var(--muted);
+            text-align: center;
+            margin-bottom: 1.25rem;
+            line-height: 1.7;
+        }
+
+        /* ===== 星評価 ===== */
+        .stars-wrap {
+            display: flex;
+            justify-content: center;
+            gap: 0.375rem;
+            margin: 1.25rem 0;
+        }
+        .star-btn {
+            background: none;
+            border: none;
+            font-size: 2.75rem;
+            cursor: pointer;
+            color: var(--border);
+            transition: color 0.12s, transform 0.1s;
+            line-height: 1;
+            padding: 0.25rem;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+        .star-btn.lit { color: #f5a623; }
+        .star-btn:active { transform: scale(0.88); }
+        .rating-label {
+            text-align: center;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--copper);
+            min-height: 1.4em;
+            margin-top: 0.25rem;
+        }
+
+        /* ===== Googleレビューボタン ===== */
+        .btn-google {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            width: 100%;
+            padding: 0.875rem 1.5rem;
+            background: var(--white);
+            color: var(--dark);
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            font-family: inherit;
+            text-decoration: none;
+            cursor: pointer;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+        .btn-google:hover {
+            border-color: #dadce0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+        .google-g {
+            font-size: 1.1rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #4285f4, #34a853, #fbbc04, #ea4335);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* ===== メインボタン ===== */
+        .btn-main {
+            width: 100%;
+            padding: 0.875rem 1.5rem;
+            background-color: var(--dark);
+            color: var(--white);
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: background-color 0.15s;
+            margin-top: 0.75rem;
+        }
+        .btn-main:hover:not(:disabled) { background-color: #1a1a1a; }
+        .btn-main:disabled { background-color: var(--border); color: var(--muted); cursor: not-allowed; }
+
+        /* ===== テキストエリア ===== */
+        .survey-textarea {
+            width: 100%;
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            font-size: 0.9rem;
+            font-family: inherit;
+            color: var(--dark);
+            resize: vertical;
+            outline: none;
+            transition: border-color 0.15s;
+            line-height: 1.7;
+            background: var(--white);
+        }
+        .survey-textarea:focus { border-color: var(--copper); }
+
+        /* ===== クーポンカード ===== */
+        .coupon-card {
+            background: var(--white);
+            border: 1.5px solid var(--border);
+            border-top: 3px solid var(--copper);
+            border-radius: 12px;
+            padding: 1.5rem 1.5rem;
+            margin-bottom: 1rem;
+        }
+        .coupon-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.25rem;
+        }
+        .coupon-header-label {
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: var(--copper);
+        }
+        .coupon-name-text {
+            font-size: 0.8rem;
+            color: var(--muted);
+            margin-bottom: 0.375rem;
+        }
+        .coupon-discount {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 1rem;
+        }
+        .coupon-divider {
+            border: none;
+            border-top: 1px dashed var(--border);
+            margin: 1rem 0;
+        }
+        .coupon-input-label {
+            font-size: 0.8rem;
+            color: var(--muted);
+            margin-bottom: 0.5rem;
+        }
+        .coupon-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            background: var(--bg);
+            color: var(--dark);
+            font-size: 0.95rem;
+            font-family: inherit;
+            outline: none;
+            margin-bottom: 0.5rem;
+            transition: border-color 0.15s;
+        }
+        .coupon-input:focus { border-color: var(--copper); background: var(--white); }
+        .btn-coupon {
+            width: 100%;
+            padding: 0.8rem;
+            background-color: var(--copper);
+            border: none;
+            border-radius: 8px;
+            color: var(--white);
+            font-size: 0.9rem;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: background-color 0.15s;
+        }
+        .btn-coupon:hover:not(:disabled) { background-color: #7A6A5B; }
+        .btn-coupon:disabled { background-color: var(--border); color: var(--muted); cursor: not-allowed; }
+        .coupon-err {
+            color: #c0392b;
+            font-size: 0.8rem;
+            margin-top: 0.375rem;
+            display: none;
+        }
+
+        /* ===== クーポン受取後 ===== */
+        .coupon-result { display: none; }
+        .coupon-code-box {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+            margin: 0.75rem 0;
+        }
+        .coupon-code-label {
+            font-size: 0.72rem;
+            color: var(--muted);
+            margin-bottom: 6px;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+        .coupon-code {
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: 3px;
+            color: var(--dark);
+        }
+        .coupon-result-note {
+            font-size: 0.8rem;
+            color: var(--muted);
+            text-align: center;
+            line-height: 1.6;
+        }
+
+        /* ===== ご意見送信済み ===== */
+        .feedback-sent {
+            display: none;
+            text-align: center;
+            color: #2d6a4f;
+            font-weight: 600;
+            font-size: 0.875rem;
+            padding: 0.75rem;
+            background: #f0fdf4;
+            border: 1px solid #c8e6c9;
+            border-radius: 8px;
+            margin-top: 0.75rem;
+        }
+    </style>
+</head>
+<body>
+<div class="page">
+
+    <!-- 店舗ヘッダー -->
+    <div class="shop-header">
+        <div class="shop-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        </div>
+        <div class="shop-name">{{ shop.name }}</div>
+        <div style="font-size:0.72rem;color:#9A9A9A;margin-top:3px;letter-spacing:0.04em;">ググラボ</div>
+    </div>
+
+    {# ===== STEP 1: 星評価 ===== #}
+    <div class="section active" id="step-rating">
+        <div class="card">
+            <p class="heading">ご来店ありがとうございました！</p>
+            <p class="subtext">本日のご満足度をお聞かせください</p>
+
+            <div class="stars-wrap" id="stars-wrap">
+                {% for i in range(1, 6) %}
+                <button class="star-btn" data-val="{{ i }}" onclick="selectRating({{ i }})">★</button>
+                {% endfor %}
+            </div>
+
+            <p class="rating-label" id="rating-label">&nbsp;</p>
+        </div>
+    </div>
+
+    {# ===== STEP 2a: 高評価（★4〜5）===== #}
+    <div class="section" id="step-high">
+
+        <div class="card">
+            <div style="text-align:center;margin-bottom:1rem;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#8C7B6B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            </div>
+            <p class="heading">ありがとうございます！</p>
+            <p class="subtext">
+                よろしければ、Googleにクチコミをお寄せいただけますと<br>大変励みになります。
+            </p>
+            <a href="{{ shop.review_url }}" target="_blank" rel="noopener" class="btn-google">
+                <span class="google-g">G</span>
+                Googleレビューを書く
+            </a>
+        </div>
+
+        {% if coupon %}
+        <div class="coupon-card">
+            <div class="coupon-header">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8C7B6B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12v10H4V12"/><path d="M22 7H2v5h20V7z"/><path d="M12 22V7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
+                <span class="coupon-header-label">クーポン</span>
+            </div>
+            <p class="coupon-name-text">{{ coupon.coupon_name }}</p>
+            <p class="coupon-discount">{{ coupon.discount_text }}</p>
+
+            <hr class="coupon-divider">
+
+            <div id="coupon-form-high">
+                <p class="coupon-input-label">メールアドレスを入力してクーポンを受け取ってください</p>
+                <input type="email" class="coupon-input" id="coupon-email-high"
+                       placeholder="your@email.com" inputmode="email" autocomplete="email">
+                <p class="coupon-err" id="coupon-err-high"></p>
+                <button class="btn-coupon" id="coupon-btn-high" onclick="requestCoupon('high')">
+                    クーポンを受け取る
+                </button>
+            </div>
+
+            <div class="coupon-result" id="coupon-result-high"></div>
+        </div>
+        {% endif %}
+
+    </div>
+
+    {# ===== STEP 2b: 低評価（★1〜3）===== #}
+    <div class="section" id="step-low">
+
+        <div class="card">
+            <p class="heading">ご意見をお聞かせください</p>
+            <p class="subtext">
+                改善のため、お気づきの点をぜひ教えてください。<br>
+                <span style="font-size:0.78rem;">（任意・未入力でもクーポンを受け取れます）</span>
+            </p>
+
+            <textarea class="survey-textarea" id="feedback-text" rows="5"
+                      placeholder="例：施術は良かったですが、予約が取りにくかったです..."></textarea>
+
+            <button class="btn-main" id="feedback-submit-btn" onclick="submitFeedback()">
+                ご意見を送信する
+            </button>
+
+            <p class="feedback-sent" id="feedback-sent-msg">
+                ご意見を受け付けました。ありがとうございました。
+            </p>
+        </div>
+
+        {% if coupon %}
+        <div class="coupon-card">
+            <div class="coupon-header">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8C7B6B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12v10H4V12"/><path d="M22 7H2v5h20V7z"/><path d="M12 22V7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
+                <span class="coupon-header-label">クーポン</span>
+            </div>
+            <p class="coupon-name-text">{{ coupon.coupon_name }}</p>
+            <p class="coupon-discount">{{ coupon.discount_text }}</p>
+
+            <hr class="coupon-divider">
+
+            <div id="coupon-form-low">
+                <p class="coupon-input-label">メールアドレスを入力してクーポンを受け取ってください</p>
+                <input type="email" class="coupon-input" id="coupon-email-low"
+                       placeholder="your@email.com" inputmode="email" autocomplete="email">
+                <p class="coupon-err" id="coupon-err-low"></p>
+                <button class="btn-coupon" id="coupon-btn-low" onclick="requestCoupon('low')">
+                    クーポンを受け取る
+                </button>
+            </div>
+
+            <div class="coupon-result" id="coupon-result-low"></div>
+        </div>
+        {% endif %}
+
+    </div>
+
+</div>{# /page #}
+
+<script>
+const SHOP_SLUG = {{ shop.slug | tojson }};
+let selectedRating = 0;
+
+const RATING_LABELS = {
+    1: 'とても残念でした',
+    2: '残念でした',
+    3: '普通でした',
+    4: '良かったです！',
+    5: 'とても良かったです！',
+};
+
+function selectRating(rating) {
+    selectedRating = rating;
+    document.querySelectorAll('.star-btn').forEach(btn => {
+        btn.classList.toggle('lit', parseInt(btn.dataset.val) <= rating);
+    });
+    document.getElementById('rating-label').textContent = RATING_LABELS[rating] || '';
+    setTimeout(() => {
+        document.getElementById('step-rating').classList.remove('active');
+        document.getElementById(rating >= 4 ? 'step-high' : 'step-low').classList.add('active');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 550);
+}
+
+async function submitFeedback() {
+    const comment = document.getElementById('feedback-text').value.trim();
+    const btn = document.getElementById('feedback-submit-btn');
+    btn.disabled = true;
+    btn.textContent = '送信中...';
+    try {
+        await fetch(`/shop/${SHOP_SLUG}/feedback`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ rating: selectedRating, comment }),
+        });
+        document.getElementById('feedback-text').style.display = 'none';
+        btn.style.display = 'none';
+        document.getElementById('feedback-sent-msg').style.display = 'block';
+    } catch (_) {
+        btn.disabled = false;
+        btn.textContent = 'ご意見を送信する';
+        alert('送信に失敗しました。もう一度お試しください。');
+    }
+}
+
+async function requestCoupon(uid) {
+    const emailEl = document.getElementById(`coupon-email-${uid}`);
+    const btnEl   = document.getElementById(`coupon-btn-${uid}`);
+    const errEl   = document.getElementById(`coupon-err-${uid}`);
+    const email   = emailEl.value.trim();
+
+    if (!email || !email.includes('@')) {
+        errEl.textContent = 'メールアドレスを正しく入力してください。';
+        errEl.style.display = 'block';
+        return;
+    }
+    errEl.style.display = 'none';
+    btnEl.disabled = true;
+    btnEl.textContent = '送信中...';
+
+    try {
+        const res = await fetch(`/shop/${SHOP_SLUG}/coupon`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email }),
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            document.getElementById(`coupon-form-${uid}`).style.display = 'none';
+            const resultEl = document.getElementById(`coupon-result-${uid}`);
+            resultEl.innerHTML = `
+                <p style="text-align:center;font-weight:700;font-size:0.9rem;margin-bottom:0.75rem;color:#2C2C2C;">
+                    クーポンを送信しました！
+                </p>
+                <div class="coupon-code-box">
+                    <p class="coupon-code-label">クーポンコード</p>
+                    <p class="coupon-code">${esc(data.coupon_code)}</p>
+                </div>
+                <p class="coupon-result-note">
+                    有効期限: ${esc(data.expires_at)}<br>
+                    詳細は <strong>${esc(email)}</strong> にお送りしました。<br>
+                    ご来店の際にスタッフへコードをお伝えください。
+                </p>
+            `;
+            resultEl.style.display = 'block';
+        } else {
+            errEl.textContent = data.error || 'クーポンの送信に失敗しました。';
+            errEl.style.display = 'block';
+            btnEl.disabled = false;
+            btnEl.textContent = 'クーポンを受け取る';
+        }
+    } catch (_) {
+        errEl.textContent = '通信エラーが発生しました。もう一度お試しください。';
+        errEl.style.display = 'block';
+        btnEl.disabled = false;
+        btnEl.textContent = 'クーポンを受け取る';
+    }
+}
+
+function esc(s) {
+    return String(s)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+</script>
+</body>
+</html>

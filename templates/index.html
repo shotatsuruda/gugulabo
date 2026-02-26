@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+
+{% block title %}ホーム | ググラボ{% endblock %}
+
+{% block content %}
+
+<!-- ヒーローセクション -->
+<div class="home-hero">
+    <h1>レビュー管理センター</h1>
+    <hr class="home-divider">
+</div>
+
+<!-- 機能カード -->
+<div class="row g-4 justify-content-center">
+
+    <!-- QRコード生成カード -->
+    <div class="col-md-5">
+        <div class="card h-100 hover-card" style="overflow:hidden;">
+            <span class="feature-card-accent"></span>
+            <div class="card-body text-center p-5">
+                <div class="mb-4 d-flex justify-content-center">
+                    <svg class="feature-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="3" height="3"/><rect x="18" y="14" width="3" height="3"/><rect x="14" y="18" width="3" height="3"/><rect x="18" y="18" width="3" height="3"/></svg>
+                </div>
+                <h3 class="card-title fw-bold" style="font-size:1.1rem;">QRコード生成</h3>
+                <p class="card-text mt-3" style="font-size:0.875rem;color:#9A9A9A;line-height:1.7;">
+                    店舗のGoogleレビューQRコードを<br>おしゃれにデザインして生成します。
+                </p>
+                <ul class="list-unstyled text-start mt-3 mb-4" style="font-size:0.8rem;color:#9A9A9A;">
+                    <li class="d-flex align-items-start gap-2 mb-2">
+                        <svg class="feature-check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        複数店舗を登録・管理
+                    </li>
+                    <li class="d-flex align-items-start gap-2 mb-2">
+                        <svg class="feature-check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        グラデーション・カラー自由設定
+                    </li>
+                    <li class="d-flex align-items-start gap-2">
+                        <svg class="feature-check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        高解像度PNG・印刷用出力
+                    </li>
+                </ul>
+                <a href="/qr" class="btn btn-primary btn-lg w-100">QRコード生成画面へ</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI返答生成カード -->
+    <div class="col-md-5">
+        <div class="card h-100 hover-card" style="overflow:hidden;">
+            <span class="feature-card-accent"></span>
+            <div class="card-body text-center p-5">
+                <div class="mb-4 d-flex justify-content-center">
+                    <svg class="feature-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="13" y2="14"/></svg>
+                </div>
+                <h3 class="card-title fw-bold" style="font-size:1.1rem;">AI返答生成</h3>
+                <p class="card-text mt-3" style="font-size:0.875rem;color:#9A9A9A;line-height:1.7;">
+                    Googleレビューに対する返答文を<br>AIが自動で生成します。
+                </p>
+                <ul class="list-unstyled text-start mt-3 mb-4" style="font-size:0.8rem;color:#9A9A9A;">
+                    <li class="d-flex align-items-start gap-2 mb-2">
+                        <svg class="feature-check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        レビュー内容を貼り付けるだけ
+                    </li>
+                    <li class="d-flex align-items-start gap-2 mb-2">
+                        <svg class="feature-check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        丁寧な敬語で返答文を自動生成
+                    </li>
+                    <li class="d-flex align-items-start gap-2">
+                        <svg class="feature-check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        生成後に自由に編集・コピー可能
+                    </li>
+                </ul>
+                <a href="/review" class="btn btn-success btn-lg w-100">AI返答画面へ</a>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

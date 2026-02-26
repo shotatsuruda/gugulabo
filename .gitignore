@@ -1,0 +1,25 @@
+# 環境変数（APIキーなどの秘密情報）
+.env
+
+# Pythonキャッシュ
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# データベースファイル
+*.db
+*.sqlite3
+
+# 仮想環境
+venv/
+.venv/
+env/
+
+# IDE設定
+.vscode/
+.idea/
+*.swp
+
+# macOS
+.DS_Store

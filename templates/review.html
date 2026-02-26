@@ -1,0 +1,163 @@
+{% extends 'base.html' %}
+
+{% block title %}AI返答生成 | ググラボ{% endblock %}
+
+{% block content %}
+
+<div class="d-flex align-items-center gap-2 mb-4">
+    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8C7B6B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="13" y2="14"/></svg>
+    <h2 class="mb-0 fw-bold" style="font-size:1.2rem;">AI返答生成</h2>
+</div>
+
+<div class="row g-4">
+
+    <!-- レビュー入力エリア -->
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header">
+                <div class="ai-label-tag">INPUT</div>
+                <div class="fw-semibold" style="font-size:0.875rem;margin-top:2px;">Googleレビューを入力</div>
+            </div>
+            <div class="card-body d-flex flex-column p-4">
+                <label for="review_text" class="form-label">レビュー内容を貼り付けてください</label>
+                <textarea class="form-control flex-grow-1" id="review_text" rows="10"
+                          placeholder="例：施術がとても丁寧で、肩こりがスッキリしました。スタッフの方もとても親切で、また利用したいと思います。ただ、待合室が少し狭く感じました。"></textarea>
+                <div class="form-text mt-1 mb-3">Ctrl+Enter でも生成できます</div>
+                <div class="d-grid">
+                    <button type="button" id="generate_btn" class="btn btn-primary btn-lg"
+                            onclick="generateResponse()">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:5px;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                        AI返答を生成する
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI生成返答エリア -->
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header">
+                <div class="ai-label-tag">OUTPUT</div>
+                <div class="fw-semibold" style="font-size:0.875rem;margin-top:2px;">AI生成返答（編集可能）</div>
+            </div>
+            <div class="card-body d-flex flex-column p-4">
+
+                <!-- ローディングスピナー -->
+                <div id="loading" class="text-center py-5 d-none">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">生成中...</span>
+                    </div>
+                    <p class="mt-3" style="font-size:0.875rem;color:#9A9A9A;">AIが返答文を生成中です...</p>
+                </div>
+
+                <!-- エラーメッセージ -->
+                <div id="error_message" class="alert alert-danger d-none" role="alert">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:5px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    <span id="error_text"></span>
+                </div>
+
+                <!-- 生成された返答文 -->
+                <label for="response_text" class="form-label">返答文</label>
+                <textarea class="form-control flex-grow-1" id="response_text" rows="10"
+                          placeholder="左側にレビューを入力して「AI返答を生成する」ボタンを押してください..."></textarea>
+
+                <!-- 文字数カウンター -->
+                <div class="text-end mt-1 mb-3" style="font-size:0.75rem;color:#9A9A9A;">
+                    <span id="char_count">0</span> 文字
+                </div>
+
+                <!-- アクションボタン -->
+                <div class="d-grid gap-2">
+                    <button type="button" class="btn btn-outline-primary" onclick="copyResponse()">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:5px;"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                        クリップボードにコピー
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="generateResponse()">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:4px;"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                        再生成する
+                    </button>
+                </div>
+
+                <!-- コピー成功通知 -->
+                <div id="copy_toast" class="alert alert-success mt-3 d-none">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:5px;"><polyline points="20 6 9 17 4 12"/></svg>
+                    クリップボードにコピーしました！
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- 使い方ガイド -->
+<div class="card mt-4" style="background-color:#F5F3F0;">
+    <div class="card-body py-3 px-4">
+        <p class="mb-2" style="font-size:0.72rem;font-weight:700;color:#9A9A9A;letter-spacing:0.06em;text-transform:uppercase;">使い方</p>
+        <ol class="mb-0" style="font-size:0.82rem;color:#2C2C2C;padding-left:1.25rem;line-height:2;">
+            <li>GoogleビジネスプロフィールからレビューをコピーしてLeft側のテキストエリアに貼り付けます。</li>
+            <li>「AI返答を生成する」ボタンをクリックします。</li>
+            <li>生成された返答文は自由に編集できます。</li>
+            <li>「クリップボードにコピー」でコピーし、Googleに貼り付けて返答します。</li>
+        </ol>
+    </div>
+</div>
+
+{% endblock %}
+
+
+{% block scripts %}
+<script>
+    async function generateResponse() {
+        const reviewText = document.getElementById('review_text').value.trim();
+        if (!reviewText) { alert('レビュー内容を入力してください。'); return; }
+
+        document.getElementById('loading').classList.remove('d-none');
+        document.getElementById('error_message').classList.add('d-none');
+        document.getElementById('generate_btn').disabled = true;
+        document.getElementById('response_text').value = '';
+        updateCharCount();
+
+        try {
+            const formData = new FormData();
+            formData.append('review_text', reviewText);
+            const response = await fetch('/review/generate', { method: 'POST', body: formData });
+            const data = await response.json();
+
+            if (data.success) {
+                document.getElementById('response_text').value = data.response;
+                updateCharCount();
+            } else {
+                document.getElementById('error_text').textContent = data.error;
+                document.getElementById('error_message').classList.remove('d-none');
+            }
+        } catch (error) {
+            document.getElementById('error_text').textContent = '通信エラーが発生しました。サーバーを確認してください。';
+            document.getElementById('error_message').classList.remove('d-none');
+        } finally {
+            document.getElementById('loading').classList.add('d-none');
+            document.getElementById('generate_btn').disabled = false;
+        }
+    }
+
+    function copyResponse() {
+        const text = document.getElementById('response_text').value;
+        if (!text.trim()) { alert('コピーする内容がありません。'); return; }
+        navigator.clipboard.writeText(text).then(() => {
+            const toast = document.getElementById('copy_toast');
+            toast.classList.remove('d-none');
+            setTimeout(() => { toast.classList.add('d-none'); }, 2500);
+        }).catch(() => { alert('コピーに失敗しました。手動でテキストを選択してコピーしてください。'); });
+    }
+
+    function updateCharCount() {
+        document.getElementById('char_count').textContent = document.getElementById('response_text').value.length;
+    }
+
+    document.getElementById('response_text').addEventListener('input', updateCharCount);
+    document.getElementById('review_text').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && e.ctrlKey) generateResponse();
+    });
+</script>
+{% endblock %}
