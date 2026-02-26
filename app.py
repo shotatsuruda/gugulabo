@@ -228,6 +228,19 @@ def init_db():
 
 with app.app_context():
     init_db()
+    # 管理者が存在しない場合のみ初期管理者を自動作成
+    _conn = get_db()
+    _admin_exists = _conn.execute(
+        "SELECT 1 FROM users WHERE is_admin = 1 LIMIT 1"
+    ).fetchone()
+    if not _admin_exists:
+        _hash = bcrypt.hashpw(b"admin1234", bcrypt.gensalt()).decode()
+        _conn.execute(
+            "INSERT INTO users (email, password_hash, name, is_admin) VALUES (?, ?, ?, 1)",
+            ("admin@gugulabo.com", _hash, "管理者"),
+        )
+        _conn.commit()
+    _conn.close()
 
 
 # ===== クーポン関連ユーティリティ =====
