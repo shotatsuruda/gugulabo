@@ -585,6 +585,477 @@ footer {
 }
 
 /* ============================================================
+   ランディングページ
+   ============================================================ */
+
+/* body リセット */
+.lp-body {
+    background-color: #fff;
+    font-family: 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif;
+    color: var(--dark);
+    -webkit-font-smoothing: antialiased;
+}
+
+/* ----- ナビ ----- */
+.lp-nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background-color: var(--white);
+    border-bottom: 1px solid var(--border);
+    padding: 0.875rem 0;
+}
+
+.lp-nav-logo {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--dark);
+    text-decoration: none;
+    letter-spacing: 0.01em;
+}
+
+.lp-nav-login {
+    font-size: 0.875rem;
+    color: var(--muted);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.15s;
+}
+
+.lp-nav-login:hover {
+    color: var(--dark);
+}
+
+/* ----- ヒーロー ----- */
+.lp-hero {
+    background-color: var(--dark);
+    padding: 6rem 0 5.5rem;
+}
+
+.lp-hero-eyebrow {
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--copper);
+    margin-bottom: 1.25rem;
+}
+
+.lp-hero-title {
+    font-size: clamp(2rem, 5vw, 3.25rem);
+    font-weight: 700;
+    color: #ffffff;
+    line-height: 1.25;
+    letter-spacing: -0.02em;
+    margin-bottom: 1.25rem;
+}
+
+.lp-hero-sub {
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0.65);
+    line-height: 1.7;
+    margin-bottom: 0;
+}
+
+.lp-btn-hero {
+    background-color: var(--copper);
+    border-color: var(--copper);
+    color: #ffffff;
+    font-weight: 600;
+    padding: 0.75rem 2rem;
+    border-radius: var(--radius-sm);
+    font-size: 1rem;
+    transition: background-color 0.15s, border-color 0.15s;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.lp-btn-hero:hover,
+.lp-btn-hero:focus {
+    background-color: var(--copper-hover);
+    border-color: var(--copper-hover);
+    color: #ffffff;
+}
+
+.lp-hero-login-link {
+    font-size: 0.875rem;
+    color: rgba(255, 255, 255, 0.55);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.15s;
+}
+
+.lp-hero-login-link:hover {
+    color: rgba(255, 255, 255, 0.85);
+}
+
+/* ----- セクション共通 ----- */
+.lp-section {
+    padding: 5rem 0;
+}
+
+@media (max-width: 767px) {
+    .lp-section {
+        padding: 3.5rem 0;
+    }
+    .lp-hero {
+        padding: 4rem 0;
+    }
+}
+
+.lp-section-bg {
+    background-color: var(--bg);
+}
+
+.lp-section-header {
+    margin-bottom: 0.5rem;
+}
+
+.lp-section-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--copper);
+    margin-bottom: 0.75rem;
+}
+
+.lp-section-title {
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    font-weight: 700;
+    color: var(--dark);
+    letter-spacing: -0.01em;
+    margin-bottom: 1rem;
+}
+
+.lp-section-desc {
+    font-size: 0.925rem;
+    color: var(--muted);
+    line-height: 1.8;
+    margin-bottom: 0;
+}
+
+/* ----- 統計カード ----- */
+.lp-stat-card {
+    padding: 2rem 1.5rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background-color: #fff;
+    height: 100%;
+}
+
+.lp-stat-number {
+    font-size: 3.25rem;
+    font-weight: 700;
+    color: var(--copper);
+    line-height: 1;
+    margin-bottom: 0.875rem;
+    letter-spacing: -0.02em;
+}
+
+.lp-stat-unit {
+    font-size: 1.75rem;
+    font-weight: 700;
+}
+
+.lp-stat-label {
+    font-size: 0.875rem;
+    color: var(--dark);
+    line-height: 1.6;
+    margin-bottom: 0.75rem;
+}
+
+.lp-stat-source {
+    font-size: 0.7rem;
+    color: var(--muted);
+    margin-bottom: 0;
+}
+
+/* ----- ダメージボックス ----- */
+.lp-damage-box {
+    background-color: #fdf8f6;
+    border: 1px solid #e8d8d0;
+    border-left: 4px solid var(--copper);
+    border-radius: var(--radius);
+    padding: 1.5rem 1.75rem;
+}
+
+.lp-damage-icon {
+    color: var(--copper);
+    margin-top: 2px;
+}
+
+.lp-damage-title {
+    font-size: 0.975rem;
+    font-weight: 700;
+    color: var(--dark);
+    margin-bottom: 0.5rem;
+}
+
+.lp-damage-desc {
+    font-size: 0.875rem;
+    color: #555;
+    line-height: 1.75;
+}
+
+/* ----- 特徴カード ----- */
+.lp-feature-card {
+    background-color: #fff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.75rem;
+    height: 100%;
+    display: flex;
+    align-items: flex-start;
+    gap: 1.125rem;
+    transition: box-shadow 0.2s, transform 0.2s;
+}
+
+.lp-feature-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-3px);
+}
+
+.lp-feature-icon {
+    flex-shrink: 0;
+    width: 48px;
+    height: 48px;
+    background-color: rgba(140, 123, 107, 0.1);
+    border-radius: var(--radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--copper);
+}
+
+.lp-feature-title {
+    font-size: 0.975rem;
+    font-weight: 700;
+    color: var(--dark);
+    margin-bottom: 0.5rem;
+}
+
+.lp-feature-desc {
+    font-size: 0.85rem;
+    color: var(--muted);
+    line-height: 1.75;
+    margin-bottom: 0;
+}
+
+/* ----- ステップカード ----- */
+.lp-step-card {
+    padding: 2rem 1.5rem;
+    height: 100%;
+}
+
+.lp-step-num {
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: var(--copper);
+    margin-bottom: 1rem;
+}
+
+.lp-step-icon {
+    width: 64px;
+    height: 64px;
+    background-color: rgba(140, 123, 107, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--copper);
+    margin: 0 auto 1.25rem;
+}
+
+.lp-step-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--dark);
+    margin-bottom: 0.625rem;
+}
+
+.lp-step-desc {
+    font-size: 0.85rem;
+    color: var(--muted);
+    line-height: 1.75;
+    margin-bottom: 0;
+}
+
+/* ----- 料金プラン ----- */
+.lp-free-banner {
+    background-color: rgba(140, 123, 107, 0.1);
+    border: 1px solid rgba(140, 123, 107, 0.25);
+    border-radius: 999px;
+    padding: 0.5rem 1.25rem;
+    font-size: 0.825rem;
+    font-weight: 600;
+    color: var(--copper);
+    display: inline-block;
+}
+
+.lp-plan-card {
+    background-color: #fff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 2rem 1.75rem;
+    height: 100%;
+    position: relative;
+}
+
+.lp-plan-featured {
+    border-color: var(--copper);
+    border-width: 2px;
+}
+
+.lp-plan-badge {
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: var(--copper);
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    padding: 0.25rem 0.875rem;
+    border-radius: 999px;
+    white-space: nowrap;
+}
+
+.lp-plan-name {
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+}
+
+.lp-plan-price {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--dark);
+    line-height: 1;
+    margin-bottom: 0.25rem;
+    letter-spacing: -0.02em;
+}
+
+.lp-plan-currency {
+    font-size: 1.25rem;
+    vertical-align: top;
+    margin-top: 0.5rem;
+    display: inline-block;
+}
+
+.lp-plan-period {
+    font-size: 1rem;
+    font-weight: 400;
+    color: var(--muted);
+}
+
+.lp-plan-monthly-note {
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin-bottom: 1.25rem;
+}
+
+.lp-plan-features {
+    margin-top: 1.25rem;
+    margin-bottom: 0;
+}
+
+.lp-plan-feature-item {
+    font-size: 0.875rem;
+    color: var(--dark);
+    padding: 0.4rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.lp-plan-feature-item:last-child {
+    border-bottom: none;
+}
+
+.lp-plan-feature-item svg {
+    color: var(--copper);
+    flex-shrink: 0;
+}
+
+.lp-cta-note {
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin-bottom: 0;
+}
+
+/* ----- お問い合わせ ----- */
+.lp-contact-form {
+    margin-top: 0.5rem;
+}
+
+.lp-contact-submit {
+    padding: 0.7rem;
+    font-size: 0.925rem;
+    font-weight: 600;
+}
+
+.lp-contact-success {
+    padding: 3rem 1rem;
+}
+
+.lp-success-icon {
+    width: 60px;
+    height: 60px;
+    background-color: rgba(140, 123, 107, 0.12);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--copper);
+}
+
+.lp-success-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--dark);
+    margin-bottom: 0.75rem;
+}
+
+.lp-success-desc {
+    font-size: 0.875rem;
+    color: var(--muted);
+    line-height: 1.75;
+    margin-bottom: 0;
+}
+
+/* ----- フッター ----- */
+.lp-footer {
+    background-color: var(--dark);
+    padding: 3rem 0 2.5rem;
+}
+
+.lp-footer-logo {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 0.5rem;
+}
+
+.lp-footer-tagline {
+    font-size: 0.825rem;
+    color: rgba(255, 255, 255, 0.45);
+    margin-bottom: 1.5rem;
+}
+
+.lp-footer-copy {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.3);
+    margin-bottom: 0;
+}
+
+/* ============================================================
    AI返答生成ページ
    ============================================================ */
 .ai-label-tag {

@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>গগুলাবো | 全ての店舗にお客様の声を</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
+</head>
+<body class="lp-body">
+
+<!-- ナビゲーション -->
+<nav class="lp-nav">
+    <div class="container d-flex align-items-center justify-content-between">
+        <a href="/" class="lp-nav-logo">গগুলাবো</a>
+        <div class="lp-nav-links">
+            <a href="/login" class="lp-nav-login">ログインはこちら</a>
+            <a href="/register" class="btn btn-primary btn-sm ms-3">無料で始める</a>
+        </div>
+    </div>
+</nav>
+
+<!-- ヒーロー -->
+<section class="lp-hero">
+    <div class="container">
+        <div class="lp-hero-inner text-center">
+            <p class="lp-hero-eyebrow">Googleレビュー管理ツール</p>
+            <h1 class="lp-hero-title">全ての店舗に<br>お客様の声を</h1>
+            <p class="lp-hero-sub">お客様と本音でのつながりをご提供いたします</p>
+            <div class="lp-hero-cta d-flex flex-column flex-sm-row align-items-center justify-content-center gap-3 mt-4">
+                <a href="/register" class="btn lp-btn-hero btn-lg">無料で始める</a>
+                <a href="/login" class="lp-hero-login-link">ログインはこちら</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Googleレビューの重要性 -->
+<section class="lp-section bg-white">
+    <div class="container">
+        <div class="lp-section-header text-center">
+            <p class="lp-section-label">Why Reviews Matter</p>
+            <h2 class="lp-section-title">星評価が集客に直結する時代</h2>
+            <p class="lp-section-desc">
+                現代の消費者はお店を選ぶ前に必ずオンラインレビューを確認します。<br class="d-none d-md-block">
+                高評価の積み重ねが、そのまま集客と売上に直結する時代です。
+            </p>
+        </div>
+
+        <div class="row g-4 mt-1">
+            <div class="col-md-4">
+                <div class="lp-stat-card text-center">
+                    <div class="lp-stat-number">93<span class="lp-stat-unit">%</span></div>
+                    <p class="lp-stat-label">の消費者が来店前にオンラインレビューを確認してから行動する</p>
+                    <p class="lp-stat-source">BrightLocal Consumer Survey</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="lp-stat-card text-center">
+                    <div class="lp-stat-number">22<span class="lp-stat-unit">%</span></div>
+                    <p class="lp-stat-label">低評価が1件あるだけで来店検討者の約22%が離脱・競合へ流れる</p>
+                    <p class="lp-stat-source">Moz Local Search Ranking Factors</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="lp-stat-card text-center">
+                    <div class="lp-stat-number">3<span class="lp-stat-unit">倍</span></div>
+                    <p class="lp-stat-label">星4.0以上の店舗は低評価の店舗と比べて3倍の問い合わせを獲得</p>
+                    <p class="lp-stat-source">Google ビジネスプロフィール データ</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="lp-damage-box mt-5 d-flex align-items-start gap-4">
+            <div class="lp-damage-icon flex-shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                    <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+            </div>
+            <div>
+                <h4 class="lp-damage-title">低評価レビューが与えるダメージ</h4>
+                <p class="lp-damage-desc mb-0">
+                    一度ついた低評価は長期間インターネット上に残り続けます。「技術は良かったけど対応が…」という1件のコメントが、何百人もの新規顧客候補に見られ続けます。大切なのは、<strong>低評価をつけられる前にキャッチすること</strong>です。
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ツールの特徴・メリット -->
+<section class="lp-section lp-section-bg">
+    <div class="container">
+        <div class="lp-section-header text-center">
+            <p class="lp-section-label">Features</p>
+            <h2 class="lp-section-title">গগুলাবোができること</h2>
+            <p class="lp-section-desc">
+                QRコードを1枚置くだけで、レビュー管理が自動化されます。
+            </p>
+        </div>
+
+        <div class="row g-4 mt-1">
+            <!-- 特徴1 -->
+            <div class="col-md-6">
+                <div class="lp-feature-card">
+                    <div class="lp-feature-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+                            <rect x="3" y="14" width="7" height="7" rx="1"/>
+                            <rect x="14" y="14" width="3" height="3"/><rect x="18" y="14" width="3" height="3"/>
+                            <rect x="14" y="18" width="3" height="3"/><rect x="18" y="18" width="3" height="3"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="lp-feature-title">QRコードを置くだけで始められる</h3>
+                        <p class="lp-feature-desc">
+                            店頭にQRコードを設置するだけで準備完了。お客様はスマホでスキャンするだけで、簡単にアンケートに答えられます。専門知識は一切不要です。
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <!-- 特徴2 -->
+            <div class="col-md-6">
+                <div class="lp-feature-card">
+                    <div class="lp-feature-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="lp-feature-title">高評価のお客様だけをGoogleへ誘導</h3>
+                        <p class="lp-feature-desc">
+                            アンケートで星4〜5をつけたお客様のみ、Googleレビューへのリンクを表示。自然と高評価レビューが集まる仕組みを自動で作ります。
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <!-- 特徴3 -->
+            <div class="col-md-6">
+                <div class="lp-feature-card">
+                    <div class="lp-feature-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="lp-feature-title">低評価はシステム内でキャッチ</h3>
+                        <p class="lp-feature-desc">
+                            星1〜3の低評価はGoogleに流れず、システム内のフィードバックとして受け取ります。改善につなげながら、お店のレビュー評価を守ります。
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <!-- 特徴4 -->
+            <div class="col-md-6">
+                <div class="lp-feature-card">
+                    <div class="lp-feature-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                            <line x1="8" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="13" y2="14"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="lp-feature-title">AI返答生成で返信が簡単</h3>
+                        <p class="lp-feature-desc">
+                            Googleに届いたレビューへの返信文をAIが自動生成。丁寧な敬語の返答文を数秒で作成し、オーナーとしての誠実な印象を与えます。
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 導入方法 -->
+<section class="lp-section bg-white">
+    <div class="container">
+        <div class="lp-section-header text-center">
+            <p class="lp-section-label">How to Start</p>
+            <h2 class="lp-section-title">たった3ステップで導入完了</h2>
+            <p class="lp-section-desc">複雑な設定は一切不要。最短5分で始められます。</p>
+        </div>
+
+        <div class="row g-4 mt-2 justify-content-center">
+            <div class="col-md-4">
+                <div class="lp-step-card text-center">
+                    <div class="lp-step-num">STEP 1</div>
+                    <div class="lp-step-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                        </svg>
+                    </div>
+                    <h3 class="lp-step-title">アカウント登録</h3>
+                    <p class="lp-step-desc">メールアドレスとパスワードだけで今すぐ登録。クレジットカード不要で初月無料からお試しいただけます。</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="lp-step-card text-center">
+                    <div class="lp-step-num">STEP 2</div>
+                    <div class="lp-step-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+                            <rect x="3" y="14" width="7" height="7" rx="1"/>
+                            <polyline points="14 17 17 20 22 14"/>
+                        </svg>
+                    </div>
+                    <h3 class="lp-step-title">QRコード生成・印刷</h3>
+                    <p class="lp-step-desc">店舗のGoogleレビューURLを入力するだけでQRコードを自動生成。カラーやデザインもカスタマイズできます。</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="lp-step-card text-center">
+                    <div class="lp-step-num">STEP 3</div>
+                    <div class="lp-step-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                            <polyline points="9 22 9 12 15 12 15 22"/>
+                        </svg>
+                    </div>
+                    <h3 class="lp-step-title">店頭に設置するだけ</h3>
+                    <p class="lp-step-desc">印刷したQRコードをレジやテーブルに置けば完了。あとはお客様が自然にスキャンして、高評価レビューが集まり始めます。</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 料金 -->
+<section class="lp-section lp-section-bg" id="pricing">
+    <div class="container">
+        <div class="lp-section-header text-center">
+            <p class="lp-section-label">Pricing</p>
+            <h2 class="lp-section-title">シンプルな料金プラン</h2>
+        </div>
+
+        <div class="lp-free-banner text-center mx-auto mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:6px;">
+                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            初月無料キャンペーン実施中 — クレジットカード不要で今すぐお試しいただけます
+        </div>
+
+        <div class="row g-4 justify-content-center">
+            <!-- 月額プラン -->
+            <div class="col-md-5">
+                <div class="lp-plan-card">
+                    <p class="lp-plan-name">月額プラン</p>
+                    <div class="lp-plan-price">
+                        <span class="lp-plan-currency">¥</span>980
+                        <span class="lp-plan-period">/月</span>
+                    </div>
+                    <ul class="lp-plan-features list-unstyled">
+                        <li class="lp-plan-feature-item">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                            店舗数 無制限
+                        </li>
+                        <li class="lp-plan-feature-item">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                            QRコード生成・カスタマイズ
+                        </li>
+                        <li class="lp-plan-feature-item">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                            低評価フィルタリング
+                        </li>
+                        <li class="lp-plan-feature-item">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                            AI返答文生成
+                        </li>
+                        <li class="lp-plan-feature-item">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                            クーポン配信機能
+                        </li>
+                    </ul>
+                    <a href="/register" class="btn btn-outline-primary w-100 mt-3">無料で始める</a>
+                </div>
+            </div>
+
+            <!-- 年払いプラン -->
+            <div class="col-md-5">
+                <div class="lp-plan-card lp-plan-featured">
+                    <div class="lp-plan-badge">2ヶ月分お得</div>
+                    <p class="lp-plan-name">年払いプラン</p>
+                    <div class="lp-plan-price">
+                        <span class="lp-plan-currency">¥</span>9,800
+                        <span class="lp-plan-period">/年</span>
+                    </div>
+                    <p class="lp-plan-monthly-note">月あたり約817円</p>
+                    <ul class="lp-plan-features list-unstyled">
+                        <li class="lp-plan-feature-item">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                            店舗数 無制限
+                        </li>
+                        <li class="lp-plan-feature-item">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                            QRコード生成・カスタマイズ
+                        </li>
+                        <li class="lp-plan-feature-item">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                            低評価フィルタリング
+                        </li>
+                        <li class="lp-plan-feature-item">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                            AI返答文生成
+                        </li>
+                        <li class="lp-plan-feature-item">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                            クーポン配信機能
+                        </li>
+                    </ul>
+                    <a href="/register" class="btn btn-primary w-100 mt-3">無料で始める</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mt-5">
+            <a href="/register" class="btn lp-btn-hero btn-lg">今すぐ無料で始める</a>
+            <p class="lp-cta-note mt-3">初月無料 / クレジットカード不要 / いつでも解約可能</p>
+        </div>
+    </div>
+</section>
+
+<!-- お問い合わせ -->
+<section class="lp-section bg-white" id="contact">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                <div class="lp-section-header text-center">
+                    <p class="lp-section-label">Contact</p>
+                    <h2 class="lp-section-title">お問い合わせ</h2>
+                    <p class="lp-section-desc">ご不明な点はお気軽にご連絡ください。</p>
+                </div>
+
+                <form id="contactForm" class="lp-contact-form" novalidate>
+                    <div class="mb-3">
+                        <label class="form-label" for="cName">お名前</label>
+                        <input type="text" id="cName" class="form-control" placeholder="山田 太郎" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="cEmail">メールアドレス</label>
+                        <input type="email" id="cEmail" class="form-control" placeholder="example@mail.com" required>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label" for="cMessage">お問い合わせ内容</label>
+                        <textarea id="cMessage" class="form-control" rows="5" placeholder="ご質問・ご要望をお書きください" required></textarea>
+                    </div>
+                    <p id="contactError" class="text-danger small mb-2" style="display:none;">すべての項目を入力してください。</p>
+                    <button type="submit" class="btn btn-primary w-100 lp-contact-submit" id="contactSubmitBtn">
+                        送信する
+                    </button>
+                </form>
+
+                <div id="contactSuccess" class="lp-contact-success text-center" style="display:none;">
+                    <div class="lp-success-icon mx-auto mb-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                    </div>
+                    <h3 class="lp-success-title">お問い合わせを受け付けました</h3>
+                    <p class="lp-success-desc">内容を確認のうえ、担当者よりご連絡いたします。<br>しばらくお待ちください。</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- フッター -->
+<footer class="lp-footer">
+    <div class="container text-center">
+        <p class="lp-footer-logo">গগুলাবো</p>
+        <p class="lp-footer-tagline">全ての店舗にお客様の声を</p>
+        <p class="lp-footer-copy">&copy; 2024 গগुলাবো All rights reserved.</p>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+(function () {
+    const form = document.getElementById('contactForm');
+    const successEl = document.getElementById('contactSuccess');
+    const errorEl = document.getElementById('contactError');
+    const submitBtn = document.getElementById('contactSubmitBtn');
+
+    form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        const name    = document.getElementById('cName').value.trim();
+        const email   = document.getElementById('cEmail').value.trim();
+        const message = document.getElementById('cMessage').value.trim();
+
+        if (!name || !email || !message) {
+            errorEl.style.display = 'block';
+            return;
+        }
+        errorEl.style.display = 'none';
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = '送信中...';
+
+        try {
+            await fetch('/contact', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, email, message }),
+            });
+        } catch (_) {}
+
+        form.style.display = 'none';
+        successEl.style.display = 'block';
+    });
+})();
+</script>
+</body>
+</html>

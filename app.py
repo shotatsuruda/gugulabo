@@ -605,12 +605,46 @@ def logout():
     return redirect(url_for("login"))
 
 
-# ----- ホーム -----
+# ----- ホーム / ランディングページ -----
 
 @app.route("/")
-@login_required
 def index():
-    return render_template("index.html", shop_name=SHOP_NAME)
+    if current_user.is_authenticated:
+        return redirect(url_for("qr_form"))
+    return render_template("landing.html")
+
+
+@app.route("/contact", methods=["POST"])
+def contact():
+    """お問い合わせフォームの送信を受け付け、admin@gugulabo.com にメール通知する"""
+    data = request.get_json(silent=True) or {}
+    name    = (data.get("name")    or "").strip()
+    email   = (data.get("email")   or "").strip()
+    message = (data.get("message") or "").strip()
+
+    if not name or not email or not message:
+        return jsonify({"success": False, "error": "全ての項目を入力してください"})
+
+    if MAIL_USERNAME and MAIL_PASSWORD:
+        try:
+            msg = MIMEMultipart()
+            msg["From"]    = MAIL_FROM or MAIL_USERNAME
+            msg["To"]      = "admin@gugulabo.com"
+            msg["Subject"] = f"【গগुলाবো お問い合わせ】{name}様より"
+            body = (
+                f"お名前　　: {name}\n"
+                f"メール　　: {email}\n\n"
+                f"お問い合わせ内容:\n{message}"
+            )
+            msg.attach(MIMEText(body, "plain", "utf-8"))
+            with smtplib.SMTP(MAIL_SMTP_HOST, MAIL_SMTP_PORT) as server:
+                server.starttls()
+                server.login(MAIL_USERNAME, MAIL_PASSWORD)
+                server.sendmail(msg["From"], "admin@gugulabo.com", msg.as_string())
+        except Exception:
+            pass  # メール送信失敗しても受付完了として返す
+
+    return jsonify({"success": True})
 
 
 # ----- 顧客向けアンケート（ログイン不要） -----
