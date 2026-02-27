@@ -67,6 +67,15 @@ MAIL_PASSWORD = os.environ.get("MAIL_PASSWORD", "")
 MAIL_FROM = os.environ.get("MAIL_FROM", MAIL_USERNAME)
 
 DATABASE = os.path.join(os.path.dirname(__file__), "review_system.db")
+DATABASE_URL = os.environ.get("DATABASE_URL")
+DB_TYPE = "postgresql" if DATABASE_URL else "sqlite"
+
+if DB_TYPE == "postgresql":
+    import psycopg2
+    import psycopg2.extras
+    DBIntegrityError = psycopg2.IntegrityError
+else:
+    DBIntegrityError = sqlite3.IntegrityError
 
 
 # ===== Flask-Login 設定 =====
@@ -110,8 +119,57 @@ def admin_required(f):
 
 # ===== データベース =====
 
+class _PgCursor:
+    """psycopg2カーソルをsqlite3カーソルのように扱うラッパー"""
+
+    def __init__(self, cursor, is_insert=False):
+        self._cursor = cursor
+        self.lastrowid = None
+        if is_insert:
+            row = cursor.fetchone()
+            if row:
+                self.lastrowid = row["id"]
+
+    def fetchone(self):
+        return self._cursor.fetchone()
+
+    def fetchall(self):
+        return self._cursor.fetchall()
+
+
+class _PgConn:
+    """psycopg2接続をsqlite3接続のように扱うラッパー"""
+
+    def __init__(self, conn):
+        self._conn = conn
+
+    def execute(self, sql, params=None):
+        is_insert = sql.strip().upper().startswith("INSERT")
+        pg_sql = sql.replace("?", "%s")
+        if is_insert and "RETURNING" not in sql.upper():
+            pg_sql = pg_sql.rstrip().rstrip(";") + " RETURNING id"
+        cursor = self._conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        if params is not None:
+            cursor.execute(pg_sql, params)
+        else:
+            cursor.execute(pg_sql)
+        return _PgCursor(cursor, is_insert=is_insert)
+
+    def commit(self):
+        self._conn.commit()
+
+    def close(self):
+        self._conn.close()
+
+    def rollback(self):
+        self._conn.rollback()
+
+
 def get_db():
     """データベース接続を返す"""
+    if DB_TYPE == "postgresql":
+        conn = psycopg2.connect(DATABASE_URL)
+        return _PgConn(conn)
     conn = sqlite3.connect(DATABASE)
     conn.row_factory = sqlite3.Row
     return conn
@@ -121,11 +179,14 @@ def init_db():
     """データベースとテーブルを初期化する"""
     conn = get_db()
 
+    # データベース種別に応じた主キー構文
+    pk = "SERIAL PRIMARY KEY" if DB_TYPE == "postgresql" else "INTEGER PRIMARY KEY AUTOINCREMENT"
+
     # ユーザーテーブル
     conn.execute(
-        """
+        f"""
         CREATE TABLE IF NOT EXISTS users (
-            id            INTEGER PRIMARY KEY AUTOINCREMENT,
+            id            {pk},
             email         TEXT NOT NULL UNIQUE,
             password_hash TEXT NOT NULL,
             name          TEXT NOT NULL,
@@ -137,9 +198,9 @@ def init_db():
 
     # 店舗テーブル
     conn.execute(
-        """
+        f"""
         CREATE TABLE IF NOT EXISTS shops (
-            id         INTEGER PRIMARY KEY AUTOINCREMENT,
+            id         {pk},
             name       TEXT NOT NULL,
             review_url TEXT NOT NULL,
             slug       TEXT UNIQUE,
@@ -148,23 +209,22 @@ def init_db():
         """
     )
 
-    # 既存テーブルへの slug カラム追加（初回マイグレーション）
-    try:
-        conn.execute("ALTER TABLE shops ADD COLUMN slug TEXT")
-    except Exception:
-        pass  # カラムが既に存在する場合はスキップ
-
-    # 既存テーブルへの user_id カラム追加（認証マイグレーション）
-    try:
-        conn.execute("ALTER TABLE shops ADD COLUMN user_id INTEGER REFERENCES users(id)")
-    except Exception:
-        pass  # カラムが既に存在する場合はスキップ
+    # 既存テーブルへの slug / user_id カラム追加（マイグレーション）
+    if DB_TYPE == "postgresql":
+        conn.execute("ALTER TABLE shops ADD COLUMN IF NOT EXISTS slug TEXT")
+        conn.execute("ALTER TABLE shops ADD COLUMN IF NOT EXISTS user_id INTEGER REFERENCES users(id)")
+    else:
+        try:
+            conn.execute("ALTER TABLE shops ADD COLUMN slug TEXT")
+        except Exception:
+            pass  # カラムが既に存在する場合はスキップ
+        try:
+            conn.execute("ALTER TABLE shops ADD COLUMN user_id INTEGER REFERENCES users(id)")
+        except Exception:
+            pass  # カラムが既に存在する場合はスキップ
 
     # slug のユニークインデックス（既にあればスキップ）
-    try:
-        conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_shops_slug ON shops(slug)")
-    except Exception:
-        pass
+    conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_shops_slug ON shops(slug)")
 
     conn.commit()
 
@@ -180,9 +240,9 @@ def init_db():
 
     # クーポン設定テーブル（店舗ごとに1件）
     conn.execute(
-        """
+        f"""
         CREATE TABLE IF NOT EXISTS coupons (
-            id            INTEGER PRIMARY KEY AUTOINCREMENT,
+            id            {pk},
             shop_id       INTEGER NOT NULL UNIQUE,
             coupon_name   TEXT NOT NULL DEFAULT 'ご来店感謝クーポン',
             discount_text TEXT NOT NULL DEFAULT '次回施術10%オフ',
@@ -195,9 +255,9 @@ def init_db():
 
     # お客様のご意見テーブル（★1〜3のフィードバック）
     conn.execute(
-        """
+        f"""
         CREATE TABLE IF NOT EXISTS feedbacks (
-            id           INTEGER PRIMARY KEY AUTOINCREMENT,
+            id           {pk},
             shop_id      INTEGER NOT NULL,
             rating       INTEGER NOT NULL,
             comment      TEXT,
@@ -208,9 +268,9 @@ def init_db():
 
     # クーポン送信履歴テーブル
     conn.execute(
-        """
+        f"""
         CREATE TABLE IF NOT EXISTS coupon_deliveries (
-            id            INTEGER PRIMARY KEY AUTOINCREMENT,
+            id            {pk},
             shop_id       INTEGER NOT NULL,
             email         TEXT NOT NULL,
             coupon_code   TEXT NOT NULL,
@@ -236,8 +296,8 @@ with app.app_context():
     if not _admin_exists:
         _hash = bcrypt.hashpw(b"admin1234", bcrypt.gensalt()).decode()
         _conn.execute(
-            "INSERT INTO users (email, password_hash, name, is_admin) VALUES (?, ?, ?, 1)",
-            ("admin@gugulabo.com", _hash, "管理者"),
+            "INSERT INTO users (email, password_hash, name, is_admin) VALUES (?, ?, ?, ?)",
+            ("admin@gugulabo.com", _hash, "管理者", 1),
         )
         _conn.commit()
     _conn.close()
@@ -532,7 +592,7 @@ def register():
                 user = User(user_id, form["email"], form["name"], False)
                 login_user(user)
                 return redirect(url_for("qr_form"))
-            except sqlite3.IntegrityError:
+            except DBIntegrityError:
                 errors["email"] = "そのメールアドレスはすでに登録されています。"
 
     return render_template("register.html", errors=errors, form=form)
@@ -926,7 +986,7 @@ def admin_create_user():
         conn.commit()
         conn.close()
         flash(f"ユーザー「{name}」を作成しました。", "success")
-    except sqlite3.IntegrityError:
+    except DBIntegrityError:
         flash("そのメールアドレスはすでに登録されています。", "danger")
 
     return redirect(url_for("admin_users"))
