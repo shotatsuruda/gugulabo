@@ -1000,18 +1000,10 @@ def generate_response():
 def admin_users():
     """管理者向けユーザー管理画面"""
     conn = get_db()
-    rows = conn.execute(
+    users = conn.execute(
         "SELECT id, email, name, is_admin, created_at FROM users ORDER BY id"
     ).fetchall()
     conn.close()
-    # PostgreSQL は created_at を datetime オブジェクトで返すため文字列に統一
-    users = []
-    for row in rows:
-        d = dict(row)
-        ca = d.get("created_at")
-        if ca and hasattr(ca, "strftime"):
-            d["created_at"] = ca.strftime("%Y-%m-%d %H:%M:%S")
-        users.append(d)
     return render_template("admin.html", users=users)
 
 
