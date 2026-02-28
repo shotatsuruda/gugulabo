@@ -619,12 +619,21 @@ footer {
     letter-spacing: 0.01em;
 }
 
+.lp-nav-links {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: nowrap;
+    white-space: nowrap;
+}
+
 .lp-nav-login {
-    font-size: 0.875rem;
+    font-size: 0.8125rem;
     color: var(--muted);
     text-decoration: none;
     font-weight: 500;
     transition: color 0.15s;
+    white-space: nowrap;
 }
 
 .lp-nav-login:hover {
