@@ -548,8 +548,7 @@ def login():
         if row and bcrypt.checkpw(password.encode(), row["password_hash"].encode()):
             user = User(row["id"], row["email"], row["name"], row["is_admin"])
             login_user(user)
-            next_page = request.args.get("next")
-            return redirect(next_page or url_for("index"))
+            return redirect(url_for("index"))
         else:
             error = "メールアドレスまたはパスワードが正しくありません。"
 
