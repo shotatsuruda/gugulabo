@@ -703,6 +703,19 @@ footer {
     color: rgba(255, 255, 255, 0.85);
 }
 
+.lp-hero-login-btn {
+    border: 2px solid rgba(255, 255, 255, 0.8);
+    color: #ffffff;
+    padding: 10px 24px;
+    border-radius: 6px;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.lp-hero-login-btn:hover {
+    background-color: #ffffff;
+    color: #1a1a1a;
+}
+
 /* ----- セクション共通 ----- */
 .lp-section {
     padding: 5rem 0;
