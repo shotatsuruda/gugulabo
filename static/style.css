@@ -629,7 +629,20 @@ footer {
 /* ----- ヒーロー ----- */
 .lp-hero {
     background-color: var(--dark);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    position: relative;
     padding: 6rem 0 5.5rem;
+}
+.lp-hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.52);
+}
+.lp-hero .container {
+    position: relative;
 }
 
 .lp-hero-eyebrow {
@@ -642,11 +655,12 @@ footer {
 }
 
 .lp-hero-title {
+    font-family: 'Shippori Mincho', serif;
     font-size: clamp(2rem, 5vw, 3.25rem);
     font-weight: 700;
     color: #ffffff;
-    line-height: 1.25;
-    letter-spacing: -0.02em;
+    line-height: 1.4;
+    letter-spacing: 0.18em;
     margin-bottom: 1.25rem;
 }
 
