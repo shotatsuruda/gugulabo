@@ -19,8 +19,20 @@
                 <div class="fw-semibold" style="font-size:0.875rem;margin-top:2px;">Googleレビューを入力</div>
             </div>
             <div class="card-body d-flex flex-column p-4">
+                <div class="mb-3">
+                    <label class="form-label">店舗を選択
+                        <span style="font-weight:400;color:#9A9A9A;font-size:0.72rem;">― 業種をAIに伝えます（任意）</span>
+                    </label>
+                    <select class="form-select form-select-sm" id="shop_select_review">
+                        <option value="">-- 選択しない（汎用返答）--</option>
+                    </select>
+                    <div id="business_type_badge" class="mt-1 d-none">
+                        <span style="font-size:0.75rem;color:#8C7B6B;">業種: </span>
+                        <span id="business_type_label" style="font-size:0.75rem;font-weight:600;color:#8C7B6B;"></span>
+                    </div>
+                </div>
                 <label for="review_text" class="form-label">レビュー内容を貼り付けてください</label>
-                <textarea class="form-control flex-grow-1" id="review_text" rows="10"
+                <textarea class="form-control flex-grow-1" id="review_text" rows="9"
                           placeholder="例：施術がとても丁寧で、肩こりがスッキリしました。スタッフの方もとても親切で、また利用したいと思います。ただ、待合室が少し狭く感じました。"></textarea>
                 <div class="form-text mt-1 mb-3">Ctrl+Enter でも生成できます</div>
                 <div class="d-grid">
@@ -109,6 +121,41 @@
 
 {% block scripts %}
 <script>
+    let reviewShops = [];
+
+    // 店舗一覧を読み込んでセレクトボックスに反映
+    (async () => {
+        try {
+            const res = await fetch('/qr/shops');
+            reviewShops = await res.json();
+            const sel = document.getElementById('shop_select_review');
+            reviewShops.forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s.id;
+                opt.textContent = s.name + (s.business_type ? `（${s.business_type}）` : '');
+                sel.appendChild(opt);
+            });
+        } catch (_) {}
+    })();
+
+    document.getElementById('shop_select_review').addEventListener('change', function () {
+        const shop = reviewShops.find(s => s.id == this.value);
+        const badge = document.getElementById('business_type_badge');
+        const label = document.getElementById('business_type_label');
+        if (shop && shop.business_type) {
+            label.textContent = shop.business_type;
+            badge.classList.remove('d-none');
+        } else {
+            badge.classList.add('d-none');
+        }
+    });
+
+    function getSelectedBusinessType() {
+        const sel = document.getElementById('shop_select_review');
+        const shop = reviewShops.find(s => s.id == sel.value);
+        return (shop && shop.business_type) ? shop.business_type : '';
+    }
+
     async function generateResponse() {
         const reviewText = document.getElementById('review_text').value.trim();
         if (!reviewText) { alert('レビュー内容を入力してください。'); return; }
@@ -122,6 +169,7 @@
         try {
             const formData = new FormData();
             formData.append('review_text', reviewText);
+            formData.append('business_type', getSelectedBusinessType());
             const response = await fetch('/review/generate', { method: 'POST', body: formData });
             const data = await response.json();
 

@@ -34,6 +34,18 @@
                                placeholder="例：relaxation-salon（英数字・ハイフン）">
                         <div class="form-text">省略すると shop-{ID} が自動設定されます</div>
                     </div>
+                    <div class="mb-2">
+                        <label class="form-label">業種</label>
+                        <select class="form-select form-select-sm" id="new_shop_business_type">
+                            <option value="">選択してください（任意）</option>
+                            <option value="飲食店">飲食店</option>
+                            <option value="美容院">美容院</option>
+                            <option value="マッサージ">マッサージ</option>
+                            <option value="整体">整体</option>
+                            <option value="カフェ">カフェ</option>
+                            <option value="その他">その他</option>
+                        </select>
+                    </div>
                     <div class="mb-3">
                         <label class="form-label">GoogleレビューURL</label>
                         <input type="url" class="form-control form-control-sm" id="new_shop_url"
@@ -410,7 +422,7 @@ function renderShopList() {
     el.innerHTML = shops.map(s => `
         <div class="shop-item d-flex justify-content-between align-items-start mb-2 p-2">
             <div class="flex-grow-1 me-2 overflow-hidden">
-                <div class="fw-semibold small text-truncate">${esc(s.name)}</div>
+                <div class="fw-semibold small text-truncate">${esc(s.name)}${s.business_type ? ` <span style="font-size:0.7rem;background:#F5F3F0;border:1px solid #E8E4DF;border-radius:4px;padding:1px 5px;color:#8C7B6B;">${esc(s.business_type)}</span>` : ''}</div>
                 <div class="url-text text-truncate">${esc(s.review_url)}</div>
             </div>
             <button class="btn btn-outline-danger btn-sm flex-shrink-0 py-0 px-1"
@@ -432,20 +444,22 @@ function renderShopSelect() {
 // ===== 店舗追加 =====
 document.getElementById('add_shop_form').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const name = document.getElementById('new_shop_name').value.trim();
-    const slug = document.getElementById('new_shop_slug').value.trim();
-    const review_url = document.getElementById('new_shop_url').value.trim();
+    const name          = document.getElementById('new_shop_name').value.trim();
+    const slug          = document.getElementById('new_shop_slug').value.trim();
+    const review_url    = document.getElementById('new_shop_url').value.trim();
+    const business_type = document.getElementById('new_shop_business_type').value;
 
     const res = await fetch('/qr/shops', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, slug, review_url }),
+        body: JSON.stringify({ name, slug, review_url, business_type }),
     });
 
     if (res.ok) {
         document.getElementById('new_shop_name').value = '';
         document.getElementById('new_shop_slug').value = '';
         document.getElementById('new_shop_url').value = '';
+        document.getElementById('new_shop_business_type').value = '';
         await loadShops();
     } else {
         alert('店舗の追加に失敗しました。');

@@ -209,10 +209,11 @@ def init_db():
         """
     )
 
-    # 既存テーブルへの slug / user_id カラム追加（マイグレーション）
+    # 既存テーブルへの slug / user_id / business_type カラム追加（マイグレーション）
     if DB_TYPE == "postgresql":
         conn.execute("ALTER TABLE shops ADD COLUMN IF NOT EXISTS slug TEXT")
         conn.execute("ALTER TABLE shops ADD COLUMN IF NOT EXISTS user_id INTEGER REFERENCES users(id)")
+        conn.execute("ALTER TABLE shops ADD COLUMN IF NOT EXISTS business_type TEXT DEFAULT ''")
     else:
         try:
             conn.execute("ALTER TABLE shops ADD COLUMN slug TEXT")
@@ -220,6 +221,10 @@ def init_db():
             pass  # カラムが既に存在する場合はスキップ
         try:
             conn.execute("ALTER TABLE shops ADD COLUMN user_id INTEGER REFERENCES users(id)")
+        except Exception:
+            pass  # カラムが既に存在する場合はスキップ
+        try:
+            conn.execute("ALTER TABLE shops ADD COLUMN business_type TEXT DEFAULT ''")
         except Exception:
             pass  # カラムが既に存在する場合はスキップ
 
@@ -493,14 +498,23 @@ def build_qr_image(
 
 # ===== OpenRouter AI返答生成 =====
 
-def generate_review_response(review_text: str) -> str:
+def generate_review_response(review_text: str, business_type: str = "") -> str:
     """OpenRouter APIを使い、Googleレビューへの返答文を日本語で生成する"""
     client = OpenAI(
         api_key=OPENROUTER_API_KEY,
         base_url="https://openrouter.ai/api/v1",
     )
 
-    prompt = f"""あなたは{SHOP_NAME}のオーナーです。お客様からGoogleにいただいた以下のレビューに対して、丁寧でプロフェッショナルな返答文を日本語で作成してください。
+    if business_type:
+        persona  = f"{business_type}のオーナー"
+        sign     = f"{business_type} スタッフ一同"
+        context  = f"（業種：{business_type}）"
+    else:
+        persona  = "店舗のオーナー"
+        sign     = "スタッフ一同"
+        context  = ""
+
+    prompt = f"""あなたは{persona}です{context}。お客様からGoogleにいただいた以下のレビューに対して、丁寧でプロフェッショナルな返答文を日本語で作成してください。
 
 【返答文の条件】
 - 丁寧な敬語を使用する
@@ -509,7 +523,7 @@ def generate_review_response(review_text: str) -> str:
 - ポジティブな内容は喜びを表現する
 - ネガティブな内容は真摯に受け止め、改善への姿勢を示す
 - 200〜300文字程度でまとめる
-- 署名は「{SHOP_NAME}スタッフ一同」とする
+- 署名は「{sign}」とする
 
 【お客様のレビュー】
 {review_text}
@@ -792,7 +806,7 @@ def get_shops():
     """ログイン中ユーザーの店舗一覧をJSON形式で返す"""
     conn = get_db()
     shops = conn.execute(
-        "SELECT id, name, review_url, slug, created_at FROM shops WHERE user_id = ? ORDER BY created_at DESC",
+        "SELECT id, name, review_url, slug, business_type, created_at FROM shops WHERE user_id = ? ORDER BY created_at DESC",
         (current_user.id,),
     ).fetchall()
     conn.close()
@@ -804,9 +818,10 @@ def get_shops():
 def add_shop():
     """店舗を追加する（ログインユーザーに紐づける）"""
     data = request.get_json()
-    name = (data.get("name") or "").strip()
-    review_url = (data.get("review_url") or "").strip()
-    slug_input = (data.get("slug") or "").strip()
+    name          = (data.get("name")          or "").strip()
+    review_url    = (data.get("review_url")    or "").strip()
+    slug_input    = (data.get("slug")          or "").strip()
+    business_type = (data.get("business_type") or "").strip()
     if not name or not review_url:
         return jsonify({"error": "name と review_url は必須です"}), 400
 
@@ -818,8 +833,8 @@ def add_shop():
         slug = None
 
     cursor = conn.execute(
-        "INSERT INTO shops (name, review_url, slug, user_id) VALUES (?, ?, ?, ?)",
-        (name, review_url, slug, current_user.id),
+        "INSERT INTO shops (name, review_url, slug, user_id, business_type) VALUES (?, ?, ?, ?, ?)",
+        (name, review_url, slug, current_user.id, business_type),
     )
     shop_id = cursor.lastrowid
     if not slug:
@@ -967,11 +982,12 @@ def review_form():
 @login_required
 def generate_response():
     """AI返答文生成処理（Ajax用JSONレスポンス）"""
-    review_text = (request.form.get("review_text") or "").strip()
+    review_text   = (request.form.get("review_text")   or "").strip()
+    business_type = (request.form.get("business_type") or "").strip()
     if not review_text:
         return jsonify({"success": False, "error": "レビュー内容を入力してください。"})
     try:
-        response_text = generate_review_response(review_text)
+        response_text = generate_review_response(review_text, business_type)
         return jsonify({"success": True, "response": response_text})
     except Exception as e:
         return jsonify({"success": False, "error": f"AI返答生成に失敗しました: {str(e)}"})
