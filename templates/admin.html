@@ -105,27 +105,18 @@
                                     {{ user.created_at[:10] if user.created_at else '—' }}
                                 </td>
                                 <td style="padding:0.75rem 1rem;vertical-align:middle;text-align:right;">
-                                    <div class="d-flex gap-1 justify-content-end">
-                                        <!-- 編集ボタン -->
-                                        <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2"
-                                                title="メール・パスワードを変更"
-                                                onclick="openEditModal({{ user.id }}, '{{ user.email | e }}', '{{ user.name | e }}')">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                                        </button>
-                                        <!-- 削除ボタン -->
-                                        {% if user.id != current_user.id %}
-                                        <form method="POST" action="/admin/users/{{ user.id }}"
-                                              onsubmit="return confirm('「{{ user.name }}」を削除しますか？この操作は取り消せません。')">
-                                            <button type="submit" class="btn btn-outline-danger btn-sm py-0 px-2">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
-                                            </button>
-                                        </form>
-                                        {% else %}
-                                        <button class="btn btn-outline-secondary btn-sm py-0 px-2" disabled title="自分自身は削除できません">
+                                    {% if user.id != current_user.id %}
+                                    <form method="POST" action="/admin/users/{{ user.id }}"
+                                          onsubmit="return confirm('「{{ user.name }}」を削除しますか？この操作は取り消せません。')">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm py-0 px-2">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
                                         </button>
-                                        {% endif %}
-                                    </div>
+                                    </form>
+                                    {% else %}
+                                    <button class="btn btn-outline-secondary btn-sm py-0 px-2" disabled title="自分自身は削除できません">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                                    </button>
+                                    {% endif %}
                                 </td>
                             </tr>
                             {% endfor %}
@@ -142,46 +133,4 @@
     </div>
 
 </div>
-
-<!-- ===== 編集モーダル ===== -->
-<div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" style="max-width:420px;">
-        <div class="modal-content" style="border:1px solid var(--border);border-radius:var(--radius);">
-            <div class="modal-header" style="border-bottom:1px solid var(--border);padding:1rem 1.25rem;">
-                <h6 class="modal-title fw-bold mb-0" id="editUserModalLabel">ユーザー情報を編集</h6>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="閉じる" style="font-size:0.75rem;"></button>
-            </div>
-            <form id="editUserForm" method="POST" action="">
-                <div class="modal-body" style="padding:1.25rem;">
-                    <p id="editUserName" class="fw-semibold mb-3" style="font-size:0.9rem;"></p>
-                    <div class="mb-3">
-                        <label class="form-label" style="font-size:0.82rem;font-weight:600;">メールアドレス</label>
-                        <input type="email" class="form-control form-control-sm" id="editEmail" name="email" required>
-                    </div>
-                    <div class="mb-1">
-                        <label class="form-label" style="font-size:0.82rem;font-weight:600;">新しいパスワード <span style="font-weight:400;color:var(--muted);">（変更しない場合は空欄）</span></label>
-                        <input type="password" class="form-control form-control-sm" name="password" placeholder="6文字以上" minlength="6">
-                    </div>
-                </div>
-                <div class="modal-footer" style="border-top:1px solid var(--border);padding:0.75rem 1.25rem;">
-                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">キャンセル</button>
-                    <button type="submit" class="btn btn-primary btn-sm">保存する</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-{% endblock %}
-
-{% block scripts %}
-<script>
-function openEditModal(userId, userEmail, userName) {
-    document.getElementById('editUserForm').action = '/admin/users/' + userId + '/edit';
-    document.getElementById('editEmail').value = userEmail;
-    document.getElementById('editUserName').textContent = userName + ' の情報を編集';
-    var modal = new bootstrap.Modal(document.getElementById('editUserModal'));
-    modal.show();
-}
-</script>
 {% endblock %}
