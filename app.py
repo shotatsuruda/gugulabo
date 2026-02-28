@@ -1066,5 +1066,27 @@ def admin_delete_user(user_id):
     return redirect(url_for("admin_users"))
 
 
+@app.route("/admin/users/<int:user_id>/reset-password", methods=["POST"])
+@admin_required
+def admin_reset_password(user_id):
+    """管理者がユーザーのパスワードをリセットする"""
+    new_password = request.form.get("new_password") or ""
+
+    if len(new_password) < 6:
+        flash("パスワードは6文字以上で入力してください。", "danger")
+        return redirect(url_for("admin_users"))
+
+    password_hash = bcrypt.hashpw(new_password.encode(), bcrypt.gensalt()).decode()
+    conn = get_db()
+    conn.execute(
+        "UPDATE users SET password_hash = ? WHERE id = ?",
+        (password_hash, user_id),
+    )
+    conn.commit()
+    conn.close()
+    flash("パスワードを変更しました。", "success")
+    return redirect(url_for("admin_users"))
+
+
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)), debug=False)
