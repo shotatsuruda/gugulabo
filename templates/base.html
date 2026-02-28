@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}ググラボ{% endblock %}</title>
+    <title>{% block title %}গগラボ{% endblock %}</title>
     <!-- Google Fonts: Noto Sans JP -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -16,14 +16,21 @@
 <body>
 
     <!-- ナビゲーションバー -->
-    <nav class="navbar navbar-expand-lg">
+    <nav class="navbar navbar-expand-md">
         <div class="container">
-            <a class="navbar-brand" href="/">ググラボ店舗専用ページ</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu" aria-label="メニュー">
+            <a class="navbar-brand" href="/">গগラボ</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu" aria-controls="navMenu" aria-expanded="false" aria-label="メニューを開く">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navMenu">
-                <ul class="navbar-nav ms-auto gap-1 align-items-lg-center">
+                {% if current_user.is_authenticated %}
+                <!-- 中央: メインメニュー -->
+                <ul class="navbar-nav mx-auto gap-1 align-items-md-center">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:4px;"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>ダッシュボード
+                        </a>
+                    </li>
                     <li class="nav-item">
                         <a class="nav-link" href="/qr">
                             <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:4px;"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="3" height="3"/><rect x="18" y="14" width="3" height="3"/><rect x="14" y="18" width="3" height="3"/><rect x="18" y="18" width="3" height="3"/></svg>QRコード生成
@@ -34,7 +41,6 @@
                             <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:4px;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="13" y2="14"/></svg>AI返答生成
                         </a>
                     </li>
-                    {% if current_user.is_authenticated %}
                     {% if current_user.is_admin %}
                     <li class="nav-item">
                         <a class="nav-link" href="/admin">
@@ -42,16 +48,21 @@
                         </a>
                     </li>
                     {% endif %}
-                    <li class="nav-item d-flex align-items-center" style="gap:0.5rem;padding:0 0.25rem;">
-                        <span style="font-size:0.8rem;color:var(--muted);white-space:nowrap;">
+                </ul>
+                <!-- 右: ユーザー名・ログアウト -->
+                <ul class="navbar-nav align-items-md-center gap-2">
+                    <li class="nav-item">
+                        <span class="navbar-text" style="font-size:0.8rem;white-space:nowrap;">
                             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:3px;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>{{ current_user.name }}
                         </span>
-                        <a href="/logout" class="btn btn-outline-secondary btn-sm py-1 px-2" style="font-size:0.75rem;white-space:nowrap;">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:3px;"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>ログアウト
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/logout">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:4px;"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>ログアウト
                         </a>
                     </li>
-                    {% endif %}
                 </ul>
+                {% endif %}
             </div>
         </div>
     </nav>
@@ -63,7 +74,7 @@
 
     <!-- フッター -->
     <footer class="text-center py-4 mt-5">
-        <small>ググラボ 店舗専用ページ</small>
+        <small>গগラボ 店舗専用ページ</small>
     </footer>
 
     <!-- Bootstrap 5 JS -->
