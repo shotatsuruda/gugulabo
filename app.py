@@ -610,7 +610,7 @@ def logout():
 @app.route("/")
 def index():
     if current_user.is_authenticated:
-        return redirect(url_for("qr_form"))
+        return render_template("index.html")
     return render_template("landing.html")
 
 
