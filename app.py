@@ -849,7 +849,7 @@ def add_shop():
     ).fetchone()
     conn.close()
     if existing and existing["cnt"] >= 1:
-        return jsonify({"error": "1アカウントにつき1店舗まで登録できます"}), 400
+        return jsonify({"error": "店舗は1アカウントにつき1店舗までご登録いただけます。"}), 400
 
     data = request.get_json()
     name          = (data.get("name")          or "").strip()
