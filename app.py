@@ -132,6 +132,17 @@ def admin_required(f):
     return decorated
 
 
+def payment_required(f):
+    """ログイン済み かつ 支払い済み（or 管理者）のみアクセス可能なデコレーター"""
+    @wraps(f)
+    @login_required
+    def decorated(*args, **kwargs):
+        if not current_user.is_paid:
+            return redirect(url_for("subscribe"))
+        return f(*args, **kwargs)
+    return decorated
+
+
 # ===== データベース =====
 
 class _PgCursor:
@@ -1008,13 +1019,13 @@ def request_coupon(slug):
 # ----- 管理画面: QRコード生成 -----
 
 @app.route("/manual")
-@login_required
+@payment_required
 def manual():
     return render_template("manual.html")
 
 
 @app.route("/settings", methods=["GET", "POST"])
-@login_required
+@payment_required
 def settings():
     """通知設定ページ"""
     conn = get_db()
@@ -1039,7 +1050,7 @@ def settings():
 
 
 @app.route("/settings/email", methods=["POST"])
-@login_required
+@payment_required
 def settings_email():
     """メールアドレス変更処理"""
     new_email = request.form.get("new_email", "").strip()
@@ -1082,7 +1093,7 @@ def settings_email():
 
 
 @app.route("/settings/password", methods=["POST"])
-@login_required
+@payment_required
 def settings_password():
     """パスワード変更処理"""
     current_password = request.form.get("current_password", "")
@@ -1219,13 +1230,13 @@ def webhook():
 
 
 @app.route("/qr")
-@login_required
+@payment_required
 def qr_form():
     return render_template("qr.html", shop_name=SHOP_NAME)
 
 
 @app.route("/qr/shops", methods=["GET"])
-@login_required
+@payment_required
 def get_shops():
     """ログイン中ユーザーの店舗一覧をJSON形式で返す"""
     conn = get_db()
@@ -1238,7 +1249,7 @@ def get_shops():
 
 
 @app.route("/qr/shops", methods=["POST"])
-@login_required
+@payment_required
 def add_shop():
     """店舗を追加する（ログインユーザーに紐づける）"""
     conn = get_db()
@@ -1277,7 +1288,7 @@ def add_shop():
 
 
 @app.route("/qr/shops/<int:shop_id>", methods=["DELETE"])
-@login_required
+@payment_required
 def delete_shop(shop_id):
     """店舗と紐づくクーポン設定を削除する（所有者のみ）"""
     conn = get_db()
@@ -1295,7 +1306,7 @@ def delete_shop(shop_id):
 
 
 @app.route("/qr/shops/<int:shop_id>/coupon", methods=["GET"])
-@login_required
+@payment_required
 def get_coupon_settings(shop_id):
     """店舗のクーポン設定をJSON形式で返す（所有者のみ）"""
     conn = get_db()
@@ -1326,7 +1337,7 @@ def get_coupon_settings(shop_id):
 
 
 @app.route("/qr/shops/<int:shop_id>/coupon", methods=["POST"])
-@login_required
+@payment_required
 def save_coupon_settings(shop_id):
     """店舗のクーポン設定を保存する（所有者のみ）"""
     conn = get_db()
@@ -1376,7 +1387,7 @@ def save_coupon_settings(shop_id):
 
 
 @app.route("/qr/generate", methods=["POST"])
-@login_required
+@payment_required
 def qr_generate():
     """QRコード画像を生成してBase64エンコードしたPNGをJSONで返す"""
     url = (request.form.get("url") or "").strip()
@@ -1405,13 +1416,13 @@ def qr_generate():
 # ----- 管理画面: AI返答生成 -----
 
 @app.route("/review")
-@login_required
+@payment_required
 def review_form():
     return render_template("review.html", shop_name=SHOP_NAME)
 
 
 @app.route("/review/generate", methods=["POST"])
-@login_required
+@payment_required
 def generate_response():
     """AI返答文生成処理（Ajax用JSONレスポンス）"""
     review_text   = (request.form.get("review_text")   or "").strip()
