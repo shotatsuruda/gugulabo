@@ -144,7 +144,62 @@
         </button>
     </form>
 
+    {% if current_plan %}
+    <!-- サブスクリプション管理 -->
+    <div class="card mb-4" style="border-color:#fecaca;">
+        <div class="card-header" style="background:#fef2f2;">
+            <h5 class="mb-0" style="color:#dc2626;font-size:0.95rem;">サブスクリプションの解約</h5>
+        </div>
+        <div class="card-body p-4">
+
+            <div class="mb-3">
+                <div class="fw-semibold mb-1" style="font-size:0.85rem;">現在のプラン</div>
+                <div style="font-size:0.9rem;color:#2C2C2C;">{{ current_plan }}</div>
+            </div>
+
+            {% if next_billing_date %}
+            <div class="mb-4">
+                <div class="fw-semibold mb-1" style="font-size:0.85rem;">次回請求日</div>
+                <div style="font-size:0.9rem;color:#2C2C2C;">{{ next_billing_date }}</div>
+            </div>
+            {% else %}
+            <div class="mb-4"></div>
+            {% endif %}
+
+            <button type="button" class="btn btn-outline-danger btn-sm"
+                    data-bs-toggle="modal" data-bs-target="#cancelSubscriptionModal">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:4px;"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>解約する
+            </button>
+
+        </div>
+    </div>
+    {% endif %}
+
 </div>
+</div>
+
+<!-- 解約確認モーダル -->
+<div class="modal fade" id="cancelSubscriptionModal" tabindex="-1" aria-labelledby="cancelSubscriptionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" style="border-bottom:1px solid #fecaca;">
+                <h5 class="modal-title fw-bold" id="cancelSubscriptionModalLabel" style="font-size:1rem;color:#dc2626;">解約の確認</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="閉じる"></button>
+            </div>
+            <div class="modal-body" style="font-size:0.88rem;line-height:1.7;">
+                <p class="mb-2">本当に解約しますか？</p>
+                <p class="mb-0" style="color:#dc2626;">解約後はサービスをご利用いただけなくなります。</p>
+            </div>
+            <div class="modal-footer" style="border-top:1px solid #fecaca;">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">キャンセル</button>
+                <form method="POST" action="/cancel-subscription" style="display:inline;">
+                    <button type="submit" class="btn btn-danger btn-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:4px;"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>解約する
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
 
 {% endblock %}
