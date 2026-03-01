@@ -81,6 +81,8 @@
                                 <th style="padding:0.75rem 1rem;font-weight:600;color:var(--muted);font-size:0.75rem;">メールアドレス</th>
                                 <th style="padding:0.75rem 1rem;font-weight:600;color:var(--muted);font-size:0.75rem;">権限</th>
                                 <th style="padding:0.75rem 1rem;font-weight:600;color:var(--muted);font-size:0.75rem;">登録日</th>
+                                <th style="padding:0.75rem 1rem;font-weight:600;color:var(--muted);font-size:0.75rem;">契約プラン</th>
+                                <th style="padding:0.75rem 1rem;font-weight:600;color:var(--muted);font-size:0.75rem;">有効期限</th>
                                 <th style="padding:0.75rem 1rem;"></th>
                             </tr>
                         </thead>
@@ -104,8 +106,24 @@
                                 <td style="padding:0.75rem 1rem;vertical-align:middle;color:var(--muted);">
                                     {{ user.created_at[:10] if user.created_at else '—' }}
                                 </td>
+                                <td style="padding:0.75rem 1rem;vertical-align:middle;">
+                                    {% if user.plan == '年払いプラン' %}
+                                    <span style="font-size:0.72rem;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:99px;padding:2px 9px;color:#16a34a;font-weight:600;">年払いプラン</span>
+                                    {% else %}
+                                    <span style="font-size:0.72rem;background:var(--bg);border:1px solid var(--border);border-radius:99px;padding:2px 9px;color:var(--muted);">月額プラン</span>
+                                    {% endif %}
+                                </td>
+                                <td style="padding:0.75rem 1rem;vertical-align:middle;color:var(--muted);">
+                                    {{ user.plan_expires_at if user.plan_expires_at else '未設定' }}
+                                </td>
                                 <td style="padding:0.75rem 1rem;vertical-align:middle;text-align:right;">
                                     <div class="d-flex gap-1 justify-content-end">
+                                        <!-- プラン編集ボタン -->
+                                        <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2"
+                                                title="プランを編集"
+                                                onclick="openPlanModal({{ user.id }}, '{{ user.name | e }}', '{{ user.plan | e }}', '{{ user.plan_expires_at or '' }}')">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                        </button>
                                         <!-- パスワードリセットボタン -->
                                         <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2"
                                                 title="パスワードをリセット"
@@ -143,6 +161,39 @@
 
 </div>
 
+<!-- ===== プラン編集モーダル ===== -->
+<div class="modal fade" id="editPlanModal" tabindex="-1" aria-labelledby="editPlanModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:400px;">
+        <div class="modal-content" style="border:1px solid var(--border);border-radius:var(--radius);">
+            <div class="modal-header" style="border-bottom:1px solid var(--border);padding:1rem 1.25rem;">
+                <h6 class="modal-title fw-bold mb-0" id="editPlanModalLabel">プランを編集</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="閉じる" style="font-size:0.75rem;"></button>
+            </div>
+            <form id="editPlanForm" method="POST" action="">
+                <div class="modal-body" style="padding:1.25rem;">
+                    <p id="planTargetName" style="font-size:0.85rem;margin-bottom:1rem;color:var(--muted);"></p>
+                    <div class="mb-3">
+                        <label class="form-label" style="font-size:0.82rem;font-weight:600;">契約プラン</label>
+                        <select class="form-select form-select-sm" name="plan" id="planSelect">
+                            <option value="月額プラン">月額プラン</option>
+                            <option value="年払いプラン">年払いプラン</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label" style="font-size:0.82rem;font-weight:600;">有効期限</label>
+                        <input type="date" class="form-control form-control-sm" name="plan_expires_at" id="planExpiresAt">
+                        <div class="form-text">未設定の場合は空欄のまま保存してください。</div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="border-top:1px solid var(--border);padding:0.75rem 1.25rem;">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">キャンセル</button>
+                    <button type="submit" class="btn btn-primary btn-sm">保存する</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <!-- ===== パスワードリセットモーダル ===== -->
 <div class="modal fade" id="resetPasswordModal" tabindex="-1" aria-labelledby="resetPasswordModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" style="max-width:400px;">
@@ -173,6 +224,14 @@
 
 {% block scripts %}
 <script>
+function openPlanModal(userId, userName, plan, expiresAt) {
+    document.getElementById('editPlanForm').action = '/admin/users/' + userId + '/plan';
+    document.getElementById('planTargetName').textContent = '「' + userName + '」のプラン情報を編集します。';
+    document.getElementById('planSelect').value = plan || '月額プラン';
+    document.getElementById('planExpiresAt').value = expiresAt || '';
+    new bootstrap.Modal(document.getElementById('editPlanModal')).show();
+}
+
 function openResetModal(userId, userName) {
     document.getElementById('resetPasswordForm').action = '/admin/users/' + userId + '/reset-password';
     document.getElementById('resetTargetName').textContent = '「' + userName + '」の新しいパスワードを入力してください。';

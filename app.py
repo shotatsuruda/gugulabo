@@ -228,6 +228,20 @@ def init_db():
         except Exception:
             pass  # カラムが既に存在する場合はスキップ
 
+    # users テーブルへの plan / plan_expires_at カラム追加（マイグレーション）
+    if DB_TYPE == "postgresql":
+        conn.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS plan TEXT DEFAULT '月額プラン'")
+        conn.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS plan_expires_at TEXT")
+    else:
+        try:
+            conn.execute("ALTER TABLE users ADD COLUMN plan TEXT DEFAULT '月額プラン'")
+        except Exception:
+            pass
+        try:
+            conn.execute("ALTER TABLE users ADD COLUMN plan_expires_at TEXT")
+        except Exception:
+            pass
+
     # slug のユニークインデックス（既にあればスキップ）
     conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_shops_slug ON shops(slug)")
 
@@ -1035,17 +1049,17 @@ def admin_users():
     """管理者向けユーザー管理画面"""
     conn = get_db()
     rows = conn.execute(
-        "SELECT id, email, name, is_admin, created_at FROM users ORDER BY id"
+        "SELECT id, email, name, is_admin, created_at, plan, plan_expires_at FROM users ORDER BY id"
     ).fetchall()
     conn.close()
-    # PostgreSQL は created_at を datetime オブジェクトで返す。
-    # テンプレートで [:10] スライスできるよう文字列に統一する。
     users = []
     for row in rows:
         d = dict(row)
         ca = d.get("created_at")
         if ca and hasattr(ca, "strftime"):
             d["created_at"] = ca.strftime("%Y-%m-%d %H:%M:%S")
+        if not d.get("plan"):
+            d["plan"] = "月額プラン"
         users.append(d)
     return render_template("admin.html", users=users)
 
@@ -1119,6 +1133,23 @@ def admin_reset_password(user_id):
     conn.commit()
     conn.close()
     flash("パスワードを変更しました。", "success")
+    return redirect(url_for("admin_users"))
+
+
+@app.route("/admin/users/<int:user_id>/plan", methods=["POST"])
+@admin_required
+def admin_update_plan(user_id):
+    """管理者がユーザーの契約プランと有効期限を更新する"""
+    plan = (request.form.get("plan") or "月額プラン").strip()
+    plan_expires_at = (request.form.get("plan_expires_at") or "").strip() or None
+    conn = get_db()
+    conn.execute(
+        "UPDATE users SET plan = ?, plan_expires_at = ? WHERE id = ?",
+        (plan, plan_expires_at, user_id),
+    )
+    conn.commit()
+    conn.close()
+    flash("プラン情報を更新しました。", "success")
     return redirect(url_for("admin_users"))
 
 
