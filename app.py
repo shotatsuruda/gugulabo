@@ -97,29 +97,60 @@ login_manager.login_message_category = "warning"
 
 
 class User(UserMixin):
-    def __init__(self, id, email, name, is_admin, plan=None):
+    def __init__(self, id, email, name, is_admin, plan=None, trial_ends_at=None):
         self.id = id
         self.email = email
         self.name = name
         self.is_admin = bool(is_admin)
         self.plan = plan
+        self.trial_ends_at = trial_ends_at
 
     @property
     def is_paid(self):
-        """管理者 or plan が設定されていれば支払い済みとみなす"""
-        return self.is_admin or bool(self.plan)
+        """管理者 or 有料プラン契約中 or トライアル期間中ならアクセス可能"""
+        if self.is_admin or bool(self.plan):
+            return True
+        if self.trial_ends_at:
+            try:
+                trial_end = (
+                    self.trial_ends_at if hasattr(self.trial_ends_at, "date")
+                    else datetime.fromisoformat(str(self.trial_ends_at))
+                )
+                return trial_end > datetime.now()
+            except Exception:
+                return False
+        return False
+
+    @property
+    def trial_days_remaining(self):
+        """トライアル残り日数。有料プラン契約中・管理者・トライアル外は None を返す"""
+        if self.is_admin or bool(self.plan) or not self.trial_ends_at:
+            return None
+        try:
+            trial_end = (
+                self.trial_ends_at if hasattr(self.trial_ends_at, "date")
+                else datetime.fromisoformat(str(self.trial_ends_at))
+            )
+            remaining = (trial_end.date() - date.today()).days
+            return remaining if remaining >= 0 else None
+        except Exception:
+            return None
 
 
 @login_manager.user_loader
 def load_user(user_id):
     conn = get_db()
     row = conn.execute(
-        "SELECT id, email, name, is_admin, plan FROM users WHERE id = ?", (user_id,)
+        "SELECT id, email, name, is_admin, plan, trial_ends_at FROM users WHERE id = ?",
+        (user_id,),
     ).fetchone()
     conn.close()
     if row is None:
         return None
-    return User(row["id"], row["email"], row["name"], row["is_admin"], row["plan"])
+    return User(
+        row["id"], row["email"], row["name"], row["is_admin"],
+        row["plan"], row["trial_ends_at"],
+    )
 
 
 def admin_required(f):
@@ -255,12 +286,13 @@ def init_db():
         except Exception:
             pass  # カラムが既に存在する場合はスキップ
 
-    # users テーブルへの plan / plan_expires_at / notify_enabled / stripe_customer_id カラム追加（マイグレーション）
+    # users テーブルへの各カラム追加（マイグレーション）
     if DB_TYPE == "postgresql":
         conn.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS plan TEXT DEFAULT '月額プラン'")
         conn.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS plan_expires_at TEXT")
         conn.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS notify_enabled INTEGER NOT NULL DEFAULT 1")
         conn.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS stripe_customer_id TEXT")
+        conn.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS trial_ends_at TIMESTAMP")
     else:
         try:
             conn.execute("ALTER TABLE users ADD COLUMN plan TEXT DEFAULT '月額プラン'")
@@ -276,6 +308,10 @@ def init_db():
             pass
         try:
             conn.execute("ALTER TABLE users ADD COLUMN stripe_customer_id TEXT")
+        except Exception:
+            pass
+        try:
+            conn.execute("ALTER TABLE users ADD COLUMN trial_ends_at TEXT")
         except Exception:
             pass
 
@@ -778,17 +814,20 @@ def register():
         if not errors:
             password_hash = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
             try:
+                trial_ends_at = (datetime.now() + timedelta(days=30)).strftime("%Y-%m-%d %H:%M:%S")
                 conn = get_db()
                 cursor = conn.execute(
-                    "INSERT INTO users (email, password_hash, name, is_admin, plan) VALUES (?, ?, ?, 0, NULL)",
-                    (form["email"], password_hash, form["name"]),
+                    "INSERT INTO users (email, password_hash, name, is_admin, plan, trial_ends_at)"
+                    " VALUES (?, ?, ?, 0, NULL, ?)",
+                    (form["email"], password_hash, form["name"], trial_ends_at),
                 )
                 user_id = cursor.lastrowid
                 conn.commit()
                 conn.close()
-                user = User(user_id, form["email"], form["name"], False, plan=None)
+                user = User(user_id, form["email"], form["name"], False,
+                            plan=None, trial_ends_at=trial_ends_at)
                 login_user(user)
-                return redirect(url_for("subscribe"))
+                return redirect(url_for("index"))
             except DBIntegrityError:
                 errors["email"] = "そのメールアドレスはすでに登録されています。"
 
@@ -829,7 +868,11 @@ def index():
                 fb["submitted_at"] = sa.strftime("%Y-%m-%d %H:%M")
             elif sa and isinstance(sa, str):
                 fb["submitted_at"] = sa[:16]
-        return render_template("index.html", feedbacks=feedbacks)
+        return render_template(
+            "index.html",
+            feedbacks=feedbacks,
+            trial_days_remaining=current_user.trial_days_remaining,
+        )
     return render_template("landing.html")
 
 
@@ -1161,7 +1204,10 @@ def subscribe():
     """決済案内ページ（登録直後 or 未払いユーザー向け）"""
     if current_user.is_paid:
         return redirect(url_for("index"))
-    return render_template("subscribe.html", stripe_public_key=STRIPE_PUBLIC_KEY)
+    trial_ended = bool(current_user.trial_ends_at) and not current_user.is_paid
+    return render_template("subscribe.html",
+                           stripe_public_key=STRIPE_PUBLIC_KEY,
+                           trial_ended=trial_ended)
 
 
 @app.route("/create-checkout-session", methods=["POST"])
