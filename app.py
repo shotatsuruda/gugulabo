@@ -649,7 +649,7 @@ def index():
 
 @app.route("/contact", methods=["POST"])
 def contact():
-    """お問い合わせフォームの送信を受け付け、admin@gugulabo.com にメール通知する"""
+    """お問い合わせフォームの送信を受け付け、shotatsuruda0819@gmail.com にメール通知する"""
     data = request.get_json(silent=True) or {}
     name    = (data.get("name")    or "").strip()
     email   = (data.get("email")   or "").strip()
@@ -662,7 +662,7 @@ def contact():
         try:
             msg = MIMEMultipart()
             msg["From"]    = MAIL_FROM or MAIL_USERNAME
-            msg["To"]      = "admin@gugulabo.com"
+            msg["To"]      = "shotatsuruda0819@gmail.com"
             msg["Subject"] = f"【গগुলाবো お問い合わせ】{name}様より"
             body = (
                 f"お名前　　: {name}\n"
@@ -673,7 +673,7 @@ def contact():
             with smtplib.SMTP(MAIL_SMTP_HOST, MAIL_SMTP_PORT) as server:
                 server.starttls()
                 server.login(MAIL_USERNAME, MAIL_PASSWORD)
-                server.sendmail(msg["From"], "admin@gugulabo.com", msg.as_string())
+                server.sendmail(msg["From"], "shotatsuruda0819@gmail.com", msg.as_string())
         except Exception:
             pass  # メール送信失敗しても受付完了として返す
 
