@@ -11,7 +11,7 @@ import secrets
 import smtplib
 import sqlite3
 import string
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from functools import wraps
@@ -437,6 +437,78 @@ def send_coupon_email(
         return False, str(e)
 
 
+# ===== フィードバック通知メール =====
+
+def send_feedback_notification(
+    to_email: str,
+    shop_name: str,
+    rating: int,
+    comment: str,
+    submitted_at: str,
+) -> None:
+    """フィードバック受信をオーナーにメールで通知する"""
+    if not MAIL_USERNAME or not MAIL_PASSWORD:
+        return
+
+    stars_filled = "★" * rating
+    stars_empty  = "☆" * (5 - rating)
+    stars        = stars_filled + stars_empty
+
+    msg = MIMEMultipart("alternative")
+    msg["From"]    = f"গগলাবো <{MAIL_FROM or MAIL_USERNAME}>"
+    msg["To"]      = to_email
+    msg["Subject"] = "【গগলাবো】新しいフィードバックが届きました"
+
+    text_body = f"""
+{shop_name} に新しいフィードバックが届きました。
+
+━━━━━━━━━━━━━━━━━━━━
+  店舗名　: {shop_name}
+  星評価　: {stars}（{rating}）
+  コメント: {comment or 'なし'}
+  送信日時: {submitted_at}
+━━━━━━━━━━━━━━━━━━━━
+
+গগলাবো 管理画面でご確認ください。
+    """.strip()
+
+    html_body = f"""<!DOCTYPE html>
+<html lang="ja">
+<head><meta charset="UTF-8"></head>
+<body style="margin:0;padding:0;background:#f5f0ff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+  <div style="max-width:560px;margin:32px auto;padding:0 16px;">
+    <div style="background:linear-gradient(135deg,#667eea,#764ba2);border-radius:20px 20px 0 0;padding:28px 24px;text-align:center;">
+      <p style="color:rgba(255,255,255,0.85);margin:0 0 6px;font-size:13px;">新しいフィードバックが届きました</p>
+      <h1 style="color:#fff;margin:0;font-size:20px;font-weight:700;">{shop_name}</h1>
+    </div>
+    <div style="background:#fff;padding:28px 24px;border-radius:0 0 20px 20px;box-shadow:0 4px 24px rgba(99,102,241,0.1);">
+      <table style="width:100%;border-collapse:collapse;font-size:14px;color:#374151;">
+        <tr style="border-bottom:1px solid #f3f4f6;">
+          <td style="padding:10px 0;font-weight:600;width:90px;color:#6b7280;">星評価</td>
+          <td style="padding:10px 0;font-size:18px;color:#f59e0b;letter-spacing:2px;">{stars}</td>
+        </tr>
+        <tr style="border-bottom:1px solid #f3f4f6;">
+          <td style="padding:10px 0;font-weight:600;color:#6b7280;">コメント</td>
+          <td style="padding:10px 0;">{comment or 'なし'}</td>
+        </tr>
+        <tr>
+          <td style="padding:10px 0;font-weight:600;color:#6b7280;">送信日時</td>
+          <td style="padding:10px 0;color:#9ca3af;">{submitted_at}</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+</body></html>"""
+
+    msg.attach(MIMEText(text_body, "plain", "utf-8"))
+    msg.attach(MIMEText(html_body, "html", "utf-8"))
+
+    with smtplib.SMTP(MAIL_SMTP_HOST, MAIL_SMTP_PORT) as server:
+        server.starttls()
+        server.login(MAIL_USERNAME, MAIL_PASSWORD)
+        server.sendmail(MAIL_FROM or MAIL_USERNAME, to_email, msg.as_string())
+
+
 # ===== QRコード生成 =====
 
 def hex_to_rgb(hex_color: str) -> tuple:
@@ -724,17 +796,23 @@ def survey(slug):
 @app.route("/shop/<slug>/feedback", methods=["POST"])
 def submit_feedback(slug):
     """
-    ★1〜3（低評価）のお客様のご意見をDBに保存する（AJAX用）。
+    お客様のご意見をDBに保存し、オーナーに通知メールを送る（AJAX用）。
     """
     conn = get_db()
-    shop = conn.execute("SELECT id FROM shops WHERE slug = ?", (slug,)).fetchone()
+    shop = conn.execute(
+        "SELECT s.id, s.name, u.email AS owner_email "
+        "FROM shops s LEFT JOIN users u ON u.id = s.user_id "
+        "WHERE s.slug = ?",
+        (slug,),
+    ).fetchone()
     conn.close()
     if not shop:
         return jsonify({"success": False, "error": "店舗が見つかりません"}), 404
 
     data = request.get_json()
-    rating = data.get("rating")
+    rating  = data.get("rating")
     comment = (data.get("comment") or "").strip()
+    submitted_at = datetime.now().strftime("%Y年%m月%d日 %H:%M")
 
     conn = get_db()
     conn.execute(
@@ -743,6 +821,19 @@ def submit_feedback(slug):
     )
     conn.commit()
     conn.close()
+
+    # オーナーへ通知メールを送信（失敗しても正常レスポンスを返す）
+    if shop["owner_email"]:
+        try:
+            send_feedback_notification(
+                to_email=shop["owner_email"],
+                shop_name=shop["name"],
+                rating=rating,
+                comment=comment,
+                submitted_at=submitted_at,
+            )
+        except Exception:
+            pass
 
     return jsonify({"success": True})
 
