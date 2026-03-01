@@ -17,6 +17,7 @@ from email.mime.text import MIMEText
 from functools import wraps
 
 import bcrypt
+import stripe
 from dotenv import load_dotenv
 from flask import (
     Flask, abort, flash, jsonify, redirect, render_template,
@@ -66,6 +67,14 @@ MAIL_USERNAME = os.environ.get("MAIL_USERNAME", "")
 MAIL_PASSWORD = os.environ.get("MAIL_PASSWORD", "")
 MAIL_FROM = os.environ.get("MAIL_FROM", MAIL_USERNAME)
 
+# ===== Stripe 設定 =====
+STRIPE_SECRET_KEY    = os.environ.get("STRIPE_SECRET_KEY", "")
+STRIPE_PUBLIC_KEY    = "pk_live_51T5hfRI0UveP0nntiIpAIEgEV0Y7l1IKDrRogRQj4jbvypaHpoxPoI6ouFxLG10po9LHh3STXiSESu5sSqwtoB4U0055zkbWIL"
+STRIPE_PRICE_ID      = os.environ.get("STRIPE_PRICE_ID", "prod_U4FjKd9lDlqlQ9")
+STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET", "")
+if STRIPE_SECRET_KEY:
+    stripe.api_key = STRIPE_SECRET_KEY
+
 DATABASE = os.path.join(os.path.dirname(__file__), "review_system.db")
 DATABASE_URL = os.environ.get("DATABASE_URL")
 DB_TYPE = "postgresql" if DATABASE_URL else "sqlite"
@@ -87,23 +96,29 @@ login_manager.login_message_category = "warning"
 
 
 class User(UserMixin):
-    def __init__(self, id, email, name, is_admin):
+    def __init__(self, id, email, name, is_admin, plan=None):
         self.id = id
         self.email = email
         self.name = name
         self.is_admin = bool(is_admin)
+        self.plan = plan
+
+    @property
+    def is_paid(self):
+        """管理者 or plan が設定されていれば支払い済みとみなす"""
+        return self.is_admin or bool(self.plan)
 
 
 @login_manager.user_loader
 def load_user(user_id):
     conn = get_db()
     row = conn.execute(
-        "SELECT id, email, name, is_admin FROM users WHERE id = ?", (user_id,)
+        "SELECT id, email, name, is_admin, plan FROM users WHERE id = ?", (user_id,)
     ).fetchone()
     conn.close()
     if row is None:
         return None
-    return User(row["id"], row["email"], row["name"], row["is_admin"])
+    return User(row["id"], row["email"], row["name"], row["is_admin"], row["plan"])
 
 
 def admin_required(f):
@@ -228,11 +243,12 @@ def init_db():
         except Exception:
             pass  # カラムが既に存在する場合はスキップ
 
-    # users テーブルへの plan / plan_expires_at / notify_enabled カラム追加（マイグレーション）
+    # users テーブルへの plan / plan_expires_at / notify_enabled / stripe_customer_id カラム追加（マイグレーション）
     if DB_TYPE == "postgresql":
         conn.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS plan TEXT DEFAULT '月額プラン'")
         conn.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS plan_expires_at TEXT")
         conn.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS notify_enabled INTEGER NOT NULL DEFAULT 1")
+        conn.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS stripe_customer_id TEXT")
     else:
         try:
             conn.execute("ALTER TABLE users ADD COLUMN plan TEXT DEFAULT '月額プラン'")
@@ -244,6 +260,10 @@ def init_db():
             pass
         try:
             conn.execute("ALTER TABLE users ADD COLUMN notify_enabled INTEGER NOT NULL DEFAULT 1")
+        except Exception:
+            pass
+        try:
+            conn.execute("ALTER TABLE users ADD COLUMN stripe_customer_id TEXT")
         except Exception:
             pass
 
@@ -748,15 +768,15 @@ def register():
             try:
                 conn = get_db()
                 cursor = conn.execute(
-                    "INSERT INTO users (email, password_hash, name, is_admin) VALUES (?, ?, ?, 0)",
+                    "INSERT INTO users (email, password_hash, name, is_admin, plan) VALUES (?, ?, ?, 0, NULL)",
                     (form["email"], password_hash, form["name"]),
                 )
                 user_id = cursor.lastrowid
                 conn.commit()
                 conn.close()
-                user = User(user_id, form["email"], form["name"], False)
+                user = User(user_id, form["email"], form["name"], False, plan=None)
                 login_user(user)
-                return redirect(url_for("qr_form"))
+                return redirect(url_for("subscribe"))
             except DBIntegrityError:
                 errors["email"] = "そのメールアドレスはすでに登録されています。"
 
@@ -775,6 +795,8 @@ def logout():
 @app.route("/")
 def index():
     if current_user.is_authenticated:
+        if not current_user.is_paid:
+            return redirect(url_for("subscribe"))
         conn = get_db()
         feedbacks = conn.execute(
             """
@@ -1093,6 +1115,107 @@ def settings_password():
     conn.close()
     flash("パスワードを変更しました。", "success")
     return redirect(url_for("settings"))
+
+
+# ===== Stripe 決済 =====
+
+@app.route("/subscribe")
+@login_required
+def subscribe():
+    """決済案内ページ（登録直後 or 未払いユーザー向け）"""
+    if current_user.is_paid:
+        return redirect(url_for("index"))
+    return render_template("subscribe.html", stripe_public_key=STRIPE_PUBLIC_KEY)
+
+
+@app.route("/create-checkout-session", methods=["POST"])
+@login_required
+def create_checkout_session():
+    """Stripe Checkout セッションを作成してリダイレクト"""
+    if current_user.is_paid:
+        return redirect(url_for("index"))
+    try:
+        checkout_session = stripe.checkout.Session.create(
+            payment_method_types=["card"],
+            line_items=[{"price": STRIPE_PRICE_ID, "quantity": 1}],
+            mode="subscription",
+            success_url=url_for("success", _external=True) + "?session_id={CHECKOUT_SESSION_ID}",
+            cancel_url=url_for("cancel", _external=True),
+            customer_email=current_user.email,
+            metadata={"user_id": str(current_user.id)},
+        )
+        return redirect(checkout_session.url, code=303)
+    except Exception as e:
+        flash(f"決済ページの作成に失敗しました: {e}", "error")
+        return redirect(url_for("subscribe"))
+
+
+@app.route("/success")
+@login_required
+def success():
+    """決済成功後のページ"""
+    session_id = request.args.get("session_id")
+    if session_id:
+        try:
+            checkout_session = stripe.checkout.Session.retrieve(session_id)
+            customer_id = checkout_session.get("customer")
+            conn = get_db()
+            conn.execute(
+                "UPDATE users SET plan = '月額プラン', stripe_customer_id = ? WHERE id = ?",
+                (customer_id, current_user.id),
+            )
+            conn.commit()
+            conn.close()
+        except Exception:
+            pass
+    return render_template("success.html")
+
+
+@app.route("/cancel")
+@login_required
+def cancel():
+    """決済キャンセル後のページ"""
+    return render_template("cancel.html")
+
+
+@app.route("/webhook", methods=["POST"])
+def webhook():
+    """Stripe Webhook を受け取り、決済完了時にプランを更新する"""
+    payload    = request.get_data()
+    sig_header = request.headers.get("Stripe-Signature", "")
+
+    try:
+        event = stripe.Webhook.construct_event(payload, sig_header, STRIPE_WEBHOOK_SECRET)
+    except ValueError:
+        return "", 400
+    except stripe.error.SignatureVerificationError:
+        return "", 400
+
+    if event["type"] == "checkout.session.completed":
+        session     = event["data"]["object"]
+        user_id     = (session.get("metadata") or {}).get("user_id")
+        customer_id = session.get("customer")
+        if user_id:
+            conn = get_db()
+            conn.execute(
+                "UPDATE users SET plan = '月額プラン', stripe_customer_id = ? WHERE id = ?",
+                (customer_id, int(user_id)),
+            )
+            conn.commit()
+            conn.close()
+
+    elif event["type"] == "customer.subscription.deleted":
+        customer_id = event["data"]["object"].get("customer")
+        if customer_id:
+            conn = get_db()
+            conn.execute(
+                "UPDATE users SET plan = NULL WHERE stripe_customer_id = ?",
+                (customer_id,),
+            )
+            conn.commit()
+            conn.close()
+
+    return "", 200
 
 
 @app.route("/qr")
