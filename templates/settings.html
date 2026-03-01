@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+
+{% block title %}設定 | গগুলাবো{% endblock %}
+
+{% block content %}
+
+<div class="d-flex align-items-center gap-2 mb-4">
+    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8C7B6B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    <h2 class="mb-0 fw-bold" style="font-size:1.2rem;">設定</h2>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+    <div class="alert py-2 mb-3 d-flex align-items-center gap-2"
+         style="font-size:0.82rem;border-radius:8px;
+         {% if category == 'success' %}background:#f0fdf4;border:1px solid #bbf7d0;color:#16a34a;
+         {% else %}background:#fef2f2;border:1px solid #fecaca;color:#dc2626;{% endif %}">
+        {% if category == 'success' %}
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        {% else %}
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        {% endif %}
+        {{ message }}
+    </div>
+    {% endfor %}
+{% endwith %}
+
+<div class="row justify-content-start">
+<div class="col-lg-6">
+
+    <form method="POST" action="/settings">
+        <!-- 通知設定カード -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">通知設定</h5>
+            </div>
+            <div class="card-body p-4">
+
+                <div class="d-flex align-items-start justify-content-between gap-3">
+                    <div>
+                        <div class="fw-semibold mb-1" style="font-size:0.9rem;">レビュー通知メール</div>
+                        <div style="font-size:0.8rem;color:#9A9A9A;line-height:1.6;">
+                            お客様がアンケートを送信したときに<br>
+                            登録メールアドレスへ通知メールを送ります。
+                        </div>
+                    </div>
+                    <div class="form-check form-switch mt-1" style="flex-shrink:0;">
+                        <input class="form-check-input" type="checkbox" role="switch"
+                               name="notify_enabled" id="notify_enabled"
+                               style="width:2.5em;height:1.25em;cursor:pointer;"
+                               {% if notify_enabled %}checked{% endif %}>
+                        <label class="form-check-label visually-hidden" for="notify_enabled">通知</label>
+                    </div>
+                </div>
+
+                <hr style="border-color:#E8E4DF;margin:1.25rem 0;">
+
+                <div class="d-flex align-items-center gap-2 p-3 rounded" id="notify_status_box"
+                     style="font-size:0.82rem;{% if notify_enabled %}background:#f0fdf4;border:1px solid #bbf7d0;color:#16a34a;{% else %}background:#f5f5f5;border:1px solid #e5e7eb;color:#9ca3af;{% endif %}">
+                    <svg id="notify_status_icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        {% if notify_enabled %}
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                        {% else %}
+                        <line x1="1" y1="1" x2="23" y2="23"/><path d="M17.73 17.73A10.35 10.35 0 0 1 6 17H3s3-2 3-9a6 6 0 0 1 .25-1.75M21 21c0-7 3-9 3-9a5.97 5.97 0 0 0-5-5.92"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                        {% endif %}
+                    </svg>
+                    <span id="notify_status_text">
+                        {% if notify_enabled %}通知オン：アンケート送信時にメールが届きます{% else %}通知オフ：通知メールは送信されません{% endif %}
+                    </span>
+                </div>
+
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:5px;"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>設定を保存
+        </button>
+    </form>
+
+</div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+// トグル切替時にステータスボックスをリアルタイム更新
+document.getElementById('notify_enabled').addEventListener('change', function () {
+    const box  = document.getElementById('notify_status_box');
+    const text = document.getElementById('notify_status_text');
+    const icon = document.getElementById('notify_status_icon');
+
+    if (this.checked) {
+        box.style.cssText  = 'font-size:0.82rem;background:#f0fdf4;border:1px solid #bbf7d0;color:#16a34a;padding:0.75rem;border-radius:0.375rem;display:flex;align-items:center;gap:0.5rem;';
+        text.textContent   = '通知オン：アンケート送信時にメールが届きます';
+        icon.innerHTML     = '<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>';
+    } else {
+        box.style.cssText  = 'font-size:0.82rem;background:#f5f5f5;border:1px solid #e5e7eb;color:#9ca3af;padding:0.75rem;border-radius:0.375rem;display:flex;align-items:center;gap:0.5rem;';
+        text.textContent   = '通知オフ：通知メールは送信されません';
+        icon.innerHTML     = '<line x1="1" y1="1" x2="23" y2="23"/><path d="M17.73 17.73A10.35 10.35 0 0 1 6 17H3s3-2 3-9a6 6 0 0 1 .25-1.75M21 21c0-7 3-9 3-9a5.97 5.97 0 0 0-5-5.92"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>';
+    }
+});
+</script>
+{% endblock %}

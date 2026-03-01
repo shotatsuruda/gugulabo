@@ -228,10 +228,11 @@ def init_db():
         except Exception:
             pass  # カラムが既に存在する場合はスキップ
 
-    # users テーブルへの plan / plan_expires_at カラム追加（マイグレーション）
+    # users テーブルへの plan / plan_expires_at / notify_enabled カラム追加（マイグレーション）
     if DB_TYPE == "postgresql":
         conn.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS plan TEXT DEFAULT '月額プラン'")
         conn.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS plan_expires_at TEXT")
+        conn.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS notify_enabled INTEGER NOT NULL DEFAULT 1")
     else:
         try:
             conn.execute("ALTER TABLE users ADD COLUMN plan TEXT DEFAULT '月額プラン'")
@@ -239,6 +240,10 @@ def init_db():
             pass
         try:
             conn.execute("ALTER TABLE users ADD COLUMN plan_expires_at TEXT")
+        except Exception:
+            pass
+        try:
+            conn.execute("ALTER TABLE users ADD COLUMN notify_enabled INTEGER NOT NULL DEFAULT 1")
         except Exception:
             pass
 
@@ -800,7 +805,7 @@ def submit_feedback(slug):
     """
     conn = get_db()
     shop = conn.execute(
-        "SELECT s.id, s.name, u.email AS owner_email "
+        "SELECT s.id, s.name, u.email AS owner_email, u.notify_enabled "
         "FROM shops s LEFT JOIN users u ON u.id = s.user_id "
         "WHERE s.slug = ?",
         (slug,),
@@ -822,8 +827,8 @@ def submit_feedback(slug):
     conn.commit()
     conn.close()
 
-    # オーナーへ通知メールを送信（失敗しても正常レスポンスを返す）
-    if shop["owner_email"]:
+    # オーナーへ通知メールを送信（notify_enabled が True の場合のみ）
+    if shop["owner_email"] and shop["notify_enabled"]:
         try:
             send_feedback_notification(
                 to_email=shop["owner_email"],
@@ -923,6 +928,30 @@ def request_coupon(slug):
 @login_required
 def manual():
     return render_template("manual.html")
+
+
+@app.route("/settings", methods=["GET", "POST"])
+@login_required
+def settings():
+    """通知設定ページ"""
+    conn = get_db()
+    if request.method == "POST":
+        notify_enabled = 1 if request.form.get("notify_enabled") else 0
+        conn.execute(
+            "UPDATE users SET notify_enabled = ? WHERE id = ?",
+            (notify_enabled, current_user.id),
+        )
+        conn.commit()
+        conn.close()
+        flash("設定を保存しました。", "success")
+        return redirect(url_for("settings"))
+
+    user = conn.execute(
+        "SELECT notify_enabled FROM users WHERE id = ?", (current_user.id,)
+    ).fetchone()
+    conn.close()
+    notify_enabled = bool(user["notify_enabled"]) if user else True
+    return render_template("settings.html", notify_enabled=notify_enabled)
 
 
 @app.route("/qr")
