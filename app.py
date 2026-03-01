@@ -514,6 +514,74 @@ def send_feedback_notification(
         server.sendmail(MAIL_FROM or MAIL_USERNAME, to_email, msg.as_string())
 
 
+# ===== Googleレビュークリック通知メール =====
+
+def send_google_click_notification(
+    to_email: str,
+    shop_name: str,
+    clicked_at: str,
+) -> None:
+    """お客様がGoogleレビューページを開いたことをオーナーに通知する"""
+    if not MAIL_USERNAME or not MAIL_PASSWORD:
+        return
+
+    msg = MIMEMultipart("alternative")
+    msg["From"]    = f"Gugulabo <{MAIL_FROM or MAIL_USERNAME}>"
+    msg["To"]      = to_email
+    msg["Subject"] = "【Gugulabo】お客様がGoogleレビューページを開きました"
+
+    text_body = f"""
+{shop_name} のお客様がGoogleレビューページを開きました。
+
+━━━━━━━━━━━━━━━━━━━━
+  店舗名: {shop_name}
+  日時　: {clicked_at}
+━━━━━━━━━━━━━━━━━━━━
+
+口コミ投稿につながる可能性があります。
+Gugulabo 管理画面でフィードバックをご確認ください。
+    """.strip()
+
+    html_body = f"""<!DOCTYPE html>
+<html lang="ja">
+<head><meta charset="UTF-8"></head>
+<body style="margin:0;padding:0;background:#f5f0ff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+  <div style="max-width:560px;margin:32px auto;padding:0 16px;">
+    <div style="background:linear-gradient(135deg,#667eea,#764ba2);border-radius:20px 20px 0 0;padding:28px 24px;text-align:center;">
+      <p style="color:rgba(255,255,255,0.85);margin:0 0 6px;font-size:13px;">Googleレビューページが開かれました</p>
+      <h1 style="color:#fff;margin:0;font-size:20px;font-weight:700;">{shop_name}</h1>
+    </div>
+    <div style="background:#fff;padding:28px 24px;border-radius:0 0 20px 20px;box-shadow:0 4px 24px rgba(99,102,241,0.1);">
+      <p style="color:#374151;font-size:14px;line-height:1.7;margin-top:0;">
+        お客様が <strong>「Googleレビューを書く」</strong> ボタンをクリックし、<br>
+        Googleレビューページを開きました。
+      </p>
+      <table style="width:100%;border-collapse:collapse;font-size:14px;color:#374151;">
+        <tr style="border-bottom:1px solid #f3f4f6;">
+          <td style="padding:10px 0;font-weight:600;width:80px;color:#6b7280;">店舗名</td>
+          <td style="padding:10px 0;">{shop_name}</td>
+        </tr>
+        <tr>
+          <td style="padding:10px 0;font-weight:600;color:#6b7280;">日時</td>
+          <td style="padding:10px 0;color:#9ca3af;">{clicked_at}</td>
+        </tr>
+      </table>
+      <p style="color:#6b7280;font-size:13px;margin-top:1rem;margin-bottom:0;">
+        口コミ投稿につながる可能性があります。
+      </p>
+    </div>
+  </div>
+</body></html>"""
+
+    msg.attach(MIMEText(text_body, "plain", "utf-8"))
+    msg.attach(MIMEText(html_body, "html", "utf-8"))
+
+    with smtplib.SMTP(MAIL_SMTP_HOST, MAIL_SMTP_PORT) as server:
+        server.starttls()
+        server.login(MAIL_USERNAME, MAIL_PASSWORD)
+        server.sendmail(MAIL_FROM or MAIL_USERNAME, to_email, msg.as_string())
+
+
 # ===== QRコード生成 =====
 
 def hex_to_rgb(hex_color: str) -> tuple:
@@ -1254,6 +1322,33 @@ def admin_reset_password(user_id):
     conn.close()
     flash("パスワードを変更しました。", "success")
     return redirect(url_for("admin_users"))
+
+
+@app.route("/notify_google_click/<slug>", methods=["POST"])
+def notify_google_click(slug):
+    """お客様がGoogleレビューボタンをクリックしたときにオーナーへ通知する（AJAX用）"""
+    conn = get_db()
+    shop = conn.execute(
+        "SELECT s.name, u.email AS owner_email, u.notify_enabled "
+        "FROM shops s LEFT JOIN users u ON u.id = s.user_id "
+        "WHERE s.slug = ?",
+        (slug,),
+    ).fetchone()
+    conn.close()
+    if not shop:
+        return jsonify({"success": False}), 404
+
+    if shop["owner_email"] and shop["notify_enabled"]:
+        try:
+            send_google_click_notification(
+                to_email=shop["owner_email"],
+                shop_name=shop["name"],
+                clicked_at=datetime.now().strftime("%Y年%m月%d日 %H:%M"),
+            )
+        except Exception:
+            pass
+
+    return jsonify({"success": True})
 
 
 @app.route("/admin/users/<int:user_id>/plan", methods=["POST"])
