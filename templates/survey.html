@@ -520,14 +520,10 @@ async function requestCoupon(uid) {
                 <p style="text-align:center;font-weight:700;font-size:0.9rem;margin-bottom:0.75rem;color:#2C2C2C;">
                     クーポンを送信しました！
                 </p>
-                <div class="coupon-code-box">
-                    <p class="coupon-code-label">クーポンコード</p>
-                    <p class="coupon-code">${esc(data.coupon_code)}</p>
-                </div>
                 <p class="coupon-result-note">
                     有効期限: ${esc(data.expires_at)}<br>
                     詳細は <strong>${esc(email)}</strong> にお送りしました。<br>
-                    ご来店の際にスタッフへコードをお伝えください。
+                    このメールを店員にご提示ください。
                 </p>
             `;
             resultEl.style.display = 'block';

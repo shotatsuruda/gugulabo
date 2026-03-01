@@ -373,11 +373,10 @@ def send_coupon_email(
 ━━━━━━━━━━━━━━━━━━━━
   {coupon_name}
   割引内容: {discount_text}
-  クーポンコード: {coupon_code}
   有効期限: {expires_at}
 ━━━━━━━━━━━━━━━━━━━━
 
-ご来店の際にスタッフへクーポンコードをお伝えください。
+このメールを店員にご提示ください。
 皆様のご来店を心よりお待ちしております。
 
 {shop_name} スタッフ一同
@@ -406,19 +405,13 @@ def send_coupon_email(
       <!-- クーポンカード -->
       <div style="background:linear-gradient(135deg,#667eea,#764ba2);border-radius:16px;padding:24px;text-align:center;margin:24px 0;">
         <p style="color:rgba(255,255,255,0.85);margin:0 0 4px;font-size:13px;">🎟️ {coupon_name}</p>
-        <p style="color:#fff;margin:0 0 16px;font-size:26px;font-weight:800;">{discount_text}</p>
-
-        <!-- クーポンコード枠 -->
-        <div style="background:rgba(255,255,255,0.2);border-radius:12px;padding:14px;">
-          <p style="color:rgba(255,255,255,0.7);margin:0 0 6px;font-size:11px;">クーポンコード</p>
-          <p style="color:#fff;margin:0;font-size:24px;font-weight:800;letter-spacing:3px;">{coupon_code}</p>
-        </div>
+        <p style="color:#fff;margin:0;font-size:26px;font-weight:800;">{discount_text}</p>
 
         <p style="color:rgba(255,255,255,0.75);margin:14px 0 0;font-size:13px;">有効期限: {expires_at}</p>
       </div>
 
       <p style="color:#6b7280;font-size:14px;line-height:1.7;">
-        ご来店の際にスタッフへクーポンコードをお伝えください。<br>
+        このメールを店員にご提示ください。<br>
         皆様のご来店を心よりお待ちしております。
       </p>
 
