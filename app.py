@@ -623,7 +623,27 @@ def logout():
 @app.route("/")
 def index():
     if current_user.is_authenticated:
-        return render_template("index.html")
+        conn = get_db()
+        feedbacks = conn.execute(
+            """
+            SELECT f.rating, f.comment, f.submitted_at, s.name AS shop_name
+            FROM feedbacks f
+            JOIN shops s ON s.id = f.shop_id
+            WHERE s.user_id = ? AND f.rating <= 3
+            ORDER BY f.submitted_at DESC
+            LIMIT 20
+            """,
+            (current_user.id,),
+        ).fetchall()
+        conn.close()
+        feedbacks = [dict(fb) for fb in feedbacks]
+        for fb in feedbacks:
+            sa = fb.get("submitted_at")
+            if sa and hasattr(sa, "strftime"):
+                fb["submitted_at"] = sa.strftime("%Y-%m-%d %H:%M")
+            elif sa and isinstance(sa, str):
+                fb["submitted_at"] = sa[:16]
+        return render_template("index.html", feedbacks=feedbacks)
     return render_template("landing.html")
 
 
