@@ -110,6 +110,40 @@
         </button>
     </form>
 
+    <!-- パスワード変更フォーム -->
+    <form method="POST" action="/settings/password">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">パスワードの変更</h5>
+            </div>
+            <div class="card-body p-4">
+
+                <div class="mb-3">
+                    <label for="current_password" class="form-label fw-semibold" style="font-size:0.85rem;">現在のパスワード</label>
+                    <input type="password" class="form-control" id="current_password" name="current_password"
+                           style="font-size:0.9rem;" placeholder="現在のパスワードを入力" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="new_password" class="form-label fw-semibold" style="font-size:0.85rem;">新しいパスワード</label>
+                    <input type="password" class="form-control" id="new_password" name="new_password"
+                           style="font-size:0.9rem;" placeholder="8文字以上を推奨" required>
+                </div>
+
+                <div class="mb-1">
+                    <label for="new_password_confirm" class="form-label fw-semibold" style="font-size:0.85rem;">新しいパスワード（確認用）</label>
+                    <input type="password" class="form-control" id="new_password_confirm" name="new_password_confirm"
+                           style="font-size:0.9rem;" placeholder="もう一度入力" required>
+                </div>
+
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:5px;"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>パスワードを変更
+        </button>
+    </form>
+
 </div>
 </div>
 

@@ -1066,6 +1066,42 @@ def settings_email():
     return redirect(url_for("settings"))
 
 
+@app.route("/settings/password", methods=["POST"])
+@login_required
+def settings_password():
+    """パスワード変更処理"""
+    current_password = request.form.get("current_password", "")
+    new_password = request.form.get("new_password", "")
+    new_password_confirm = request.form.get("new_password_confirm", "")
+
+    if not current_password or not new_password or not new_password_confirm:
+        flash("すべての項目を入力してください。", "error")
+        return redirect(url_for("settings"))
+
+    if new_password != new_password_confirm:
+        flash("新しいパスワードが一致しません。", "error")
+        return redirect(url_for("settings"))
+
+    conn = get_db()
+    user = conn.execute(
+        "SELECT password_hash FROM users WHERE id = ?", (current_user.id,)
+    ).fetchone()
+
+    if not user or not bcrypt.checkpw(current_password.encode(), user["password_hash"].encode()):
+        conn.close()
+        flash("現在のパスワードが正しくありません。", "error")
+        return redirect(url_for("settings"))
+
+    new_hash = bcrypt.hashpw(new_password.encode(), bcrypt.gensalt()).decode()
+    conn.execute(
+        "UPDATE users SET password_hash = ? WHERE id = ?", (new_hash, current_user.id)
+    )
+    conn.commit()
+    conn.close()
+    flash("パスワードを変更しました。", "success")
+    return redirect(url_for("settings"))
+
+
 @app.route("/qr")
 @login_required
 def qr_form():
