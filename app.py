@@ -1015,11 +1015,55 @@ def settings():
         return redirect(url_for("settings"))
 
     user = conn.execute(
-        "SELECT notify_enabled FROM users WHERE id = ?", (current_user.id,)
+        "SELECT notify_enabled, email FROM users WHERE id = ?", (current_user.id,)
     ).fetchone()
     conn.close()
     notify_enabled = bool(user["notify_enabled"]) if user else True
-    return render_template("settings.html", notify_enabled=notify_enabled)
+    current_email = user["email"] if user else ""
+    return render_template("settings.html", notify_enabled=notify_enabled, current_email=current_email)
+
+
+@app.route("/settings/email", methods=["POST"])
+@login_required
+def settings_email():
+    """メールアドレス変更処理"""
+    new_email = request.form.get("new_email", "").strip()
+    confirm_password = request.form.get("confirm_password", "")
+
+    if not new_email or not confirm_password:
+        flash("新しいメールアドレスとパスワードを入力してください。", "error")
+        return redirect(url_for("settings"))
+
+    conn = get_db()
+    user = conn.execute(
+        "SELECT email, password_hash FROM users WHERE id = ?", (current_user.id,)
+    ).fetchone()
+
+    if not user or not bcrypt.checkpw(confirm_password.encode(), user["password_hash"].encode()):
+        conn.close()
+        flash("パスワードが正しくありません。", "error")
+        return redirect(url_for("settings"))
+
+    if new_email == user["email"]:
+        conn.close()
+        flash("新しいメールアドレスが現在と同じです。", "error")
+        return redirect(url_for("settings"))
+
+    existing = conn.execute(
+        "SELECT id FROM users WHERE email = ? AND id != ?", (new_email, current_user.id)
+    ).fetchone()
+    if existing:
+        conn.close()
+        flash("そのメールアドレスはすでに使用されています。", "error")
+        return redirect(url_for("settings"))
+
+    conn.execute(
+        "UPDATE users SET email = ? WHERE id = ?", (new_email, current_user.id)
+    )
+    conn.commit()
+    conn.close()
+    flash("メールアドレスを変更しました。", "success")
+    return redirect(url_for("settings"))
 
 
 @app.route("/qr")

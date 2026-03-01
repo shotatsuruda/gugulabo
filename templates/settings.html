@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}設定 | গগুলাবো{% endblock %}
+{% block title %}設定 | গগラボ{% endblock %}
 
 {% block content %}
 
@@ -74,6 +74,39 @@
 
         <button type="submit" class="btn btn-primary">
             <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:5px;"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>設定を保存
+        </button>
+    </form>
+
+    <!-- メールアドレス変更フォーム -->
+    <form method="POST" action="/settings/email">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">メールアドレスの変更</h5>
+            </div>
+            <div class="card-body p-4">
+
+                <div class="mb-3">
+                    <div class="fw-semibold mb-1" style="font-size:0.85rem;">現在のメールアドレス</div>
+                    <div style="font-size:0.9rem;color:#6c757d;background:#f8f8f8;border:1px solid #e5e7eb;border-radius:6px;padding:0.5rem 0.75rem;">{{ current_email }}</div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="new_email" class="form-label fw-semibold" style="font-size:0.85rem;">新しいメールアドレス</label>
+                    <input type="email" class="form-control" id="new_email" name="new_email"
+                           style="font-size:0.9rem;" required>
+                </div>
+
+                <div class="mb-1">
+                    <label for="confirm_password" class="form-label fw-semibold" style="font-size:0.85rem;">パスワード（本人確認）</label>
+                    <input type="password" class="form-control" id="confirm_password" name="confirm_password"
+                           style="font-size:0.9rem;" placeholder="現在のパスワードを入力" required>
+                </div>
+
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:5px;"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>メールアドレスを変更
         </button>
     </form>
 
