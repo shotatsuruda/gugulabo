@@ -70,7 +70,7 @@ MAIL_FROM = os.environ.get("MAIL_FROM", MAIL_USERNAME)
 # ===== Stripe 設定 =====
 STRIPE_SECRET_KEY    = os.environ.get("STRIPE_SECRET_KEY", "")
 STRIPE_PUBLIC_KEY    = "pk_live_51T5hfRI0UveP0nntiIpAIEgEV0Y7l1IKDrRogRQj4jbvypaHpoxPoI6ouFxLG10po9LHh3STXiSESu5sSqwtoB4U0055zkbWIL"
-STRIPE_PRICE_ID      = os.environ.get("STRIPE_PRICE_ID", "prod_U4FjKd9lDlqlQ9")
+STRIPE_PRICE_ID      = os.environ.get("STRIPE_PRICE_ID", "price_1T67E9I0UveP0nntM4yqbZ9q")
 STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET", "")
 if STRIPE_SECRET_KEY:
     stripe.api_key = STRIPE_SECRET_KEY
