@@ -269,32 +269,36 @@
         </div>
         <div class="card-body px-4 py-4" style="font-size:0.875rem;color:#374151;line-height:1.8;">
 
-            <ul class="list-unstyled mb-0">
-                <li class="d-flex gap-3 mb-3">
-                    <span style="flex-shrink:0;width:28px;height:28px;background:linear-gradient(135deg,#667eea,#764ba2);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1rem;">📩</span>
-                    <div>
-                        お客様がアンケートを送信すると、登録したメールアドレスに<strong>リアルタイムで通知メールが届きます。</strong>
-                    </div>
-                </li>
-                <li class="d-flex gap-3 mb-3">
-                    <span style="flex-shrink:0;width:28px;height:28px;background:linear-gradient(135deg,#667eea,#764ba2);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1rem;">⭐</span>
-                    <div>
-                        通知メールにはお客様の<strong>星評価とコメント</strong>が記載されています。
-                    </div>
-                </li>
-                <li class="d-flex gap-3 mb-3">
-                    <span style="flex-shrink:0;width:28px;height:28px;background:linear-gradient(135deg,#667eea,#764ba2);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1rem;">🚀</span>
-                    <div>
-                        低評価の場合はすぐに対応することで、<strong>お客様満足度の向上</strong>につながります。
-                    </div>
-                </li>
-                <li class="d-flex gap-3 mb-0">
-                    <span style="flex-shrink:0;width:28px;height:28px;background:linear-gradient(135deg,#667eea,#764ba2);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1rem;">⚙️</span>
-                    <div>
-                        通知設定はナビゲーションの <a href="/settings" style="color:#667eea;font-weight:600;">「設定」</a> から変更できます。
-                    </div>
-                </li>
-            </ul>
+            <p class="mb-3" style="color:#4b5563;">通知が届くタイミングは2種類あります。</p>
+
+            <!-- 低評価 -->
+            <div class="mb-3 p-3" style="background:#f0f4ff;border-radius:12px;border-left:4px solid #667eea;">
+                <div class="fw-bold mb-1" style="font-size:0.875rem;color:#374151;">
+                    ① 低評価（星1〜3）の場合
+                </div>
+                <p class="mb-1" style="color:#4b5563;">
+                    お客様がアンケートを送信した時点で通知メールが届きます。
+                </p>
+                <p class="mb-0" style="color:#6b7280;font-size:0.82rem;">
+                    早めに対応することでお客様満足度の向上につながります。
+                </p>
+            </div>
+
+            <!-- 高評価 -->
+            <div class="mb-3 p-3" style="background:#f0fdf4;border-radius:12px;border-left:4px solid #34d399;">
+                <div class="fw-bold mb-1" style="font-size:0.875rem;color:#374151;">
+                    ② 高評価（星4〜5）の場合
+                </div>
+                <p class="mb-0" style="color:#4b5563;">
+                    お客様が「Googleレビューを書く」ボタンをタップした時点で通知メールが届きます。
+                </p>
+            </div>
+
+            <!-- 設定リンク -->
+            <div class="p-3" style="background:#f8f7ff;border-radius:12px;border:1px solid #e5e7eb;font-size:0.82rem;color:#6b7280;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:5px;"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                通知のオン/オフは <a href="/settings" style="color:#667eea;font-weight:600;">「設定」</a> ページから変更できます。
+            </div>
 
         </div>
     </div>
