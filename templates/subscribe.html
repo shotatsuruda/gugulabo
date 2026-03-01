@@ -1,47 +1,86 @@
 {% extends 'base.html' %}
 
-{% block title %}お支払い | ググラボ{% endblock %}
+{% block title %}お支払い | গগラボ{% endblock %}
 
 {% block content %}
 
-<div class="row justify-content-center mt-5">
-<div class="col-lg-5 col-md-7">
+<div class="row justify-content-center mt-4">
+<div class="col-lg-8 col-md-10">
 
     <div class="text-center mb-4">
-        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#8C7B6B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="mb-3"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#8C7B6B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="mb-3"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
         <h2 class="fw-bold mb-1" style="font-size:1.4rem;">サービスを開始する</h2>
-        <p style="font-size:0.85rem;color:#9A9A9A;">ググラボをご利用いただくにはお支払いが必要です</p>
+        <p style="font-size:0.85rem;color:#9A9A9A;">গগラボをご利用いただくにはお支払いが必要です</p>
     </div>
 
-    <div class="card mb-4">
-        <div class="card-body p-4">
+    <div class="row g-3 mb-3">
 
-            <div class="text-center mb-4">
-                <p style="font-size:0.8rem;color:#9A9A9A;margin-bottom:4px;">月額料金</p>
-                <p class="fw-bold mb-0" style="font-size:2.2rem;color:#2C2C2C;">¥2,980<span style="font-size:1rem;font-weight:400;color:#9A9A9A;">/月</span></p>
+        <!-- 月額プラン -->
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-body p-4 d-flex flex-column">
+
+                    <div class="text-center mb-3">
+                        <p class="fw-semibold mb-1" style="font-size:0.95rem;color:#2C2C2C;">月額プラン</p>
+                        <p class="fw-bold mb-0" style="font-size:2rem;color:#2C2C2C;">¥2,980<span style="font-size:0.9rem;font-weight:400;color:#9A9A9A;">/月</span></p>
+                    </div>
+
+                    <hr style="border-color:#E8E4DF;">
+
+                    <ul style="font-size:0.82rem;color:#2C2C2C;line-height:2.1;padding-left:1.2rem;" class="mb-4 flex-grow-1">
+                        <li>QRコードの生成・印刷</li>
+                        <li>お客様アンケートの自動配信</li>
+                        <li>AI による返答文の生成</li>
+                        <li>レビュー通知メール</li>
+                    </ul>
+
+                    <form method="POST" action="/create-checkout-session">
+                        <input type="hidden" name="plan" value="monthly">
+                        <button type="submit" class="btn btn-outline-primary w-100" style="font-size:0.9rem;padding:0.65rem;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:5px;"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>月額プランで始める
+                        </button>
+                    </form>
+
+                </div>
             </div>
-
-            <hr style="border-color:#E8E4DF;">
-
-            <ul style="font-size:0.85rem;color:#2C2C2C;line-height:2.2;padding-left:1.25rem;" class="mb-4">
-                <li>Googleレビュー誘導QRコードの生成・印刷</li>
-                <li>お客様アンケートの自動配信</li>
-                <li>AI による Googleレビュー返答文の生成</li>
-                <li>レビュー通知メール</li>
-            </ul>
-
-            <form method="POST" action="/create-checkout-session">
-                <button type="submit" class="btn btn-primary w-100" style="font-size:0.95rem;padding:0.7rem;">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:6px;"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>お支払いへ進む
-                </button>
-            </form>
-
         </div>
+
+        <!-- 年間プラン -->
+        <div class="col-md-6">
+            <div class="card h-100" style="border:2px solid #8C7B6B;">
+                <div class="card-body p-4 d-flex flex-column">
+
+                    <div class="text-center mb-3">
+                        <span class="badge mb-2" style="background:#8C7B6B;font-size:0.72rem;padding:0.3em 0.75em;border-radius:999px;">おすすめ</span>
+                        <p class="fw-semibold mb-1" style="font-size:0.95rem;color:#2C2C2C;">年間プラン</p>
+                        <p class="fw-bold mb-0" style="font-size:2rem;color:#2C2C2C;">¥29,800<span style="font-size:0.9rem;font-weight:400;color:#9A9A9A;">/年</span></p>
+                        <p style="font-size:0.78rem;color:#8C7B6B;margin-top:2px;">月額換算 ¥2,483</p>
+                    </div>
+
+                    <hr style="border-color:#E8E4DF;">
+
+                    <ul style="font-size:0.82rem;color:#2C2C2C;line-height:2.1;padding-left:1.2rem;" class="mb-4 flex-grow-1">
+                        <li>QRコードの生成・印刷</li>
+                        <li>お客様アンケートの自動配信</li>
+                        <li>AI による返答文の生成</li>
+                        <li>レビュー通知メール</li>
+                    </ul>
+
+                    <form method="POST" action="/create-checkout-session">
+                        <input type="hidden" name="plan" value="yearly">
+                        <button type="submit" class="btn btn-primary w-100" style="font-size:0.9rem;padding:0.65rem;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:5px;"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>年間プランで始める
+                        </button>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <p class="text-center" style="font-size:0.75rem;color:#9A9A9A;">
-        決済は Stripe により安全に処理されます。<br>
-        いつでもキャンセル可能です。
+        決済は Stripe により安全に処理されます。いつでもキャンセル可能です。
     </p>
 
 </div>

@@ -70,7 +70,8 @@ MAIL_FROM = os.environ.get("MAIL_FROM", MAIL_USERNAME)
 # ===== Stripe 設定 =====
 STRIPE_SECRET_KEY    = os.environ.get("STRIPE_SECRET_KEY", "")
 STRIPE_PUBLIC_KEY    = "pk_live_51T5hfRI0UveP0nntiIpAIEgEV0Y7l1IKDrRogRQj4jbvypaHpoxPoI6ouFxLG10po9LHh3STXiSESu5sSqwtoB4U0055zkbWIL"
-STRIPE_PRICE_ID      = os.environ.get("STRIPE_PRICE_ID", "price_1T67E9I0UveP0nntM4yqbZ9q")
+STRIPE_PRICE_ID         = os.environ.get("STRIPE_PRICE_ID", "price_1T67E9I0UveP0nntM4yqbZ9q")
+STRIPE_PRICE_ID_YEARLY  = os.environ.get("STRIPE_PRICE_ID_YEARLY", "price_1T67bmI0UveP0nntQVL8Ieen")
 STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET", "")
 if STRIPE_SECRET_KEY:
     stripe.api_key = STRIPE_SECRET_KEY
@@ -1145,15 +1146,22 @@ def create_checkout_session():
     """Stripe Checkout セッションを作成してリダイレクト"""
     if current_user.is_paid:
         return redirect(url_for("index"))
+    plan_param = request.form.get("plan", "monthly")
+    if plan_param == "yearly":
+        price_id  = STRIPE_PRICE_ID_YEARLY
+        plan_name = "年間プラン"
+    else:
+        price_id  = STRIPE_PRICE_ID
+        plan_name = "月額プラン"
     try:
         checkout_session = stripe.checkout.Session.create(
             payment_method_types=["card"],
-            line_items=[{"price": STRIPE_PRICE_ID, "quantity": 1}],
+            line_items=[{"price": price_id, "quantity": 1}],
             mode="subscription",
             success_url=url_for("success", _external=True) + "?session_id={CHECKOUT_SESSION_ID}",
             cancel_url=url_for("cancel", _external=True),
             customer_email=current_user.email,
-            metadata={"user_id": str(current_user.id)},
+            metadata={"user_id": str(current_user.id), "plan_name": plan_name},
         )
         return redirect(checkout_session.url, code=303)
     except Exception as e:
@@ -1170,10 +1178,11 @@ def success():
         try:
             checkout_session = stripe.checkout.Session.retrieve(session_id)
             customer_id = checkout_session.get("customer")
+            plan_name   = (checkout_session.get("metadata") or {}).get("plan_name", "月額プラン")
             conn = get_db()
             conn.execute(
-                "UPDATE users SET plan = '月額プラン', stripe_customer_id = ? WHERE id = ?",
-                (customer_id, current_user.id),
+                "UPDATE users SET plan = ?, stripe_customer_id = ? WHERE id = ?",
+                (plan_name, customer_id, current_user.id),
             )
             conn.commit()
             conn.close()
@@ -1205,12 +1214,13 @@ def webhook():
     if event["type"] == "checkout.session.completed":
         session     = event["data"]["object"]
         user_id     = (session.get("metadata") or {}).get("user_id")
+        plan_name   = (session.get("metadata") or {}).get("plan_name", "月額プラン")
         customer_id = session.get("customer")
         if user_id:
             conn = get_db()
             conn.execute(
-                "UPDATE users SET plan = '月額プラン', stripe_customer_id = ? WHERE id = ?",
-                (customer_id, int(user_id)),
+                "UPDATE users SET plan = ?, stripe_customer_id = ? WHERE id = ?",
+                (plan_name, customer_id, int(user_id)),
             )
             conn.commit()
             conn.close()
