@@ -297,62 +297,6 @@
             line-height: 1.6;
         }
 
-        /* ===== レビューの書き方ガイド ===== */
-        .review-guide {
-            margin-top: 1.25rem;
-            padding-top: 1.25rem;
-            border-top: 1px solid var(--border);
-        }
-        .review-guide-heading {
-            font-size: 0.75rem;
-            font-weight: 700;
-            letter-spacing: 0.06em;
-            color: var(--muted);
-            text-align: center;
-            text-transform: uppercase;
-            margin-bottom: 1rem;
-        }
-        .review-step {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin-bottom: 0.875rem;
-        }
-        .step-badge {
-            font-size: 0.65rem;
-            font-weight: 700;
-            letter-spacing: 0.08em;
-            color: var(--copper);
-            background: #f5f0eb;
-            padding: 0.15rem 0.55rem;
-            border-radius: 4px;
-            margin-bottom: 0.375rem;
-        }
-        .step-desc {
-            font-size: 0.82rem;
-            color: var(--dark);
-            text-align: center;
-            line-height: 1.65;
-            margin-bottom: 0.5rem;
-        }
-        .step-stars-display {
-            font-size: 2.2rem;
-            color: #f5a623;
-            letter-spacing: 0.05em;
-            line-height: 1;
-            margin-bottom: 0.25rem;
-        }
-        .step-tap-hint {
-            font-size: 0.75rem;
-            font-weight: 700;
-            color: var(--copper);
-        }
-        .review-step-divider {
-            border: none;
-            border-top: 1px dashed var(--border);
-            margin: 0.75rem 0;
-        }
-
         /* ===== ご意見送信済み ===== */
         .feedback-sent {
             display: none;
@@ -411,25 +355,6 @@
                 <span class="google-g">G</span>
                 Googleレビューを書く
             </a>
-
-            <!-- レビューの書き方ガイド -->
-            <div class="review-guide">
-                <p class="review-guide-heading">レビューの書き方</p>
-
-                <div class="review-step">
-                    <span class="step-badge">STEP 1</span>
-                    <p class="step-desc">Googleのページが開いたら、<br>星をタップしてください</p>
-                    <div class="step-stars-display">☆☆☆☆☆</div>
-                    <p class="step-tap-hint">↑ ここをタップ</p>
-                </div>
-
-                <hr class="review-step-divider">
-
-                <div class="review-step">
-                    <span class="step-badge">STEP 2</span>
-                    <p class="step-desc">感想を入力して「投稿」ボタンを押してください</p>
-                </div>
-            </div>
         </div>
 
         {% if coupon %}
