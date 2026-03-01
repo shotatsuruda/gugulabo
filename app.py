@@ -1616,6 +1616,20 @@ def admin_delete_user(user_id):
         return redirect(url_for("admin_users"))
 
     conn = get_db()
+    # ユーザーの店舗IDを取得
+    shops = conn.execute(
+        "SELECT id FROM shops WHERE user_id = ?", (user_id,)
+    ).fetchall()
+    shop_ids = [s["id"] for s in shops]
+
+    # 店舗に紐づく関連データを削除（外部キー制約に引っかからないよう逆順に）
+    for shop_id in shop_ids:
+        conn.execute("DELETE FROM coupon_deliveries WHERE shop_id = ?", (shop_id,))
+        conn.execute("DELETE FROM coupons WHERE shop_id = ?", (shop_id,))
+        conn.execute("DELETE FROM feedbacks WHERE shop_id = ?", (shop_id,))
+
+    # 店舗・ユーザーを削除
+    conn.execute("DELETE FROM shops WHERE user_id = ?", (user_id,))
     conn.execute("DELETE FROM users WHERE id = ?", (user_id,))
     conn.commit()
     conn.close()
