@@ -457,7 +457,7 @@ def send_feedback_notification(
     msg = MIMEMultipart("alternative")
     msg["From"]    = f"গগলাবো <{MAIL_FROM or MAIL_USERNAME}>"
     msg["To"]      = to_email
-    msg["Subject"] = "【গগলাবো】新しいフィードバックが届きました"
+    msg["Subject"] = "【Gugulabo】新しいフィードバックが届きました"
 
     text_body = f"""
 {shop_name} に新しいフィードバックが届きました。
