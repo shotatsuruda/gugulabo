@@ -336,7 +336,7 @@ def send_coupon_email(
     if not MAIL_USERNAME or not MAIL_PASSWORD:
         return False, (
             "メール送信設定が未設定です。"
-            ".env の MAIL_USERNAME・MAIL_PASSWORD を確認してください。"
+            "環境変数 MAIL_USERNAME・MAIL_PASSWORD を設定してください。"
         )
 
     try:
