@@ -814,6 +814,12 @@ def request_coupon(slug):
 
 # ----- 管理画面: QRコード生成 -----
 
+@app.route("/manual")
+@login_required
+def manual():
+    return render_template("manual.html")
+
+
 @app.route("/qr")
 @login_required
 def qr_form():
@@ -837,6 +843,14 @@ def get_shops():
 @login_required
 def add_shop():
     """店舗を追加する（ログインユーザーに紐づける）"""
+    conn = get_db()
+    existing = conn.execute(
+        "SELECT COUNT(*) as cnt FROM shops WHERE user_id = ?", (current_user.id,)
+    ).fetchone()
+    conn.close()
+    if existing and existing["cnt"] >= 1:
+        return jsonify({"error": "1アカウントにつき1店舗まで登録できます"}), 400
+
     data = request.get_json()
     name          = (data.get("name")          or "").strip()
     review_url    = (data.get("review_url")    or "").strip()
