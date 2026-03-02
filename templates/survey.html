@@ -246,6 +246,16 @@
             <button class="btn-main" id="feedback-submit-btn" onclick="submitFeedback()">
                 ご意見を送信する
             </button>
+
+            <div style="margin-top:1.25rem; padding-top:1.25rem; border-top:1px solid var(--border); text-align:center;">
+                <p style="font-size:0.8rem; color:#9A9A9A; margin-bottom:0.75rem;">
+                    よろしければこちらからもご意見をお寄せいただけます
+                </p>
+                <a href="{{ shop.review_url }}" rel="noopener" class="btn-google"
+                    onclick="notifyAndOpen(event, this.href)">
+                    <span class="google-g">G</span> Googleレビューを書く
+                </a>
+            </div>
         </div>
     </div>
 
