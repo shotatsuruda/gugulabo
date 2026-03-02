@@ -101,87 +101,64 @@
             <p class="lp-section-label">Features</p>
             <h2 class="lp-section-title">ググラボができること</h2>
             <p class="lp-section-desc">
-                QRコードを1枚置くだけで、すべてのお客様にGoogleレビューをご案内しながら、感想もお聞きする導線を自動で提供します。
+                QRコードを1枚置くだけで、これらをすべて自動化します。
             </p>
         </div>
 
-        <!-- ===== 評価別フロー ===== -->
-        <div class="row g-4 mt-1 mb-5">
+        <!-- ===== 6枚機能カードグリッド ===== -->
+        <div class="row g-4 mt-1">
 
-            <!-- 高評価フロー -->
-            <div class="col-md-6">
-                <div style="background:#fff;border-radius:12px;border:1.5px solid #E8E4DF;overflow:hidden;height:100%;box-shadow:0 1px 8px rgba(0,0,0,0.05);">
-                    <div style="background:#f9f6f3;border-bottom:1.5px solid #E8E4DF;padding:1rem 1.5rem;display:flex;align-items:center;gap:0.5rem;">
-                        <span style="color:#f5a623;font-size:1.05rem;letter-spacing:2px;">★★★★★</span>
-                        <span style="font-weight:700;font-size:0.95rem;color:#2C2C2C;">高評価（★4～5）のお客様</span>
+            <!-- 感想・アンケート収集 -->
+            <div class="col-md-4">
+                <div class="lp-feature-card">
+                    <div class="lp-feature-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                        </svg>
                     </div>
-                    <div style="padding:1.5rem;">
-                        <div style="display:flex;gap:1rem;margin-bottom:1rem;align-items:flex-start;">
-                            <div style="width:28px;height:28px;border-radius:50%;background:#2C2C2C;color:#fff;font-size:0.75rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">1</div>
-                            <div>
-                                <p style="font-weight:700;font-size:0.9rem;margin-bottom:0.2rem;color:#2C2C2C;">Googleレビューへ誘導</p>
-                                <p style="font-size:0.8rem;color:#9A9A9A;margin:0;line-height:1.6;">Googleレビューへ案内し、一言感想も任意でお聞きします。お客様の声をお店の改善にも活かせます。</p>
-                            </div>
-                        </div>
-                        <div style="text-align:center;color:#D0CCC8;font-size:1.2rem;margin-bottom:1rem;line-height:1;">↓</div>
-                        <div style="display:flex;gap:1rem;align-items:flex-start;">
-                            <div style="width:28px;height:28px;border-radius:50%;background:#8C7B6B;color:#fff;font-size:0.75rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">2</div>
-                            <div>
-                                <p style="font-weight:700;font-size:0.9rem;margin-bottom:0.2rem;color:#2C2C2C;">クーポンをプレゼント</p>
-                                <p style="font-size:0.8rem;color:#9A9A9A;margin:0;line-height:1.6;">メールアドレスを入力するだけでクーポンを自動発行。次回来店の動機づけになります。</p>
-                            </div>
-                        </div>
+                    <div>
+                        <h3 class="lp-feature-title">感想・アンケート収集</h3>
+                        <p class="lp-feature-desc">
+                            すべてのお客様に一言感想を任意でお聴きします。評価に関わらずお客様の本音を店舗改善に活かせます。
+                        </p>
                     </div>
                 </div>
             </div>
 
-            <!-- 低評価フロー -->
-            <div class="col-md-6">
-                <div style="background:#fff;border-radius:12px;border:1.5px solid #E8E4DF;overflow:hidden;height:100%;box-shadow:0 1px 8px rgba(0,0,0,0.05);">
-                    <div style="background:#f9f6f3;border-bottom:1.5px solid #E8E4DF;padding:1rem 1.5rem;display:flex;align-items:center;gap:0.5rem;">
-                        <span style="color:#ccc;font-size:1.05rem;letter-spacing:2px;">★★★</span>
-                        <span style="font-weight:700;font-size:0.95rem;color:#2C2C2C;">低評価（★1～3）のお客様</span>
+            <!-- Googleレビュー自動案内 -->
+            <div class="col-md-4">
+                <div class="lp-feature-card">
+                    <div class="lp-feature-icon" style="font-size:1.4rem;line-height:1;">
+                        <span class="google-g" style="font-size:1.6rem;font-weight:900;">G</span>
                     </div>
-                    <div style="padding:1.5rem;">
-                        <div style="display:flex;gap:1rem;margin-bottom:1rem;align-items:flex-start;">
-                            <div style="width:28px;height:28px;border-radius:50%;background:#2C2C2C;color:#fff;font-size:0.75rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">1</div>
-                            <div>
-                                <p style="font-weight:700;font-size:0.9rem;margin-bottom:0.2rem;color:#2C2C2C;">感想を入力してもらう</p>
-                                <p style="font-size:0.8rem;color:#9A9A9A;margin:0;line-height:1.6;">感想入力フォームを表示し、改善に向けた本音の声をお聞きします。感想入力画面からもGoogleレビューへご案内します。</p>
-                            </div>
-                        </div>
-                        <div style="text-align:center;color:#D0CCC8;font-size:1.2rem;margin-bottom:1rem;line-height:1;">↓</div>
-                        <div style="display:flex;gap:1rem;margin-bottom:1rem;align-items:flex-start;">
-                            <div style="width:28px;height:28px;border-radius:50%;background:#2C2C2C;color:#fff;font-size:0.75rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">2</div>
-                            <div>
-                                <p style="font-weight:700;font-size:0.9rem;margin-bottom:0.2rem;color:#2C2C2C;">送信後に感謝メッセージを表示</p>
-                                <p style="font-size:0.8rem;color:#9A9A9A;margin:0;line-height:1.6;">「スタッフ全員で共有しサービス改善に活かします」と丁寧にお礼をお伝えします。</p>
-                            </div>
-                        </div>
-                        <div style="text-align:center;color:#D0CCC8;font-size:1.2rem;margin-bottom:1rem;line-height:1;">↓</div>
-                        <div style="display:flex;gap:1rem;margin-bottom:1rem;align-items:flex-start;">
-                            <div style="width:28px;height:28px;border-radius:50%;background:#8C7B6B;color:#fff;font-size:0.75rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">3</div>
-                            <div>
-                                <p style="font-weight:700;font-size:0.9rem;margin-bottom:0.2rem;color:#2C2C2C;">クーポンをプレゼント</p>
-                                <p style="font-size:0.8rem;color:#9A9A9A;margin:0;line-height:1.6;">不満を持ったお客様にもクーポンをお届けし、再来店・関係修復のきっかけを作ります。</p>
-                            </div>
-                        </div>
-                        <div style="text-align:center;color:#D0CCC8;font-size:1.2rem;margin-bottom:1rem;line-height:1;">↓</div>
-                        <div style="display:flex;gap:1rem;align-items:flex-start;">
-                            <div style="width:28px;height:28px;border-radius:50%;background:#2C2C2C;color:#fff;font-size:0.75rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">4</div>
-                            <div>
-                                <p style="font-weight:700;font-size:0.9rem;margin-bottom:0.2rem;color:#2C2C2C;">Googleレビューへも任意で誘導</p>
-                                <p style="font-size:0.8rem;color:#9A9A9A;margin:0;line-height:1.6;">強制はせず、気持ちが向いたお客様だけにGoogleへの誘導ボタンも表示します。</p>
-                            </div>
-                        </div>
+                    <div>
+                        <h3 class="lp-feature-title">Googleレビュー自動案内</h3>
+                        <p class="lp-feature-desc">
+                            すべてのお客様にGoogleレビューをご案内します。満足度に関わらず、自然な形でレビューを増やせます。
+                        </p>
                     </div>
                 </div>
             </div>
 
-        </div>
+            <!-- クーポン自動配信 -->
+            <div class="col-md-4">
+                <div class="lp-feature-card">
+                    <div class="lp-feature-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 12v10H4V12"/><path d="M22 7H2v5h20V7z"/><path d="M12 22V7"/>
+                            <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/>
+                            <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="lp-feature-title">クーポン自動配信</h3>
+                        <p class="lp-feature-desc">
+                            感想送信後やレビュー案内後にクーポンを自動発行。次回来店の動機づけと顧客満足度向上を同時に実現します。
+                        </p>
+                    </div>
+                </div>
+            </div>
 
-        <!-- ===== その他の機能 ===== -->
-        <div class="row g-4">
             <!-- QRコード -->
             <div class="col-md-4">
                 <div class="lp-feature-card">
@@ -201,6 +178,7 @@
                     </div>
                 </div>
             </div>
+
             <!-- AI返答 -->
             <div class="col-md-4">
                 <div class="lp-feature-card">
@@ -218,6 +196,7 @@
                     </div>
                 </div>
             </div>
+
             <!-- 通知 -->
             <div class="col-md-4">
                 <div class="lp-feature-card">
@@ -235,6 +214,7 @@
                     </div>
                 </div>
             </div>
+
         </div>
 
     </div>
