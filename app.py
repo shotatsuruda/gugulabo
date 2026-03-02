@@ -860,6 +860,47 @@ def index():
             """,
             (current_user.id,),
         ).fetchall()
+
+        # 星評価の分布（1〜5星それぞれの件数）
+        rating_rows = conn.execute(
+            """
+            SELECT rating, COUNT(*) as count
+            FROM feedbacks f
+            JOIN shops s ON s.id = f.shop_id
+            WHERE s.user_id = ?
+            GROUP BY rating
+            """,
+            (current_user.id,),
+        ).fetchall()
+        rating_dist = {row["rating"]: row["count"] for row in rating_rows}
+
+        # 過去30日間の日別件数推移
+        daily_rows = conn.execute(
+            """
+            SELECT DATE(submitted_at) as date, COUNT(*) as count
+            FROM feedbacks f
+            JOIN shops s ON s.id = f.shop_id
+            WHERE s.user_id = ?
+            AND submitted_at >= DATE('now', '-30 days')
+            GROUP BY DATE(submitted_at)
+            ORDER BY date ASC
+            """,
+            (current_user.id,),
+        ).fetchall()
+        daily_trend = [{"date": row["date"], "count": row["count"]} for row in daily_rows]
+
+        # クーポン送信総数
+        coupon_row = conn.execute(
+            """
+            SELECT COUNT(*) as total
+            FROM coupon_deliveries cd
+            JOIN shops s ON s.id = cd.shop_id
+            WHERE s.user_id = ?
+            """,
+            (current_user.id,),
+        ).fetchone()
+        coupon_total = coupon_row["total"] if coupon_row else 0
+
         conn.close()
         feedbacks = [dict(fb) for fb in feedbacks]
         for fb in feedbacks:
@@ -872,6 +913,9 @@ def index():
             "index.html",
             feedbacks=feedbacks,
             trial_days_remaining=current_user.trial_days_remaining,
+            rating_dist=rating_dist,
+            daily_trend=daily_trend,
+            coupon_total=coupon_total,
         )
     return render_template("landing.html")
 
