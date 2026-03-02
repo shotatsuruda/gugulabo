@@ -383,6 +383,34 @@ def init_db():
         """
     )
 
+    # デモ用店舗を作成（なければ）
+    conn.execute("""
+        INSERT INTO shops (user_id, name, slug, review_url)
+        SELECT 1, 'デモ店舗', 'demo', 'https://google.com'
+        WHERE NOT EXISTS (SELECT 1 FROM shops WHERE slug = 'demo')
+    """)
+
+    # デモ用フィードバックを挿入（なければ）
+    demo_feedbacks = [
+        (4, 'スタッフの方がとても親切で、また来たいと思いました。'),
+        (5, '施術が丁寧で、体がとても楽になりました。'),
+        (5, '雰囲気も良く、リラックスできました。次回も予約したいです。'),
+        (4, '料金もリーズナブルで大満足です。'),
+        (5, '初めての利用でしたが、丁寧に説明してくれて安心できました。'),
+    ]
+    for rating, comment in demo_feedbacks:
+        conn.execute("""
+            INSERT INTO feedbacks (shop_id, rating, comment, is_featured)
+            SELECT s.id, ?, ?, 1
+            FROM shops s
+            WHERE s.slug = 'demo'
+            AND NOT EXISTS (
+                SELECT 1 FROM feedbacks f2
+                JOIN shops s2 ON s2.id = f2.shop_id
+                WHERE s2.slug = 'demo' AND f2.comment = ?
+            )
+        """, (rating, comment, comment))
+
     conn.commit()
     conn.close()
 
