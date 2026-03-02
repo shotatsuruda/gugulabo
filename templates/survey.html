@@ -400,7 +400,7 @@
             <p class="heading">ご意見をお聞かせください</p>
             <p class="subtext">
                 改善のため、お気づきの点をぜひ教えてください。<br>
-                <span style="font-size:0.78rem;">（任意・未入力でもクーポンを受け取れます）</span>
+                <span style="font-size:0.78rem;">（任意）</span>
             </p>
 
             <textarea class="survey-textarea" id="feedback-text" rows="5"
@@ -409,9 +409,20 @@
             <button class="btn-main" id="feedback-submit-btn" onclick="submitFeedback()">
                 ご意見を送信する
             </button>
+        </div>
 
-            <p class="feedback-sent" id="feedback-sent-msg">
-                ご意見を受け付けました。ありがとうございました。
+    </div>
+
+    {# ===== STEP 2c: 低評価送信後サンクス ===== #}
+    <div class="section" id="step-low-thanks">
+
+        <div class="card">
+            <div style="text-align:center;margin-bottom:1rem;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#8C7B6B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            </div>
+            <p class="heading">ご意見ありがとうございました</p>
+            <p class="subtext">
+                お客様のご意見はスタッフ全員で共有し、<br>サービス改善に活かしてまいります。
             </p>
         </div>
 
@@ -426,19 +437,30 @@
 
             <hr class="coupon-divider">
 
-            <div id="coupon-form-low">
+            <div id="coupon-form-low-thanks">
                 <p class="coupon-input-label">メールアドレスを入力してクーポンを受け取ってください</p>
-                <input type="email" class="coupon-input" id="coupon-email-low"
+                <input type="email" class="coupon-input" id="coupon-email-low-thanks"
                        placeholder="your@email.com" inputmode="email" autocomplete="email">
-                <p class="coupon-err" id="coupon-err-low"></p>
-                <button class="btn-coupon" id="coupon-btn-low" onclick="requestCoupon('low')">
+                <p class="coupon-err" id="coupon-err-low-thanks"></p>
+                <button class="btn-coupon" id="coupon-btn-low-thanks" onclick="requestCoupon('low-thanks')">
                     クーポンを受け取る
                 </button>
             </div>
 
-            <div class="coupon-result" id="coupon-result-low"></div>
+            <div class="coupon-result" id="coupon-result-low-thanks"></div>
         </div>
         {% endif %}
+
+        <div class="card">
+            <p class="subtext" style="margin-bottom:1rem;">
+                よろしければ、Googleにもご意見をお寄せいただけますと幸いです。
+            </p>
+            <a href="{{ shop.review_url }}" rel="noopener" class="btn-google"
+               onclick="notifyAndOpen(event, this.href)">
+                <span class="google-g">G</span>
+                Googleレビューを書く
+            </a>
+        </div>
 
     </div>
 
@@ -480,9 +502,9 @@ async function submitFeedback() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ rating: selectedRating, comment }),
         });
-        document.getElementById('feedback-text').style.display = 'none';
-        btn.style.display = 'none';
-        document.getElementById('feedback-sent-msg').style.display = 'block';
+        document.getElementById('step-low').classList.remove('active');
+        document.getElementById('step-low-thanks').classList.add('active');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (_) {
         btn.disabled = false;
         btn.textContent = 'ご意見を送信する';
