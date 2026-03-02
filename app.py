@@ -358,6 +358,15 @@ def init_db():
         """
     )
 
+    # feedbacks テーブルへの is_featured カラム追加（マイグレーション）
+    if DB_TYPE == "postgresql":
+        conn.execute("ALTER TABLE feedbacks ADD COLUMN IF NOT EXISTS is_featured INTEGER NOT NULL DEFAULT 0")
+    else:
+        try:
+            conn.execute("ALTER TABLE feedbacks ADD COLUMN is_featured INTEGER NOT NULL DEFAULT 0")
+        except Exception:
+            pass
+
     # クーポン送信履歴テーブル
     conn.execute(
         f"""
@@ -851,7 +860,7 @@ def index():
         conn = get_db()
         feedbacks = conn.execute(
             """
-            SELECT f.rating, f.comment, f.submitted_at, s.name AS shop_name
+            SELECT f.id, f.rating, f.comment, f.submitted_at, f.is_featured, s.name AS shop_name
             FROM feedbacks f
             JOIN shops s ON s.id = f.shop_id
             WHERE s.user_id = ? AND f.rating <= 3
@@ -1763,6 +1772,52 @@ def admin_update_plan(user_id):
     conn.close()
     flash("プラン情報を更新しました。", "success")
     return redirect(url_for("admin_users"))
+
+
+@app.route("/feedback/<int:feedback_id>/feature", methods=["POST"])
+@login_required
+def toggle_feature(feedback_id):
+    conn = get_db()
+    fb = conn.execute(
+        "SELECT f.id, s.user_id FROM feedbacks f JOIN shops s ON s.id = f.shop_id WHERE f.id = ?",
+        (feedback_id,)
+    ).fetchone()
+    if not fb or fb["user_id"] != current_user.id:
+        conn.close()
+        return jsonify({"success": False}), 403
+    conn.execute(
+        "UPDATE feedbacks SET is_featured = CASE WHEN is_featured = 1 THEN 0 ELSE 1 END WHERE id = ?",
+        (feedback_id,)
+    )
+    conn.commit()
+    new_val = conn.execute("SELECT is_featured FROM feedbacks WHERE id = ?", (feedback_id,)).fetchone()["is_featured"]
+    conn.close()
+    return jsonify({"success": True, "is_featured": new_val})
+
+
+@app.route("/widget/<slug>")
+def widget_data(slug):
+    conn = get_db()
+    rows = conn.execute(
+        """SELECT f.rating, f.comment, f.submitted_at::date as date
+           FROM feedbacks f
+           JOIN shops s ON s.id = f.shop_id
+           WHERE s.slug = ? AND f.is_featured = 1
+           ORDER BY f.submitted_at DESC""",
+        (slug,)
+    ).fetchall()
+    conn.close()
+    data = [{"rating": r["rating"], "comment": r["comment"], "date": str(r["date"])} for r in rows]
+    return jsonify(data)
+
+
+@app.route("/widget-settings")
+@login_required
+def widget_settings():
+    conn = get_db()
+    shop = conn.execute("SELECT slug FROM shops WHERE user_id = ?", (current_user.id,)).fetchone()
+    conn.close()
+    return render_template("widget_settings.html", shop=shop)
 
 
 if __name__ == "__main__":

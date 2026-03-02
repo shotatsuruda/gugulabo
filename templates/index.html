@@ -179,7 +179,8 @@
                             <th class="ps-4 py-3" style="font-weight:600;white-space:nowrap;">店舗名</th>
                             <th class="py-3" style="font-weight:600;">評価</th>
                             <th class="py-3" style="font-weight:600;">コメント</th>
-                            <th class="pe-4 py-3" style="font-weight:600;white-space:nowrap;">日時</th>
+                            <th class="py-3" style="font-weight:600;white-space:nowrap;">日時</th>
+                            <th class="pe-4 py-3" style="font-weight:600;white-space:nowrap;">ウィジェット</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -194,7 +195,18 @@
                             <td class="py-3 align-middle" style="color:#4b5563;">
                                 {{ fb.comment if fb.comment else '—' }}
                             </td>
-                            <td class="pe-4 py-3 align-middle" style="white-space:nowrap;color:#9ca3af;">{{ fb.submitted_at }}</td>
+                            <td class="py-3 align-middle" style="white-space:nowrap;color:#9ca3af;">{{ fb.submitted_at }}</td>
+                            <td class="pe-4 py-3 align-middle">
+                                <button
+                                    class="btn btn-sm feature-toggle-btn"
+                                    data-id="{{ fb.id }}"
+                                    data-featured="{{ fb.is_featured }}"
+                                    onclick="toggleFeature(this)"
+                                    style="font-size:0.75rem;white-space:nowrap;
+                                    {% if fb.is_featured %}background:#8C7B6B;color:#fff;border-color:#8C7B6B;{% else %}background:#f3f4f6;color:#6b7280;border-color:#e5e7eb;{% endif %}">
+                                    {% if fb.is_featured %}表示中 ✓{% else %}ウィジェットに追加{% endif %}
+                                </button>
+                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -251,5 +263,22 @@
         }
     });
 })();
+
+function toggleFeature(btn) {
+    const id = btn.dataset.id;
+    fetch('/feedback/' + id + '/feature', { method: 'POST', headers: { 'X-CSRFToken': '' } })
+        .then(r => r.json())
+        .then(data => {
+            if (!data.success) return;
+            if (data.is_featured) {
+                btn.textContent = '表示中 ✓';
+                btn.style.cssText = 'font-size:0.75rem;white-space:nowrap;background:#8C7B6B;color:#fff;border-color:#8C7B6B;';
+            } else {
+                btn.textContent = 'ウィジェットに追加';
+                btn.style.cssText = 'font-size:0.75rem;white-space:nowrap;background:#f3f4f6;color:#6b7280;border-color:#e5e7eb;';
+            }
+            btn.dataset.featured = data.is_featured;
+        });
+}
 </script>
 {% endblock %}
