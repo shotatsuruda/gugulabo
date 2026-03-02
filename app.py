@@ -1085,7 +1085,7 @@ def settings():
         return redirect(url_for("settings"))
 
     user = conn.execute(
-        "SELECT notify_enabled, email, plan, stripe_customer_id FROM users WHERE id = ?",
+        "SELECT notify_enabled, email, plan, stripe_customer_id, trial_ends_at FROM users WHERE id = ?",
         (current_user.id,),
     ).fetchone()
     conn.close()
@@ -1093,6 +1093,8 @@ def settings():
     current_email       = user["email"] if user else ""
     current_plan        = user["plan"] if user else None
     stripe_customer_id  = user["stripe_customer_id"] if user else None
+    trial_ends_at_val   = user["trial_ends_at"] if user else None
+    is_trial            = bool(trial_ends_at_val) and not bool(current_plan)
 
     next_billing_date = None
     if stripe_customer_id and STRIPE_SECRET_KEY:
@@ -1114,6 +1116,7 @@ def settings():
         current_email=current_email,
         current_plan=current_plan,
         next_billing_date=next_billing_date,
+        is_trial=is_trial,
     )
 
 
@@ -1274,14 +1277,29 @@ def cancel_subscription():
     """サブスクリプションを解約する"""
     conn = get_db()
     user = conn.execute(
-        "SELECT stripe_customer_id FROM users WHERE id = ?", (current_user.id,)
+        "SELECT stripe_customer_id, trial_ends_at FROM users WHERE id = ?", (current_user.id,)
     ).fetchone()
 
-    if not user or not user["stripe_customer_id"]:
+    if not user:
         conn.close()
-        flash("サブスクリプション情報が見つかりません。", "error")
+        flash("ユーザー情報が見つかりません。", "error")
         return redirect(url_for("settings"))
 
+    # トライアルユーザー（Stripeサブスク未契約）の解約処理
+    if not user["stripe_customer_id"]:
+        if not user["trial_ends_at"]:
+            conn.close()
+            flash("解約対象のサブスクリプションが見つかりません。", "error")
+            return redirect(url_for("settings"))
+        conn.execute(
+            "UPDATE users SET trial_ends_at = NULL WHERE id = ?", (current_user.id,)
+        )
+        conn.commit()
+        conn.close()
+        flash("トライアルを終了しました。", "success")
+        return redirect(url_for("subscribe"))
+
+    # 有料サブスクリプションの解約処理
     try:
         subs = stripe.Subscription.list(
             customer=user["stripe_customer_id"], limit=1, status="active"

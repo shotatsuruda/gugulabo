@@ -144,7 +144,7 @@
         </button>
     </form>
 
-    {% if current_plan %}
+    {% if not current_user.is_admin and (current_plan or is_trial) %}
     <!-- サブスクリプション管理 -->
     <div class="card mb-4" style="border-color:#fecaca;">
         <div class="card-header" style="background:#fef2f2;">
@@ -154,7 +154,7 @@
 
             <div class="mb-3">
                 <div class="fw-semibold mb-1" style="font-size:0.85rem;">現在のプラン</div>
-                <div style="font-size:0.9rem;color:#2C2C2C;">{{ current_plan }}</div>
+                <div style="font-size:0.9rem;color:#2C2C2C;">{{ current_plan if current_plan else 'トライアル中' }}</div>
             </div>
 
             {% if next_billing_date %}
