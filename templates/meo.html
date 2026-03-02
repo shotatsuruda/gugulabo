@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Googleレビューで集客を変える MEO対策完全ガイド | গগラボ</title>
+    <meta name="description" content="MEO対策とは何か、なぜGoogleレビューが集客に直結するのかを徹底解説。実店舗オーナー向けに、今日からできる具体的な施策をわかりやすくまとめました。">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=Shippori+Mincho:wght@700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
+    <style>
+        /* 記事ページ固有スタイル */
+        .article-hero {
+            background: var(--dark);
+            position: relative;
+            padding: 72px 0 56px;
+            overflow: hidden;
+        }
+        .article-hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.55);
+            z-index: 0;
+        }
+        .article-hero .container { position: relative; z-index: 1; }
+        .article-hero-label {
+            display: inline-block;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            color: var(--primary);
+            background: rgba(99,102,241,0.15);
+            border: 1px solid rgba(99,102,241,0.4);
+            border-radius: 20px;
+            padding: 3px 14px;
+            margin-bottom: 18px;
+        }
+        .article-hero-title {
+            font-family: 'Shippori Mincho', serif;
+            font-size: clamp(1.5rem, 4vw, 2.4rem);
+            font-weight: 700;
+            color: #fff;
+            line-height: 1.45;
+            margin-bottom: 20px;
+        }
+        .article-hero-meta {
+            font-size: 0.82rem;
+            color: rgba(255,255,255,0.65);
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .breadcrumb-bar {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 10px 0;
+            font-size: 0.78rem;
+            color: var(--muted);
+        }
+        .breadcrumb-bar a { color: var(--primary); text-decoration: none; }
+        .breadcrumb-bar a:hover { text-decoration: underline; }
+        .article-body {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 48px 24px 72px;
+            font-size: 0.93rem;
+            color: #374151;
+            line-height: 1.9;
+        }
+        .article-toc {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px 28px;
+            margin-bottom: 48px;
+        }
+        .article-toc-title {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--muted);
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+        .article-toc ol {
+            padding-left: 1.4rem;
+            margin: 0;
+        }
+        .article-toc li {
+            margin-bottom: 6px;
+            font-size: 0.875rem;
+        }
+        .article-toc a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+        .article-toc a:hover { text-decoration: underline; }
+        .article-h2 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #1e1b4b;
+            border-left: 4px solid var(--primary);
+            padding-left: 14px;
+            margin: 48px 0 20px;
+            line-height: 1.5;
+        }
+        .article-h3 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #374151;
+            margin: 28px 0 12px;
+        }
+        .article-body p { margin-bottom: 16px; }
+        .article-body ul, .article-body ol {
+            padding-left: 1.5rem;
+            margin-bottom: 16px;
+        }
+        .article-body li { margin-bottom: 6px; }
+        .article-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            margin: 20px 0;
+        }
+        .article-table th {
+            background: #f0f4ff;
+            color: #374151;
+            font-weight: 700;
+            padding: 10px 14px;
+            border: 1px solid #dde2f0;
+            text-align: left;
+        }
+        .article-table td {
+            padding: 10px 14px;
+            border: 1px solid #e5e7eb;
+            color: #4b5563;
+            vertical-align: top;
+        }
+        .article-table tr:nth-child(even) td { background: #f9fafb; }
+        .stat-highlight {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin: 24px 0;
+        }
+        .stat-highlight-item {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 14px;
+            padding: 24px;
+            text-align: center;
+            color: #fff;
+        }
+        .stat-highlight-num {
+            font-size: 2.4rem;
+            font-weight: 700;
+            line-height: 1;
+            margin-bottom: 8px;
+        }
+        .stat-highlight-unit { font-size: 1.4rem; }
+        .stat-highlight-label {
+            font-size: 0.78rem;
+            line-height: 1.5;
+            opacity: .88;
+        }
+        .stat-highlight-source {
+            font-size: 0.68rem;
+            opacity: .65;
+            margin-top: 8px;
+        }
+        .step-item {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 20px;
+            align-items: flex-start;
+        }
+        .step-num {
+            flex-shrink: 0;
+            width: 34px;
+            height: 34px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 0.82rem;
+            font-weight: 700;
+        }
+        .step-content strong { display: block; margin-bottom: 4px; color: #1e1b4b; }
+        .step-content p { margin: 0; color: #6b7280; font-size: 0.875rem; line-height: 1.7; }
+        .cta-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            padding: 40px 36px;
+            text-align: center;
+            margin-top: 56px;
+            color: #fff;
+        }
+        .cta-box h3 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+        .cta-box p {
+            font-size: 0.9rem;
+            opacity: .88;
+            margin-bottom: 24px;
+        }
+        .info-box {
+            background: #f0f4ff;
+            border-left: 4px solid #667eea;
+            border-radius: 0 12px 12px 0;
+            padding: 18px 20px;
+            margin: 20px 0;
+            font-size: 0.875rem;
+            color: #374151;
+        }
+    </style>
+</head>
+<body class="lp-body">
+
+<!-- ナビゲーション -->
+<nav class="lp-nav">
+    <div class="container d-flex align-items-center justify-content-between">
+        <a href="/" class="lp-nav-logo">গগラボ</a>
+        <div class="lp-nav-links">
+            <a href="/#features" class="lp-nav-login d-none d-md-inline">機能</a>
+            <a href="/#howto" class="lp-nav-login d-none d-md-inline">導入方法</a>
+            <a href="/#pricing" class="lp-nav-login d-none d-md-inline">料金</a>
+            <a href="/#contact" class="lp-nav-login d-none d-md-inline">お問い合わせ</a>
+            <a href="/login" class="lp-nav-login">ログインはこちら</a>
+            <a href="/register" class="btn btn-primary btn-sm">無料で始める</a>
+        </div>
+    </div>
+</nav>
+
+<!-- パンくずリスト -->
+<div class="breadcrumb-bar">
+    <div class="container">
+        <a href="/">ホーム</a>
+        <span style="margin: 0 8px; color:#d1d5db;">›</span>
+        <span>MEO対策完全ガイド</span>
+    </div>
+</div>
+
+<!-- 記事ヒーロー -->
+<div class="article-hero">
+    <div class="container">
+        <div class="article-hero-label">MEO Guide</div>
+        <h1 class="article-hero-title">Googleレビューで集客を変える<br>MEO対策完全ガイド</h1>
+        <div class="article-hero-meta">
+            <span>📅 2026年3月</span>
+            <span>⏱ 読了5分</span>
+        </div>
+    </div>
+</div>
+
+<!-- 記事本文 -->
+<div class="article-body">
+
+    <!-- 目次 -->
+    <div class="article-toc">
+        <div class="article-toc-title">目次</div>
+        <ol>
+            <li><a href="#section1">MEO対策とは？SEOとの違い</a></li>
+            <li><a href="#section2">なぜGoogleレビューが集客に直結するのか</a></li>
+            <li><a href="#section3">レビュー件数・評価が与える具体的な影響</a></li>
+            <li><a href="#section4">MEO対策でやるべき5つのこと</a></li>
+            <li><a href="#section5">গগラボでできるMEO対策</a></li>
+            <li><a href="#section6">まとめ</a></li>
+        </ol>
+    </div>
+
+    <!-- 1 -->
+    <h2 class="article-h2" id="section1">1. MEO対策とは？SEOとの違い</h2>
+
+    <p>
+        <strong>MEO（Map Engine Optimization）</strong>とは、Googleマップの検索結果で自分の店舗を上位に表示させるための最適化施策です。「マップ検索エンジン最適化」とも呼ばれ、近年の実店舗ビジネスにとって欠かせないマーケティング手法となっています。
+    </p>
+
+    <p>
+        「マッサージ 渋谷」「美容院 新宿 おすすめ」のようなローカルキーワードで検索すると、通常の検索結果の上部に地図と店舗リストが表示されます。これが<strong>ローカルパック</strong>（別名：マップパック）と呼ばれるエリアで、MEO対策の主な目標はここに表示されることです。
+    </p>
+
+    <h3 class="article-h3">SEOとMEOの比較</h3>
+
+    <div style="overflow-x:auto;">
+        <table class="article-table">
+            <thead>
+                <tr>
+                    <th>項目</th>
+                    <th>SEO</th>
+                    <th>MEO</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>対象</td>
+                    <td>Googleの通常検索結果</td>
+                    <td>Googleマップのローカルパック</td>
+                </tr>
+                <tr>
+                    <td>主な施策</td>
+                    <td>コンテンツ制作・被リンク獲得・技術的SEO</td>
+                    <td>Googleビジネスプロフィール整備・レビュー収集</td>
+                </tr>
+                <tr>
+                    <td>効果が出るまで</td>
+                    <td>数ヶ月〜1年以上</td>
+                    <td>数週間〜数ヶ月</td>
+                </tr>
+                <tr>
+                    <td>主な対象業種</td>
+                    <td>EC・メディア・BtoB全般</td>
+                    <td>飲食・美容・医療・整体・マッサージなど実店舗</td>
+                </tr>
+                <tr>
+                    <td>費用</td>
+                    <td>コンテンツ制作・外注費が必要</td>
+                    <td>Googleビジネスプロフィールは無料</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <p>
+        実店舗ビジネスにとって、MEOはSEOと比べて<strong>短期間で効果が出やすく、費用対効果が高い</strong>施策です。特にスマートフォンで「近くの〇〇」と検索するユーザーが急増しており、ローカルパックへの表示は来店数に直結します。
+    </p>
+
+    <!-- 2 -->
+    <h2 class="article-h2" id="section2">2. なぜGoogleレビューが集客に直結するのか</h2>
+
+    <p>
+        Googleマップの表示順位は、主に以下の3つの要素で決まります。
+    </p>
+
+    <ul>
+        <li><strong>関連性（Relevance）</strong>：検索キーワードと店舗情報のマッチ度</li>
+        <li><strong>距離（Distance）</strong>：ユーザーの現在地または検索地点からの距離</li>
+        <li><strong>知名度（Prominence）</strong>：Googleが認識する店舗の信頼性・人気度</li>
+    </ul>
+
+    <p>
+        この3要素のうち、最もコントロールしやすいのが<strong>「知名度」</strong>です。そして知名度を高める最大の要因が、<strong>レビューの件数と平均評価</strong>です。
+    </p>
+
+    <div class="info-box">
+        <strong>📍 集客につながる好循環</strong><br>
+        レビューが多く・高評価 → Googleマップ上位表示 → 検索結果での露出増加 → 新規来店が増える → さらにレビューが集まる
+    </div>
+
+    <p>
+        つまり、レビューを集める仕組みを作ることが、MEO対策の核心です。一方で、「低評価のレビューをつけられたくない」という心理から、そもそもレビューを促進していない店舗も少なくありません。ここに大きなチャンスがあります。
+    </p>
+
+    <!-- 3 -->
+    <h2 class="article-h2" id="section3">3. レビュー件数・評価が与える具体的な影響</h2>
+
+    <p>調査データが示す、レビューの影響力を見ていきましょう。</p>
+
+    <div class="stat-highlight">
+        <div class="stat-highlight-item">
+            <div class="stat-highlight-num">93<span class="stat-highlight-unit">%</span></div>
+            <div class="stat-highlight-label">の消費者が来店前にオンラインレビューを確認してから行動する</div>
+            <div class="stat-highlight-source">BrightLocal Consumer Survey</div>
+        </div>
+        <div class="stat-highlight-item">
+            <div class="stat-highlight-num">22<span class="stat-highlight-unit">%</span></div>
+            <div class="stat-highlight-label">低評価が1件あるだけで来店検討者の約22%が離脱・競合へ流れる</div>
+            <div class="stat-highlight-source">Moz Local Search Ranking Factors</div>
+        </div>
+        <div class="stat-highlight-item">
+            <div class="stat-highlight-num">3<span class="stat-highlight-unit">倍</span></div>
+            <div class="stat-highlight-label">星4.0以上の店舗は低評価の店舗と比べて3倍の問い合わせを獲得</div>
+            <div class="stat-highlight-source">Google ビジネスプロフィール データ</div>
+        </div>
+    </div>
+
+    <p>
+        特に注意したいのは「低評価1件のダメージ」です。高評価を10件集めていても、低評価が1件入るだけで来店を検討していたユーザーの約5人に1人が離脱します。これは、低評価を未然に防ぐ仕組みがいかに重要かを示しています。
+    </p>
+
+    <!-- 4 -->
+    <h2 class="article-h2" id="section4">4. MEO対策でやるべき5つのこと</h2>
+
+    <div class="step-item">
+        <div class="step-num">1</div>
+        <div class="step-content">
+            <strong>Googleビジネスプロフィールを完全に整備する</strong>
+            <p>店舗名・住所・電話番号・営業時間・カテゴリ・写真をすべて正確に登録します。情報が充実しているほど「関連性」スコアが上がり、ローカルパックへの表示可能性が高まります。特に写真は10枚以上を目標に、外観・内装・施術シーンなどバリエーションを持たせましょう。</p>
+        </div>
+    </div>
+
+    <div class="step-item">
+        <div class="step-num">2</div>
+        <div class="step-content">
+            <strong>定期的にレビューを集める仕組みを作る</strong>
+            <p>お客様に口頭でお願いするだけでは限界があります。QRコードをレジ横に置いてスキャンしてもらう、LINE・メールでレビュー依頼を送るなど、自然にレビューが集まる動線を設計しましょう。重要なのは「一時的なキャンペーン」ではなく、<strong>継続的な仕組み化</strong>です。</p>
+        </div>
+    </div>
+
+    <div class="step-item">
+        <div class="step-num">3</div>
+        <div class="step-content">
+            <strong>レビューには必ず返信する</strong>
+            <p>高評価レビューへの感謝の返信はもちろん、低評価レビューへの誠実な対応も欠かせません。返信することでGoogleは「オーナーが積極的に管理している店舗」と評価し、順位にプラスに働きます。また、来店を検討中のユーザーが返信内容を見て安心感を持つ効果もあります。</p>
+        </div>
+    </div>
+
+    <div class="step-item">
+        <div class="step-num">4</div>
+        <div class="step-content">
+            <strong>写真・営業時間・住所などの情報を最新に保つ</strong>
+            <p>季節メニューの変更、臨時休業、移転など、変更があったら即日Googleビジネスプロフィールにも反映させましょう。情報の正確性はユーザー体験に直結し、古い情報を放置するとGoogleからの評価も下がります。月に1回はプロフィールの見直しをルーティン化するのがおすすめです。</p>
+        </div>
+    </div>
+
+    <div class="step-item">
+        <div class="step-num">5</div>
+        <div class="step-content">
+            <strong>地域キーワードを意識した投稿・説明文を作成する</strong>
+            <p>Googleビジネスプロフィールの「最新情報（投稿）」機能を活用し、「渋谷のマッサージ」「新宿で肩こり改善」などの地域キーワードを含む投稿を定期的に行いましょう。説明文にも地域名・施術名などを自然な文章で盛り込むことで、関連性スコアの向上が期待できます。</p>
+        </div>
+    </div>
+
+    <!-- 5 -->
+    <h2 class="article-h2" id="section5">5. গগラボでできるMEO対策</h2>
+
+    <p>
+        গগラボは、実店舗オーナーのMEO対策を自動化するツールです。QRコードを1枚置くだけで、以下の施策が自動的に機能します。
+    </p>
+
+    <div class="step-item">
+        <div class="step-num">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <div class="step-content">
+            <strong>高評価（★4〜5）のお客様をGoogleレビューへ誘導</strong>
+            <p>満足度の高いお客様を自動的にGoogleレビューのページへ案内。高評価レビューが自然に積み上がります。</p>
+        </div>
+    </div>
+
+    <div class="step-item">
+        <div class="step-num">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <div class="step-content">
+            <strong>低評価（★1〜3）のお客様の声をダイレクトに受け取る</strong>
+            <p>不満を感じているお客様には、Googleではなく店舗への直接フィードバックフォームを表示。低評価レビューを未然に防ぎながら、改善に活かせます。</p>
+        </div>
+    </div>
+
+    <div class="step-item">
+        <div class="step-num">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <div class="step-content">
+            <strong>AIによるレビュー返信文の自動生成</strong>
+            <p>Googleレビューへの返信文をAIが自動生成。丁寧な敬語で作成されるため、時間をかけずに全件返信が可能になります。</p>
+        </div>
+    </div>
+
+    <div class="step-item">
+        <div class="step-num">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <div class="step-content">
+            <strong>クーポン自動発行でリピーター促進</strong>
+            <p>アンケート回答後にクーポンを自動発行。お客様への感謝を形にしながら、次回来店のきっかけを作ります。</p>
+        </div>
+    </div>
+
+    <!-- 6 -->
+    <h2 class="article-h2" id="section6">6. まとめ</h2>
+
+    <p>MEO対策の要点を整理します。</p>
+
+    <ul>
+        <li>MEOはGoogleマップでの上位表示を狙う施策で、実店舗には<strong>SEOより費用対効果が高い</strong></li>
+        <li>表示順位を左右する「知名度」を高めるには、<strong>レビューの件数と平均評価</strong>が最重要</li>
+        <li>93%の消費者が来店前にレビューを確認しており、低評価1件で22%が離脱する</li>
+        <li>やるべき5施策は「プロフィール整備・レビュー収集の仕組み化・全件返信・情報の最新化・地域キーワード活用」</li>
+        <li>গগラボを使えば、QRコード1枚でレビュー収集から低評価防止・返信文生成まで自動化できる</li>
+    </ul>
+
+    <p>
+        一度仕組みを作れば、あとは自動でレビューが積み上がっていきます。競合よりも先に取り組むことが、Googleマップでの優位性につながります。
+    </p>
+
+    <!-- CTA -->
+    <div class="cta-box">
+        <h3>গগラボで今日からMEO対策を自動化しよう</h3>
+        <p>QRコードを1枚置くだけで、レビュー収集・低評価防止・クーポン配布をすべて自動化。初月無料でお試しいただけます。</p>
+        <a href="/register" class="btn lp-btn-hero btn-lg">無料で始める</a>
+        <p style="font-size:0.78rem;opacity:.7;margin-top:14px;margin-bottom:0;">初月無料 / クレジットカード不要 / いつでも解約可能</p>
+    </div>
+
+</div>
+
+<!-- フッター -->
+<footer class="lp-footer">
+    <div class="container text-center">
+        <p class="lp-footer-logo">গগラボ</p>
+        <p class="lp-footer-tagline">全ての店舗にお客様の声を</p>
+        <p class="lp-footer-copy">&copy; 2024 গগラボ All rights reserved.</p>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
