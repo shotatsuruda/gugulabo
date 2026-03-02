@@ -877,12 +877,12 @@ def index():
         # 過去30日間の日別件数推移
         daily_rows = conn.execute(
             """
-            SELECT DATE(submitted_at) as date, COUNT(*) as count
+            SELECT submitted_at::date as date, COUNT(*) as count
             FROM feedbacks f
             JOIN shops s ON s.id = f.shop_id
             WHERE s.user_id = ?
-            AND submitted_at >= DATE('now', '-30 days')
-            GROUP BY DATE(submitted_at)
+            AND submitted_at >= CURRENT_DATE - INTERVAL '30 days'
+            GROUP BY submitted_at::date
             ORDER BY date ASC
             """,
             (current_user.id,),
