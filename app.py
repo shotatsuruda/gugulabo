@@ -54,7 +54,7 @@ except ImportError:
 load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = os.environ.get("FLASK_SECRET_KEY", os.environ.get("SECRET_KEY", "change-this-in-production"))
+app.secret_key = os.environ.get("FLASK_SECRET_KEY", "change-this-in-production")
 
 # ===== 設定値（.envから読み込む） =====
 SHOP_NAME = os.environ.get("SHOP_NAME", "リラクゼーションサロン")
@@ -68,14 +68,11 @@ MAIL_PASSWORD = os.environ.get("MAIL_PASSWORD", "")
 MAIL_FROM = os.environ.get("MAIL_FROM", MAIL_USERNAME)
 
 # ===== Stripe 設定 =====
-STRIPE_SECRET_KEY       = os.environ.get("STRIPE_SECRET_KEY", "")
-STRIPE_PUBLIC_KEY       = os.environ.get(
-    "STRIPE_PUBLIC_KEY",
-    "pk_live_51T5hfRI0UveP0nntiIpAIEgEV0Y7l1IKDrRogRQj4jbvypaHpoxPoI6ouFxLG10po9LHh3STXiSESu5sSqwtoB4U0055zkbWIL",
-)
+STRIPE_SECRET_KEY    = os.environ.get("STRIPE_SECRET_KEY", "")
+STRIPE_PUBLIC_KEY    = "pk_live_51T5hfRI0UveP0nntiIpAIEgEV0Y7l1IKDrRogRQj4jbvypaHpoxPoI6ouFxLG10po9LHh3STXiSESu5sSqwtoB4U0055zkbWIL"
 STRIPE_PRICE_ID         = os.environ.get("STRIPE_PRICE_ID", "price_1T67E9I0UveP0nntM4yqbZ9q")
 STRIPE_PRICE_ID_YEARLY  = os.environ.get("STRIPE_PRICE_ID_YEARLY", "price_1T67bmI0UveP0nntQVL8Ieen")
-STRIPE_WEBHOOK_SECRET   = os.environ.get("STRIPE_WEBHOOK_SECRET", "")
+STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET", "")
 if STRIPE_SECRET_KEY:
     stripe.api_key = STRIPE_SECRET_KEY
 
