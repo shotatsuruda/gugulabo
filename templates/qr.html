@@ -481,6 +481,8 @@ document.getElementById('add_shop_form').addEventListener('submit', async (e) =>
         body: JSON.stringify({ name, slug, review_url, business_type }),
     });
 
+    let respJson = null;
+    try { respJson = await res.json(); } catch (_) {}
     if (res.ok) {
         document.getElementById('new_shop_name').value = '';
         document.getElementById('new_shop_slug').value = '';

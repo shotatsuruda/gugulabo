@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}一括登録 - ググラボ{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <h2 class="h4 mb-4">店舗一括登録</h2>
+
+        <!-- エラー・成功メッセージ -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <p class="text-muted small mb-4">
+                    Excelやスプレッドシートからデータをコピーして、下のテキストエリアに貼り付けてください。<br>
+                    <strong>必須:</strong> 「店舗名」「GoogleレビューURL」<br>
+                    <strong>任意:</strong> 「独自のID」「住所」「URLの一部（スラッグ）」「業種（マッサージなど）」「店舗ID（Place ID）」<br>
+                    列（カラム）の順番は左から上記の順である必要があります。
+                </p>
+
+                <form method="POST" action="{{ url_for('bulk_create') }}" onsubmit="showLoading()">
+                    <div class="mb-3">
+                        <label for="csv_data" class="form-label">データ（CSV または タブ区切り）</label>
+                        <textarea class="form-control" id="csv_data" name="csv_data" rows="10"
+                            placeholder="店舗名&#9;https://g.page/r/...&#9;ID001&#9;東京都渋谷区...&#9;shop-slug&#9;マッサージ&#9;ChIJ..."
+                            required></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100" id="submitBtn">
+                        <span id="btnText">一括作成 ＆ QRコードをダウンロード</span>
+                        <div class="spinner-border spinner-border-sm text-light d-none ms-2" role="status"
+                            id="loadingSpinner">
+                            <span class="visually-hidden">処理中...</span>
+                        </div>
+                    </button>
+                    <p class="text-muted small text-center mt-2" id="loadingText" style="display: none;">
+                        環境によっては完了まで数十秒かかる場合があります。しばらくお待ちください。</p>
+                </form>
+            </div>
+        </div>
+
+        <div class="mt-4 text-center">
+            <a href="{{ url_for('qr_form') }}" class="text-decoration-none text-muted">← 店舗管理へ戻る</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function showLoading() {
+        document.getElementById('submitBtn').disabled = true;
+        document.getElementById('loadingSpinner').classList.remove('d-none');
+        document.getElementById('btnText').textContent = '処理中...';
+        document.getElementById('loadingText').style.display = 'block';
+
+        // ダウンロード完了後にボタン状態を戻すハック（ブラウザによるファイルのダウンロード開始を検知するのは難しいため、一定時間後に戻すなど運用カバー）
+        setTimeout(() => {
+            document.getElementById('submitBtn').disabled = false;
+            document.getElementById('loadingSpinner').classList.add('d-none');
+            document.getElementById('btnText').textContent = '一括作成 ＆ QRコードをダウンロード';
+            document.getElementById('loadingText').style.display = 'none';
+            document.getElementById('csv_data').value = ''; // フォームをクリア
+        }, 5000);
+    }
+</script>
+{% endblock %}

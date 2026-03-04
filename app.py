@@ -8,9 +8,11 @@ import io
 import os
 import re
 import secrets
+import csv
 import smtplib
 import sqlite3
 import string
+import zipfile
 from datetime import date, datetime, timedelta
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -21,7 +23,7 @@ import stripe
 from dotenv import load_dotenv
 from flask import (
     Flask, abort, flash, jsonify, redirect, render_template,
-    request, url_for,
+    request, url_for, send_file
 )
 from flask_login import (
     LoginManager, UserMixin, current_user, login_required,
@@ -60,6 +62,13 @@ app.secret_key = os.environ.get("FLASK_SECRET_KEY", "change-this-in-production")
 SHOP_NAME = os.environ.get("SHOP_NAME", "リラクゼーションサロン")
 OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY")
 
+if os.environ.get("FLASK_ENV") == "production":
+    app.config.update(
+        SESSION_COOKIE_SECURE=True,
+        REMEMBER_COOKIE_SECURE=True,
+        SESSION_COOKIE_SAMESITE="Lax",
+    )
+
 # メール送信設定（クーポン送信に使用）
 MAIL_SMTP_HOST = os.environ.get("MAIL_SMTP_HOST", "smtp.gmail.com")
 MAIL_SMTP_PORT = int(os.environ.get("MAIL_SMTP_PORT", "587"))
@@ -69,7 +78,7 @@ MAIL_FROM = os.environ.get("MAIL_FROM", MAIL_USERNAME)
 
 # ===== Stripe 設定 =====
 STRIPE_SECRET_KEY    = os.environ.get("STRIPE_SECRET_KEY", "")
-STRIPE_PUBLIC_KEY    = "pk_live_51T5hfRI0UveP0nntiIpAIEgEV0Y7l1IKDrRogRQj4jbvypaHpoxPoI6ouFxLG10po9LHh3STXiSESu5sSqwtoB4U0055zkbWIL"
+STRIPE_PUBLIC_KEY    = os.environ.get("STRIPE_PUBLIC_KEY", "pk_live_51T5hfRI0UveP0nntiIpAIEgEV0Y7l1IKDrRogRQj4jbvypaHpoxPoI6ouFxLG10po9LHh3STXiSESu5sSqwtoB4U0055zkbWIL")
 STRIPE_PRICE_ID         = os.environ.get("STRIPE_PRICE_ID", "price_1T67E9I0UveP0nntM4yqbZ9q")
 STRIPE_PRICE_ID_YEARLY  = os.environ.get("STRIPE_PRICE_ID_YEARLY", "price_1T67bmI0UveP0nntQVL8Ieen")
 STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET", "")
@@ -165,7 +174,7 @@ def admin_required(f):
 
 
 def payment_required(f):
-    """ログイン済み かつ 支払い済み（or 管理者）のみアクセス可能なデコレーター"""
+    """ログイン済み かつ 支払い済みのみアクセス可能なデコレーター"""
     @wraps(f)
     @login_required
     def decorated(*args, **kwargs):
@@ -262,6 +271,8 @@ def init_db():
             name       TEXT NOT NULL,
             review_url TEXT NOT NULL,
             slug       TEXT UNIQUE,
+            place_id   TEXT UNIQUE,
+            status     TEXT NOT NULL DEFAULT 'trial',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
         """
@@ -272,6 +283,10 @@ def init_db():
         conn.execute("ALTER TABLE shops ADD COLUMN IF NOT EXISTS slug TEXT")
         conn.execute("ALTER TABLE shops ADD COLUMN IF NOT EXISTS user_id INTEGER REFERENCES users(id)")
         conn.execute("ALTER TABLE shops ADD COLUMN IF NOT EXISTS business_type TEXT DEFAULT ''")
+        conn.execute("ALTER TABLE shops ADD COLUMN IF NOT EXISTS place_id TEXT")
+        conn.execute("ALTER TABLE shops ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'trial'")
+        conn.execute("ALTER TABLE shops ADD COLUMN IF NOT EXISTS unique_id TEXT")
+        conn.execute("ALTER TABLE shops ADD COLUMN IF NOT EXISTS address TEXT")
     else:
         try:
             conn.execute("ALTER TABLE shops ADD COLUMN slug TEXT")
@@ -283,6 +298,30 @@ def init_db():
             pass  # カラムが既に存在する場合はスキップ
         try:
             conn.execute("ALTER TABLE shops ADD COLUMN business_type TEXT DEFAULT ''")
+        except Exception:
+            pass  # カラムが既に存在する場合はスキップ
+        try:
+            conn.execute("ALTER TABLE shops ADD COLUMN place_id TEXT")
+        except Exception:
+            pass
+        try:
+            conn.execute("ALTER TABLE shops ADD COLUMN status TEXT NOT NULL DEFAULT 'trial'")
+        except Exception:
+            pass
+        try:
+            conn.execute("ALTER TABLE shops ADD COLUMN unique_id TEXT")
+        except Exception:
+            pass
+        try:
+            conn.execute("ALTER TABLE shops ADD COLUMN address TEXT")
+        except Exception:
+            pass
+        try:
+            conn.execute("ALTER TABLE shops ADD COLUMN place_id TEXT")
+        except Exception:
+            pass  # カラムが既に存在する場合はスキップ
+        try:
+            conn.execute("ALTER TABLE shops ADD COLUMN status TEXT NOT NULL DEFAULT 'trial'")
         except Exception:
             pass  # カラムが既に存在する場合はスキップ
 
@@ -317,6 +356,7 @@ def init_db():
 
     # slug のユニークインデックス（既にあればスキップ）
     conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_shops_slug ON shops(slug)")
+    conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_shops_place_id ON shops(place_id)")
 
     conn.commit()
 
@@ -417,19 +457,19 @@ def init_db():
 
 with app.app_context():
     init_db()
-    # 管理者が存在しない場合のみ初期管理者を自動作成
-    _conn = get_db()
-    _admin_exists = _conn.execute(
-        "SELECT 1 FROM users WHERE is_admin = 1 LIMIT 1"
-    ).fetchone()
-    if not _admin_exists:
-        _hash = bcrypt.hashpw(b"admin1234", bcrypt.gensalt()).decode()
-        _conn.execute(
-            "INSERT INTO users (email, password_hash, name, is_admin) VALUES (?, ?, ?, ?)",
-            ("admin@gugulabo.com", _hash, "管理者", 1),
-        )
-        _conn.commit()
-    _conn.close()
+    if os.environ.get("AUTO_CREATE_ADMIN"):
+        _conn = get_db()
+        _admin_exists = _conn.execute(
+            "SELECT 1 FROM users WHERE is_admin = 1 LIMIT 1"
+        ).fetchone()
+        if not _admin_exists:
+            _hash = bcrypt.hashpw(b"admin1234", bcrypt.gensalt()).decode()
+            _conn.execute(
+                "INSERT INTO users (email, password_hash, name, is_admin) VALUES (?, ?, ?, ?)",
+                ("admin@gugulabo.com", _hash, "管理者", 1),
+            )
+            _conn.commit()
+        _conn.close()
 
 
 # ===== クーポン関連ユーティリティ =====
@@ -912,18 +952,32 @@ def index():
         rating_dist = {row["rating"]: row["count"] for row in rating_rows}
 
         # 過去30日間の日別件数推移
-        daily_rows = conn.execute(
-            """
-            SELECT submitted_at::date as date, COUNT(*) as count
-            FROM feedbacks f
-            JOIN shops s ON s.id = f.shop_id
-            WHERE s.user_id = ?
-            AND submitted_at >= CURRENT_DATE - INTERVAL '30 days'
-            GROUP BY submitted_at::date
-            ORDER BY date ASC
-            """,
-            (current_user.id,),
-        ).fetchall()
+        if DB_TYPE == "postgresql":
+            daily_rows = conn.execute(
+                """
+                SELECT submitted_at::date as date, COUNT(*) as count
+                FROM feedbacks f
+                JOIN shops s ON s.id = f.shop_id
+                WHERE s.user_id = ?
+                AND submitted_at >= CURRENT_DATE - INTERVAL '30 days'
+                GROUP BY submitted_at::date
+                ORDER BY date ASC
+                """,
+                (current_user.id,),
+            ).fetchall()
+        else:
+            daily_rows = conn.execute(
+                """
+                SELECT date(submitted_at) as date, COUNT(*) as count
+                FROM feedbacks f
+                JOIN shops s ON s.id = f.shop_id
+                WHERE s.user_id = ?
+                AND date(submitted_at) >= date('now', '-30 days')
+                GROUP BY date(submitted_at)
+                ORDER BY date ASC
+                """,
+                (current_user.id,),
+            ).fetchall()
         daily_trend = [{"date": row["date"], "count": row["count"]} for row in daily_rows]
 
         # クーポン送信総数
@@ -1015,6 +1069,11 @@ def survey(slug):
         shop=dict(shop),
         coupon=dict(coupon) if coupon else None,
     )
+
+
+@app.route("/shop/demo")
+def shop_demo():
+    return render_template("demo.html")
 
 
 @app.route("/shop/<slug>/feedback", methods=["POST"])
@@ -1448,13 +1507,155 @@ def qr_form():
     return render_template("qr.html", shop_name=SHOP_NAME)
 
 
+@app.route("/bulk-create", methods=["GET", "POST"])
+@payment_required
+def bulk_create():
+    """Bulk create shops from pasted CSV/TSV text and return a ZIP of QR codes"""
+    if request.method == "GET":
+        return render_template("bulk_create.html")
+
+    csv_data = request.form.get("csv_data", "").strip()
+    if not csv_data:
+        flash("データが入力されていません。", "error")
+        return redirect(url_for("bulk_create"))
+
+    # Parse the pasted data
+    lines = csv_data.splitlines()
+    if not lines:
+        flash("データが空です。", "error")
+        return redirect(url_for("bulk_create"))
+
+    # Try to determine delimiter (tab is common for copy-paste from Excel/Google Sheets)
+    dialect = csv.Sniffer().sniff(lines[0] if len(lines) > 0 else "") if '\t' not in lines[0] else None
+    reader = csv.reader(lines, dialect=dialect) if dialect else csv.reader(lines, delimiter='\t')
+    
+    conn = get_db()
+    
+    created_shops = []
+    success_count = 0
+    error_count = 0
+    row_num = 1
+    
+    for row in reader:
+        # Expected: Name, Review_URL, Unique_ID, Address, Slug, Business_Type, Place_ID
+        if not row or len(row) < 2:
+            error_count += 1
+            row_num += 1
+            continue
+            
+        # ヘッダー行をスキップ
+        if row_num == 1 and ("店舗名" in row[0] or "Name" in row[0]):
+            row_num += 1
+            continue
+            
+        name = row[0].strip()
+        review_url = row[1].strip()
+        
+        if not name or not review_url:
+            error_count += 1
+            row_num += 1
+            continue
+            
+        unique_id = row[2].strip() if len(row) > 2 else ""
+        address = row[3].strip() if len(row) > 3 else ""
+        slug_input = row[4].strip() if len(row) > 4 else ""
+        business_type = row[5].strip() if len(row) > 5 else "massage"
+        place_id = row[6].strip() if len(row) > 6 else ""
+        status = "trial"
+
+        # Check existing place_id
+        if place_id:
+            dup = conn.execute("SELECT id, slug FROM shops WHERE place_id = ?", (place_id,)).fetchone()
+            if dup:
+                created_shops.append({"id": dup["id"], "name": name, "slug": dup["slug"]})
+                continue
+                
+        # Check existing unique_id
+        if unique_id:
+            dup_uid = conn.execute("SELECT id, slug FROM shops WHERE unique_id = ?", (unique_id,)).fetchone()
+            if dup_uid:
+                created_shops.append({"id": dup_uid["id"], "name": name, "slug": dup_uid["slug"]})
+                continue
+                
+        # Slug normalization
+        if slug_input:
+            slug = re.sub(r"[^a-z0-9\-_]", "-", slug_input.lower())
+            slug = re.sub(r"-{2,}", "-", slug).strip("-") or None
+        else:
+            slug = None
+
+        try:
+            cursor = conn.execute(
+                "INSERT INTO shops (name, review_url, unique_id, address, slug, user_id, business_type, place_id, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                (name, review_url, unique_id or None, address, slug, current_user.id, business_type, place_id or None, status),
+            )
+        except DBIntegrityError:
+            cursor = conn.execute(
+                "INSERT INTO shops (name, review_url, unique_id, address, slug, user_id, business_type, place_id, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                (name, review_url, unique_id or None, address, None, current_user.id, business_type, place_id or None, status),
+            )
+            
+        shop_id = cursor.lastrowid
+        if not slug:
+            final_slug = f"shop-{shop_id}"
+            conn.execute("UPDATE shops SET slug = ? WHERE id = ?", (final_slug, shop_id))
+        else:
+            final_slug = slug
+            
+        success_count += 1
+        created_shops.append({"id": shop_id, "name": name, "slug": final_slug})
+        row_num += 1
+
+    conn.commit()
+    conn.close()
+
+    if success_count == 0 and len(created_shops) == 0:
+        flash("有効なデータが見つかりませんでした。入力内容を確認してください。", "error")
+        return redirect(url_for("bulk_create"))
+
+    # Generate ZIP of QR Codes
+    memory_file = io.BytesIO()
+    with zipfile.ZipFile(memory_file, 'w', zipfile.ZIP_DEFLATED) as zf:
+        base_url = request.url_root.rstrip('/')
+        for shop in created_shops:
+            url = f"{base_url}/survey/{shop['slug']}"
+            try:
+                img = build_qr_image(
+                    url=url,
+                    fg_color="#000000",
+                    fg_color2="#000000",
+                    gradient_dir="radial",
+                    bg_color="#ffffff",
+                    corner_style="square",
+                    size=1024,
+                )
+                img_io = io.BytesIO()
+                img.save(img_io, format="PNG", optimize=True)
+                img_io.seek(0)
+                # safe filename: truncate to avoid OS ZIP extraction errors with extremely long names
+                safe_name = re.sub(r"[^\w\-_]", "_", shop["name"])[:30]
+                zf.writestr(f"qrcode_{safe_name}_{shop['id']}.png", img_io.getvalue())
+            except Exception as e:
+                print(f"Failed to generate QR for {shop['name']}: {e}")
+
+    memory_file.seek(0)
+    
+    # Can't use flash since we are returning a file, maybe provide it as part of content disposition
+    return send_file(
+        io.BytesIO(memory_file.getvalue()),
+        mimetype="application/zip",
+        as_attachment=True,
+        download_name=f"qrcodes_bulk_{datetime.now().strftime('%Y%m%d%H%M%S')}.zip"
+    )
+
+
 @app.route("/qr/shops", methods=["GET"])
 @payment_required
 def get_shops():
     """ログイン中ユーザーの店舗一覧をJSON形式で返す"""
     conn = get_db()
     shops = conn.execute(
-        "SELECT id, name, review_url, slug, business_type, created_at FROM shops WHERE user_id = ? ORDER BY created_at DESC",
+        "SELECT id, name, review_url, slug, place_id, status, business_type, created_at FROM shops WHERE user_id = ? ORDER BY created_at DESC",
         (current_user.id,),
     ).fetchall()
     conn.close()
@@ -1465,33 +1666,54 @@ def get_shops():
 @payment_required
 def add_shop():
     """店舗を追加する（ログインユーザーに紐づける）"""
-    conn = get_db()
-    existing = conn.execute(
-        "SELECT COUNT(*) as cnt FROM shops WHERE user_id = ?", (current_user.id,)
-    ).fetchone()
-    conn.close()
-    if existing and existing["cnt"] >= 1:
-        return jsonify({"error": "店舗は1アカウントにつき1店舗までご登録いただけます。"}), 400
-
     data = request.get_json()
     name          = (data.get("name")          or "").strip()
     review_url    = (data.get("review_url")    or "").strip()
     slug_input    = (data.get("slug")          or "").strip()
     business_type = (data.get("business_type") or "").strip()
+    place_id      = (data.get("place_id")      or "").strip()
+    status        = (data.get("status")        or "trial").strip() or "trial"
     if not name or not review_url:
         return jsonify({"error": "name と review_url は必須です"}), 400
 
     conn = get_db()
+
+    # 既存店舗の重複チェック（place_id 基準）
+    if place_id:
+        dup = conn.execute(
+            "SELECT id FROM shops WHERE place_id = ?",
+            (place_id,),
+        ).fetchone()
+        if dup:
+            conn.close()
+            return jsonify({"success": True, "existing": True, "shop_id": dup["id"]}), 200
+
+    # 1アカウント1店舗の制限（従来どおり）
+    existing = conn.execute(
+        "SELECT COUNT(*) as cnt FROM shops WHERE user_id = ?", (current_user.id,)
+    ).fetchone()
+    if existing and existing["cnt"] >= 1:
+        conn.close()
+        return jsonify({"error": "店舗は1アカウントにつき1店舗までご登録いただけます。"}), 400
+
+    # スラッグ正規化（任意入力時）
     if slug_input:
         slug = re.sub(r"[^a-z0-9\-_]", "-", slug_input.lower())
         slug = re.sub(r"-{2,}", "-", slug).strip("-") or None
     else:
         slug = None
 
-    cursor = conn.execute(
-        "INSERT INTO shops (name, review_url, slug, user_id, business_type) VALUES (?, ?, ?, ?, ?)",
-        (name, review_url, slug, current_user.id, business_type),
-    )
+    # INSERT（slug重複時はNULLで再挿入 → 後で shop-{id} を設定）
+    try:
+        cursor = conn.execute(
+            "INSERT INTO shops (name, review_url, slug, user_id, business_type, place_id, status) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            (name, review_url, slug, current_user.id, business_type, place_id or None, status),
+        )
+    except DBIntegrityError:
+        cursor = conn.execute(
+            "INSERT INTO shops (name, review_url, slug, user_id, business_type, place_id, status) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            (name, review_url, None, current_user.id, business_type, place_id or None, status),
+        )
     shop_id = cursor.lastrowid
     if not slug:
         conn.execute("UPDATE shops SET slug = ? WHERE id = ?", (f"shop-{shop_id}", shop_id))
