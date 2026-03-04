@@ -1588,6 +1588,8 @@ def bulk_create():
         if is_scraper_format:
             address = row[3].strip()
             place_id = row[4].strip()
+            # Replace the generic map URL with a direct 'Write a Review' URL
+            review_url = f"https://search.google.com/local/writereview?placeid={place_id}"
         else:
             unique_id = row[2].strip() if len(row) > 2 else ""
             address = row[3].strip() if len(row) > 3 else ""
@@ -1599,8 +1601,10 @@ def bulk_create():
 
         # Check existing place_id
         if place_id:
-            dup = conn.execute("SELECT id, slug FROM shops WHERE place_id = ?", (place_id,)).fetchone()
+            dup = conn.execute("SELECT id, slug, review_url FROM shops WHERE place_id = ?", (place_id,)).fetchone()
             if dup:
+                if dup["review_url"] != review_url:
+                    conn.execute("UPDATE shops SET review_url = ? WHERE id = ?", (review_url, dup["id"]))
                 created_shops.append({"id": dup["id"], "name": name, "slug": dup["slug"]})
                 continue
                 
