@@ -1564,18 +1564,37 @@ def bulk_create():
             continue
             
         name = row[0].strip()
-        review_url = row[1].strip()
+        review_url = ""
+        unique_id = ""
+        address = ""
+        slug_input = ""
+        business_type = "massage"
+        place_id = ""
         
+        url_candidates = [x for x in row if "http" in x]
+        if url_candidates:
+            review_url = url_candidates[0].strip()
+        else:
+            review_url = row[1].strip() if len(row) > 1 else ""
+            
         if not name or not review_url:
             error_count += 1
             row_num += 1
             continue
+
+        # Detect Scraper Format: Name, Rating, Reviews, Address, Place ID, URL
+        is_scraper_format = len(row) >= 6 and "http" in row[5] and len(row[4].strip()) > 10 and row[4].strip().startswith("ChI")
+        
+        if is_scraper_format:
+            address = row[3].strip()
+            place_id = row[4].strip()
+        else:
+            unique_id = row[2].strip() if len(row) > 2 else ""
+            address = row[3].strip() if len(row) > 3 else ""
+            slug_input = row[4].strip() if len(row) > 4 else ""
+            business_type = row[5].strip() if len(row) > 5 else "massage"
+            place_id = row[6].strip() if len(row) > 6 else ""
             
-        unique_id = row[2].strip() if len(row) > 2 else ""
-        address = row[3].strip() if len(row) > 3 else ""
-        slug_input = row[4].strip() if len(row) > 4 else ""
-        business_type = row[5].strip() if len(row) > 5 else "massage"
-        place_id = row[6].strip() if len(row) > 6 else ""
         status = "trial"
 
         # Check existing place_id
@@ -1613,6 +1632,7 @@ def bulk_create():
                 "INSERT INTO shops (name, review_url, unique_id, address, slug, user_id, business_type, place_id, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 (name, review_url, unique_id or None, address, None, current_user.id, business_type, place_id or None, status),
             )
+            slug = None
             
         shop_id = cursor.lastrowid
         if not slug:
