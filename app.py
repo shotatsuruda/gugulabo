@@ -1652,7 +1652,7 @@ def bulk_create():
     conn.commit()
     conn.close()
 
-    if success_count == 0 and len(created_shops) == 0:
+    if len(created_shops) == 0:
         flash("有効なデータが見つかりませんでした。入力内容を確認してください。", "error")
         return redirect(url_for("bulk_create"))
 
@@ -1673,12 +1673,15 @@ def bulk_create():
     reader_full = csv.reader(lines[1:], dialect=dialect) if dialect else csv.reader(lines[1:], delimiter='\t')
     
     shop_dict = {s["name"]: s for s in created_shops}
+    print("DEBUG SHOP_DICT KEYS:", shop_dict.keys())
     
     url_col_idx = len(header) - 1
     qr_col_idx = len(header)
     
     for row_offset, row in enumerate(reader_full):
         excel_row = row_offset + 2 # Header is row 1
+        # lines[1:] already removed the header, so row_offset == 0 is the first data row.
+        # Do not skip it.
         if not row or len(row) < 2:
             ws.append(row)
             continue
