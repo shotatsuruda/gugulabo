@@ -1618,7 +1618,7 @@ def bulk_create():
     with zipfile.ZipFile(memory_file, 'w', zipfile.ZIP_DEFLATED) as zf:
         base_url = request.url_root.rstrip('/')
         for shop in created_shops:
-            url = f"{base_url}/survey/{shop['slug']}"
+            url = f"{base_url}/shop/{shop['slug']}"
             try:
                 img = build_qr_image(
                     url=url,
