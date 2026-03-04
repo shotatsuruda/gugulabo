@@ -1632,33 +1632,43 @@ def bulk_create():
         flash("有効なデータが見つかりませんでした。入力内容を確認してください。", "error")
         return redirect(url_for("bulk_create"))
 
-    # Return a new CSV with the generated QR code (base64) and URL appended
-    output_buf = io.StringIO(newline="")
-    writer = csv.writer(output_buf)
-    
+    import openpyxl
+    from openpyxl.drawing.image import Image as XLImage
+    from openpyxl.utils import get_column_letter
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "店舗・QRコード一覧"
+
     base_url = request.url_root.rstrip('/')
     header = next(csv.reader([lines[0]], dialect=dialect) if dialect else csv.reader([lines[0]], delimiter='\t'))
-    header.extend(["Generated_URL", "QR_Code_Base64"])
-    writer.writerow(header)
+    header.extend(["Generated_URL", "QR_Code_Image"])
+    ws.append(header)
     
     # Reparse to write out rows
     reader_full = csv.reader(lines[1:], dialect=dialect) if dialect else csv.reader(lines[1:], delimiter='\t')
     
     shop_dict = {s["name"]: s for s in created_shops}
     
-    for row in reader_full:
+    url_col_idx = len(header) - 1
+    qr_col_idx = len(header)
+    
+    for row_offset, row in enumerate(reader_full):
+        excel_row = row_offset + 2 # Header is row 1
         if not row or len(row) < 2:
-            writer.writerow(row)
+            ws.append(row)
             continue
             
         name = row[0].strip()
         shop = shop_dict.get(name)
         if not shop:
-            writer.writerow(row + ["", ""])
+            ws.append(row)
             continue
 
         url = f"{base_url}/shop/{shop['slug']}"
-        b64_img = ""
+        row.append(url)
+        ws.append(row)
+        
         try:
             img = build_qr_image(
                 url=url,
@@ -1667,24 +1677,36 @@ def bulk_create():
                 gradient_dir="radial",
                 bg_color="#ffffff",
                 corner_style="square",
-                size=512, # smaller size for base64
+                size=256, # adequate size for Excel
             )
             img_io = io.BytesIO()
             img.save(img_io, format="PNG", optimize=True)
-            b64_img = "data:image/png;base64," + base64.b64encode(img_io.getvalue()).decode("utf-8")
+            img_io.seek(0)
+            
+            xl_img = XLImage(img_io)
+            # Resize image to fit in the cell
+            xl_img.width = 100
+            xl_img.height = 100
+            
+            # Position the image in the correct cell
+            cell_address = f"{get_column_letter(qr_col_idx)}{excel_row}"
+            ws.add_image(xl_img, cell_address)
+            
+            # Adjust row height and col width to accommodate image
+            ws.row_dimensions[excel_row].height = 80 # Excel row height is in points (~100px)
+            ws.column_dimensions[get_column_letter(qr_col_idx)].width = 15 # Excel width in chars
         except Exception as e:
             print(f"Failed to generate QR for {shop['name']}: {e}")
-            
-        row.extend([url, b64_img])
-        writer.writerow(row)
 
-    csv_bytes = output_buf.getvalue().encode("utf-8-sig")
+    output_buf = io.BytesIO()
+    wb.save(output_buf)
+    output_buf.seek(0)
     
     return send_file(
-        io.BytesIO(csv_bytes),
-        mimetype="text/csv",
+        output_buf,
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         as_attachment=True,
-        download_name=f"shops_with_qr_{datetime.now().strftime('%Y%m%d%H%M%S')}.csv"
+        download_name=f"shops_with_qr_{datetime.now().strftime('%Y%m%d%H%M%S')}.xlsx"
     )
 
 
