@@ -40,6 +40,8 @@ from qrcode.image.styles.colormasks import (
     VerticalGradiantColorMask,
 )
 
+import pykakasi
+
 try:
     from qrcode.image.styles.moduledrawers.pil import (
         CircleModuleDrawer,
@@ -455,21 +457,34 @@ def init_db():
     conn.close()
 
 
+DB_INIT_OK = False
+DB_INIT_ERR = None
 with app.app_context():
-    init_db()
+    try:
+        init_db()
+        DB_INIT_OK = True
+    except Exception as e:
+        DB_INIT_ERR = str(e)
     if os.environ.get("AUTO_CREATE_ADMIN"):
-        _conn = get_db()
-        _admin_exists = _conn.execute(
-            "SELECT 1 FROM users WHERE is_admin = 1 LIMIT 1"
-        ).fetchone()
-        if not _admin_exists:
-            _hash = bcrypt.hashpw(b"admin1234", bcrypt.gensalt()).decode()
-            _conn.execute(
-                "INSERT INTO users (email, password_hash, name, is_admin) VALUES (?, ?, ?, ?)",
-                ("admin@gugulabo.com", _hash, "管理者", 1),
-            )
-            _conn.commit()
-        _conn.close()
+        try:
+            _conn = get_db()
+            _admin_exists = _conn.execute(
+                "SELECT 1 FROM users WHERE is_admin = 1 LIMIT 1"
+            ).fetchone()
+            if not _admin_exists:
+                _hash = bcrypt.hashpw(b"admin1234", bcrypt.gensalt()).decode()
+                _conn.execute(
+                    "INSERT INTO users (email, password_hash, name, is_admin) VALUES (?, ?, ?, ?)",
+                    ("admin@gugulabo.com", _hash, "管理者", 1),
+                )
+                _conn.commit()
+        except Exception:
+            pass
+        finally:
+            try:
+                _conn.close()
+            except Exception:
+                pass
 
 
 # ===== クーポン関連ユーティリティ =====
@@ -1577,12 +1592,16 @@ def bulk_create():
                 created_shops.append({"id": dup_uid["id"], "name": name, "slug": dup_uid["slug"]})
                 continue
                 
-        # Slug normalization
+        # Slug normalization from input or name
         if slug_input:
             slug = re.sub(r"[^a-z0-9\-_]", "-", slug_input.lower())
             slug = re.sub(r"-{2,}", "-", slug).strip("-") or None
         else:
-            slug = None
+            kks = pykakasi.kakasi()
+            result = kks.convert(name)
+            romaji = "".join([item['hepburn'] for item in result])
+            slug = re.sub(r"[^a-z0-9\-_]", "-", romaji.lower())
+            slug = re.sub(r"-{2,}", "-", slug).strip("-") or None
 
         try:
             cursor = conn.execute(
@@ -1617,8 +1636,15 @@ def bulk_create():
     memory_file = io.BytesIO()
     with zipfile.ZipFile(memory_file, 'w', zipfile.ZIP_DEFLATED) as zf:
         base_url = request.url_root.rstrip('/')
+        url_buf = io.StringIO(newline="")
+        url_writer = csv.writer(url_buf)
+        url_writer.writerow(["id", "name", "slug", "url"])
+        txt_buf = io.StringIO()
+        txt_buf.write("name,url\n")
         for shop in created_shops:
             url = f"{base_url}/shop/{shop['slug']}"
+            url_writer.writerow([shop["id"], shop["name"], shop["slug"], url])
+            txt_buf.write(f"{shop['name']},{url}\n")
             try:
                 img = build_qr_image(
                     url=url,
@@ -1635,8 +1661,15 @@ def bulk_create():
                 # safe filename: truncate to avoid OS ZIP extraction errors with extremely long names
                 safe_name = re.sub(r"[^\w\-_]", "_", shop["name"])[:30]
                 zf.writestr(f"qrcode_{safe_name}_{shop['id']}.png", img_io.getvalue())
+                
+                # 個別URLテキストファイルの追加
+                url_text = f"店舗名: {shop['name']}\nURL: {url}\n"
+                zf.writestr(f"url_{safe_name}_{shop['id']}.txt", url_text.encode("utf-8"))
             except Exception as e:
-                print(f"Failed to generate QR for {shop['name']}: {e}")
+                print(f"Failed to generate QR or URL text for {shop['name']}: {e}")
+        csv_bytes = url_buf.getvalue().encode("utf-8-sig")
+        zf.writestr("shop_urls.csv", csv_bytes)
+        zf.writestr("shop_urls.txt", txt_buf.getvalue().encode("utf-8"))
 
     memory_file.seek(0)
     
@@ -2074,6 +2107,39 @@ def widget_settings():
 def meo_guide():
     return render_template("meo.html")
 
+@app.route("/health")
+def health():
+    try:
+        conn = get_db()
+        conn.execute("SELECT 1")
+        conn.close()
+        return jsonify({"ok": True, "db": True}), 200
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 503
+
+@app.route("/bulk-urls.csv")
+@payment_required
+def bulk_urls_csv():
+    conn = get_db()
+    rows = conn.execute(
+        "SELECT id, name, slug FROM shops WHERE user_id = ? ORDER BY id",
+        (current_user.id,)
+    ).fetchall()
+    conn.close()
+    base_url = request.url_root.rstrip("/")
+    buf = io.StringIO(newline="")
+    w = csv.writer(buf)
+    w.writerow(["id", "name", "slug", "url"])
+    for r in rows:
+        url = f"{base_url}/shop/{r['slug']}"
+        w.writerow([r["id"], r["name"], r["slug"], url])
+    data = buf.getvalue().encode("utf-8-sig")
+    return send_file(
+        io.BytesIO(data),
+        mimetype="text/csv",
+        as_attachment=True,
+        download_name=f"shop_urls_{datetime.now().strftime('%Y%m%d%H%M%S')}.csv"
+    )
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)), debug=False)
