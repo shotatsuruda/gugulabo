@@ -1632,53 +1632,59 @@ def bulk_create():
         flash("有効なデータが見つかりませんでした。入力内容を確認してください。", "error")
         return redirect(url_for("bulk_create"))
 
-    # Generate ZIP of QR Codes
-    memory_file = io.BytesIO()
-    with zipfile.ZipFile(memory_file, 'w', zipfile.ZIP_DEFLATED) as zf:
-        base_url = request.url_root.rstrip('/')
-        url_buf = io.StringIO(newline="")
-        url_writer = csv.writer(url_buf)
-        url_writer.writerow(["id", "name", "slug", "url"])
-        txt_buf = io.StringIO()
-        txt_buf.write("name,url\n")
-        for shop in created_shops:
-            url = f"{base_url}/shop/{shop['slug']}"
-            url_writer.writerow([shop["id"], shop["name"], shop["slug"], url])
-            txt_buf.write(f"{shop['name']},{url}\n")
-            try:
-                img = build_qr_image(
-                    url=url,
-                    fg_color="#000000",
-                    fg_color2="#000000",
-                    gradient_dir="radial",
-                    bg_color="#ffffff",
-                    corner_style="square",
-                    size=1024,
-                )
-                img_io = io.BytesIO()
-                img.save(img_io, format="PNG", optimize=True)
-                img_io.seek(0)
-                # safe filename: truncate to avoid OS ZIP extraction errors with extremely long names
-                safe_name = re.sub(r"[^\w\-_]", "_", shop["name"])[:30]
-                zf.writestr(f"qrcode_{safe_name}_{shop['id']}.png", img_io.getvalue())
-                
-                # 個別URLテキストファイルの追加
-                url_text = f"店舗名: {shop['name']}\nURL: {url}\n"
-                zf.writestr(f"url_{safe_name}_{shop['id']}.txt", url_text.encode("utf-8"))
-            except Exception as e:
-                print(f"Failed to generate QR or URL text for {shop['name']}: {e}")
-        csv_bytes = url_buf.getvalue().encode("utf-8-sig")
-        zf.writestr("shop_urls.csv", csv_bytes)
-        zf.writestr("shop_urls.txt", txt_buf.getvalue().encode("utf-8"))
-
-    memory_file.seek(0)
+    # Return a new CSV with the generated QR code (base64) and URL appended
+    output_buf = io.StringIO(newline="")
+    writer = csv.writer(output_buf)
     
-    # Can't use flash since we are returning a file, maybe provide it as part of content disposition
+    base_url = request.url_root.rstrip('/')
+    header = next(csv.reader([lines[0]], dialect=dialect) if dialect else csv.reader([lines[0]], delimiter='\t'))
+    header.extend(["Generated_URL", "QR_Code_Base64"])
+    writer.writerow(header)
+    
+    # Reparse to write out rows
+    reader_full = csv.reader(lines[1:], dialect=dialect) if dialect else csv.reader(lines[1:], delimiter='\t')
+    
+    shop_dict = {s["name"]: s for s in created_shops}
+    
+    for row in reader_full:
+        if not row or len(row) < 2:
+            writer.writerow(row)
+            continue
+            
+        name = row[0].strip()
+        shop = shop_dict.get(name)
+        if not shop:
+            writer.writerow(row + ["", ""])
+            continue
+
+        url = f"{base_url}/shop/{shop['slug']}"
+        b64_img = ""
+        try:
+            img = build_qr_image(
+                url=url,
+                fg_color="#000000",
+                fg_color2="#000000",
+                gradient_dir="radial",
+                bg_color="#ffffff",
+                corner_style="square",
+                size=512, # smaller size for base64
+            )
+            img_io = io.BytesIO()
+            img.save(img_io, format="PNG", optimize=True)
+            b64_img = "data:image/png;base64," + base64.b64encode(img_io.getvalue()).decode("utf-8")
+        except Exception as e:
+            print(f"Failed to generate QR for {shop['name']}: {e}")
+            
+        row.extend([url, b64_img])
+        writer.writerow(row)
+
+    csv_bytes = output_buf.getvalue().encode("utf-8-sig")
+    
     return send_file(
-        io.BytesIO(memory_file.getvalue()),
-        mimetype="application/zip",
+        io.BytesIO(csv_bytes),
+        mimetype="text/csv",
         as_attachment=True,
-        download_name=f"qrcodes_bulk_{datetime.now().strftime('%Y%m%d%H%M%S')}.zip"
+        download_name=f"shops_with_qr_{datetime.now().strftime('%Y%m%d%H%M%S')}.csv"
     )
 
 
