@@ -1656,45 +1656,43 @@ def bulk_create():
         flash("有効なデータが見つかりませんでした。入力内容を確認してください。", "error")
         return redirect(url_for("bulk_create"))
 
-    import openpyxl
-    from openpyxl.drawing.image import Image as XLImage
-    from openpyxl.utils import get_column_letter
+    import xlsxwriter
 
-    wb = openpyxl.Workbook()
-    ws = wb.active
-    ws.title = "店舗・QRコード一覧"
+    output_buf = io.BytesIO()
+    wb = xlsxwriter.Workbook(output_buf, {'in_memory': True})
+    ws = wb.add_worksheet("店舗・QRコード一覧")
 
     base_url = request.url_root.rstrip('/')
     header = next(csv.reader([lines[0]], dialect=dialect) if dialect else csv.reader([lines[0]], delimiter='\t'))
     header.extend(["Generated_URL", "QR_Code_Image"])
-    ws.append(header)
+    
+    ws.write_row(0, 0, header)
     
     # Reparse to write out rows
     reader_full = csv.reader(lines[1:], dialect=dialect) if dialect else csv.reader(lines[1:], delimiter='\t')
     
     shop_dict = {s["name"]: s for s in created_shops}
-    print("DEBUG SHOP_DICT KEYS:", shop_dict.keys())
     
     url_col_idx = len(header) - 1
     qr_col_idx = len(header)
     
     for row_offset, row in enumerate(reader_full):
-        excel_row = row_offset + 2 # Header is row 1
+        excel_row = row_offset + 1 # 0-indexed, Header is row 0
         # lines[1:] already removed the header, so row_offset == 0 is the first data row.
         # Do not skip it.
         if not row or len(row) < 2:
-            ws.append(row)
+            ws.write_row(excel_row, 0, row)
             continue
             
         name = row[0].strip()
         shop = shop_dict.get(name)
         if not shop:
-            ws.append(row)
+            ws.write_row(excel_row, 0, row)
             continue
 
         url = f"{base_url}/shop/{shop['slug']}"
         row.append(url)
-        ws.append(row)
+        ws.write_row(excel_row, 0, row)
         
         try:
             img = build_qr_image(
@@ -1704,29 +1702,23 @@ def bulk_create():
                 gradient_dir="radial",
                 bg_color="#ffffff",
                 corner_style="square",
-                size=256, # adequate size for Excel
+                size=256,
             )
             img_io = io.BytesIO()
             img.save(img_io, format="PNG", optimize=True)
-            img_io.seek(0)
             
-            xl_img = XLImage(img_io)
-            # Resize image to fit in the cell
-            xl_img.width = 100
-            xl_img.height = 100
+            # Position the image in the correct cell (row index, col index)
+            # Adjust row height (in pixels/points) and col width (in characters)
+            ws.set_row(excel_row, 80)
+            ws.set_column(qr_col_idx, qr_col_idx, 15)
             
-            # Position the image in the correct cell
-            cell_address = f"{get_column_letter(qr_col_idx)}{excel_row}"
-            ws.add_image(xl_img, cell_address)
+            # Insert image, specifying scale to fit cell ~100x100px
+            ws.insert_image(excel_row, qr_col_idx, "qr.png", {'image_data': img_io, 'x_scale': 0.4, 'y_scale': 0.4, 'positioning': 1})
             
-            # Adjust row height and col width to accommodate image
-            ws.row_dimensions[excel_row].height = 80 # Excel row height is in points (~100px)
-            ws.column_dimensions[get_column_letter(qr_col_idx)].width = 15 # Excel width in chars
         except Exception as e:
             print(f"Failed to generate QR for {shop['name']}: {e}")
 
-    output_buf = io.BytesIO()
-    wb.save(output_buf)
+    wb.close()
     output_buf.seek(0)
     
     return send_file(
