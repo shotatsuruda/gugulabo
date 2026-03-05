@@ -23,19 +23,3 @@ MAIL_FROM=your@gmail.com
 # ===== OpenRouter API設定（AI返答生成に必要） =====
 # https://openrouter.ai/keys で取得できます
 OPENROUTER_API_KEY=sk-or-v1-xxxxxxxxxxxxxxxxxxxxxxxx
-
-# ===== 本番環境向け設定 (Production) =====
-# 開発環境の場合は development、本番環境の場合は production を指定
-FLASK_ENV=development
-
-# データベース設定 (SQLiteではなくPostgreSQLなどを使用する場合)
-# 例: postgresql://user:password@localhost/dbname
-# DATABASE_URL=
-
-# ===== Stripe 決済設定 =====
-# 本番環境時は Live API Key を、開発時は Test API Key を指定
-# STRIPE_PUBLIC_KEY=pk_test_...
-# STRIPE_SECRET_KEY=sk_test_...
-# STRIPE_PRICE_ID=price_monthly_test...
-# STRIPE_PRICE_ID_YEARLY=price_yearly_test...
-# STRIPE_WEBHOOK_SECRET=whsec_...

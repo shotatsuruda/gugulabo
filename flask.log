@@ -1,0 +1,31 @@
+ * Serving Flask app 'app.py'
+ * Debug mode: off
+[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5001
+[33mPress CTRL+C to quit[0m
+127.0.0.1 - - [04/Mar/2026 22:45:07] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [04/Mar/2026 22:45:07] "GET /static/widget.js HTTP/1.1" 200 -
+127.0.0.1 - - [04/Mar/2026 22:45:07] "GET /static/style.css?v=20260302 HTTP/1.1" 200 -
+127.0.0.1 - - [04/Mar/2026 22:45:08] "GET /static/img/hero.png HTTP/1.1" 200 -
+127.0.0.1 - - [04/Mar/2026 22:45:09] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+127.0.0.1 - - [04/Mar/2026 22:45:11] "GET /login HTTP/1.1" 200 -
+127.0.0.1 - - [04/Mar/2026 22:45:12] "GET /static/style.css HTTP/1.1" 200 -
+127.0.0.1 - - [04/Mar/2026 22:45:21] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [04/Mar/2026 22:45:21] "GET /static/style.css?v=20260302 HTTP/1.1" 200 -
+127.0.0.1 - - [04/Mar/2026 22:45:21] "GET /static/widget.js HTTP/1.1" 200 -
+127.0.0.1 - - [04/Mar/2026 22:45:22] "GET /static/img/hero.png HTTP/1.1" 200 -
+127.0.0.1 - - [04/Mar/2026 22:45:24] "GET /login HTTP/1.1" 200 -
+127.0.0.1 - - [04/Mar/2026 22:45:24] "GET /static/style.css HTTP/1.1" 200 -
+127.0.0.1 - - [04/Mar/2026 22:45:28] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+127.0.0.1 - - [04/Mar/2026 22:45:36] "[32mPOST /login HTTP/1.1[0m" 302 -
+127.0.0.1 - - [04/Mar/2026 22:45:36] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [04/Mar/2026 22:45:36] "[36mGET /static/style.css?v=20260302 HTTP/1.1[0m" 304 -
+127.0.0.1 - - [04/Mar/2026 22:45:43] "GET /qr HTTP/1.1" 200 -
+127.0.0.1 - - [04/Mar/2026 22:45:43] "[36mGET /static/style.css?v=20260302 HTTP/1.1[0m" 304 -
+127.0.0.1 - - [04/Mar/2026 22:45:43] "GET /qr/shops HTTP/1.1" 200 -
+127.0.0.1 - - [04/Mar/2026 22:45:59] "GET /qr/shops/10/coupon HTTP/1.1" 200 -
+127.0.0.1 - - [04/Mar/2026 22:46:00] "POST /qr/generate HTTP/1.1" 200 -
+127.0.0.1 - - [04/Mar/2026 22:46:01] "GET /shop/chijk9fvfjbp5tqrg2u8tsnppf4 HTTP/1.1" 200 -
+127.0.0.1 - - [04/Mar/2026 22:46:24] "POST /shop/chijk9fvfjbp5tqrg2u8tsnppf4/feedback HTTP/1.1" 200 -
+127.0.0.1 - - [04/Mar/2026 22:46:51] "GET /shop/chijk9fvfjbp5tqrg2u8tsnppf4 HTTP/1.1" 200 -
+127.0.0.1 - - [04/Mar/2026 22:47:38] "POST /shop/chijk9fvfjbp5tqrg2u8tsnppf4/feedback HTTP/1.1" 200 -

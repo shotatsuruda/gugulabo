@@ -387,25 +387,51 @@ def init_db():
         """
     )
 
-    # お客様のご意見テーブル（★1〜3のフィードバック）
+    # お客様のご意見テーブル（★1〜5のフィードバック）
     conn.execute(
         f"""
         CREATE TABLE IF NOT EXISTS feedbacks (
             id           {pk},
             shop_id      INTEGER NOT NULL,
             rating       INTEGER NOT NULL,
+            rating2      INTEGER,
+            rating3      INTEGER,
+            rating4      INTEGER,
+            rating5      INTEGER,
             comment      TEXT,
             submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
         """
     )
 
-    # feedbacks テーブルへの is_featured カラム追加（マイグレーション）
+    # feedbacks テーブルへの連携カラム追加（マイグレーション）
     if DB_TYPE == "postgresql":
         conn.execute("ALTER TABLE feedbacks ADD COLUMN IF NOT EXISTS is_featured INTEGER NOT NULL DEFAULT 0")
+        conn.execute("ALTER TABLE feedbacks ADD COLUMN IF NOT EXISTS guest_type TEXT")
+        conn.execute("ALTER TABLE feedbacks ADD COLUMN IF NOT EXISTS positive_points TEXT")
+        conn.execute("ALTER TABLE feedbacks ADD COLUMN IF NOT EXISTS negative_points TEXT")
+        conn.execute("ALTER TABLE feedbacks ADD COLUMN IF NOT EXISTS ai_draft TEXT")
+        conn.execute("ALTER TABLE feedbacks ADD COLUMN IF NOT EXISTS rating2 INTEGER")
+        conn.execute("ALTER TABLE feedbacks ADD COLUMN IF NOT EXISTS rating3 INTEGER")
+        conn.execute("ALTER TABLE feedbacks ADD COLUMN IF NOT EXISTS rating4 INTEGER")
+        conn.execute("ALTER TABLE feedbacks ADD COLUMN IF NOT EXISTS rating5 INTEGER")
     else:
         try:
             conn.execute("ALTER TABLE feedbacks ADD COLUMN is_featured INTEGER NOT NULL DEFAULT 0")
+        except Exception:
+            pass
+        try:
+            conn.execute("ALTER TABLE feedbacks ADD COLUMN guest_type TEXT")
+            conn.execute("ALTER TABLE feedbacks ADD COLUMN positive_points TEXT")
+            conn.execute("ALTER TABLE feedbacks ADD COLUMN negative_points TEXT")
+            conn.execute("ALTER TABLE feedbacks ADD COLUMN ai_draft TEXT")
+        except Exception:
+            pass
+        try:
+            conn.execute("ALTER TABLE feedbacks ADD COLUMN rating2 INTEGER")
+            conn.execute("ALTER TABLE feedbacks ADD COLUMN rating3 INTEGER")
+            conn.execute("ALTER TABLE feedbacks ADD COLUMN rating4 INTEGER")
+            conn.execute("ALTER TABLE feedbacks ADD COLUMN rating5 INTEGER")
         except Exception:
             pass
 
@@ -1059,6 +1085,47 @@ def contact():
     return jsonify({"success": True})
 
 
+# ===== 業種ごとのアンケート項目設定 =====
+SURVEY_OPTIONS = {
+    "default": {
+        "q1": "総合的な満足度",
+        "q2": "接客・スタッフの対応",
+        "q3": "サービス・技術の質",
+        "q4": "店内の雰囲気・清潔感",
+        "q5": "また利用したいか"
+    },
+    "マッサージ": {
+        "q1": "総合的な満足度",
+        "q2": "接客・スタッフの対応",
+        "q3": "施術・技術の質",
+        "q4": "店内の雰囲気・静かさ",
+        "q5": "また利用したいか"
+    },
+    "整体": {
+        "q1": "総合的な満足度",
+        "q2": "問診・説明の分かりやすさ",
+        "q3": "施術の効果・技術",
+        "q4": "院内の雰囲気・清潔感",
+        "q5": "また通院したいか"
+    },
+    "飲食店": {
+        "q1": "総合的な満足度",
+        "q2": "接客・スタッフの対応",
+        "q3": "料理・ドリンクの味",
+        "q4": "店内の雰囲気・清潔感",
+        "q5": "また来店したいか"
+    },
+    "カフェ": {
+        "q1": "総合的な満足度",
+        "q2": "接客・スタッフの対応",
+        "q3": "ドリンク・フードの味",
+        "q4": "居心地の良さ・空間",
+        "q5": "また来店したいか"
+    }
+}
+# "その他" も default を使う
+
+
 # ----- 顧客向けアンケート（ログイン不要） -----
 
 @app.route("/shop/<slug>")
@@ -1079,26 +1146,46 @@ def survey(slug):
     ).fetchone()
     conn.close()
 
+    # 業種に応じてアンケート項目を取得
+    shop_dict = dict(shop)
+    b_type = shop_dict.get("business_type") or "default"
+    opts = SURVEY_OPTIONS.get(b_type, SURVEY_OPTIONS["default"])
+
     return render_template(
         "survey.html",
-        shop=dict(shop),
+        shop=shop_dict,
         coupon=dict(coupon) if coupon else None,
+        survey_options=opts,
     )
 
 
 @app.route("/shop/demo")
 def shop_demo():
-    return render_template("demo.html")
+    shop_dict = {
+        "slug": "demo",
+        "name": "デモ店舗",
+        "review_url": "https://google.com",
+        "business_type": "マッサージ"
+    }
+    b_type = "マッサージ"
+    opts = SURVEY_OPTIONS.get(b_type, SURVEY_OPTIONS["default"])
+    return render_template(
+        "survey.html",
+        shop=shop_dict,
+        coupon=None,
+        survey_options=opts
+    )
 
 
 @app.route("/shop/<slug>/feedback", methods=["POST"])
 def submit_feedback(slug):
     """
-    お客様のご意見をDBに保存し、オーナーに通知メールを送る（AJAX用）。
+    お客様のご意見をDBに保存し、AIでレビュー下書きを生成して返す（AJAX用）。
+    またオーナーに通知メールを送る。
     """
     conn = get_db()
     shop = conn.execute(
-        "SELECT s.id, s.name, u.email AS owner_email, u.notify_enabled "
+        "SELECT s.id, s.name, s.business_type, u.email AS owner_email, u.notify_enabled "
         "FROM shops s LEFT JOIN users u ON u.id = s.user_id "
         "WHERE s.slug = ?",
         (slug,),
@@ -1109,14 +1196,78 @@ def submit_feedback(slug):
 
     data = request.get_json()
     rating  = data.get("rating")
+    rating2 = data.get("rating2")
+    rating3 = data.get("rating3")
+    rating4 = data.get("rating4")
+    rating5 = data.get("rating5")
     comment = (data.get("comment") or "").strip()
+    
     submitted_at = datetime.now().strftime("%Y年%m月%d日 %H:%M")
 
+    # 業種に応じてアンケート項目を取得
+    shop_dict = dict(shop)
+    b_type = shop_dict.get("business_type") or "default"
+    opts = SURVEY_OPTIONS.get(b_type, SURVEY_OPTIONS["default"])
+
+    # ===== AI（OpenRouter）によるレビュー下書きの生成 =====
+    ai_draft = ""
+    # Googleガイドラインに準拠し、すべての評価（星1〜5）に対して下書きを作成する用意をするが、
+    # 批判的な内容が含まれる場合も誠実で自然なトーンでのフィードバックになるようAIに指示する。
+    try:
+        import requests
+        
+        system_prompt = f"あなたは「{shop['name']}（業種: {dict(shop).get('business_type') or '不明'}）」を訪れたお客様です。Googleマップに投稿する口コミの下書きを150〜250文字で作成してください。\n"
+        system_prompt += "【ルール】\n"
+        system_prompt += "1. 指定されたアンケート結果（各項目の評価、コメント）を自然に組み込んでください。特に評価が高い項目（星4,5）は具体的に褒め、低い項目（星1,2,3）はマイルドに「もう少しだった点」として触れるか触れないかを判断してください。\n"
+        system_prompt += "2. 定型文のような「とてもよかったです」だけの文章は禁止。他の人の参考になるような具体的なエピソード風に書いてください。\n"
+        system_prompt += "3. 大げさなサクラのような表現は避け、自然な話し言葉で書いてください。\n"
+        if rating and int(rating) <= 3:
+            system_prompt += "4. 総合評価が低い場合や低い項目がある場合は、感情的な言葉を使わず「建設的な要望や、気になった点」を冷静に伝える誠実なレビューにしてください。\n"
+        system_prompt += "ルール絶対遵守: 【トーン：シンプル】などのメタ情報や、前置きテキストは絶対に含めず、純粋な口コミテキストのみを出力してください。\n"
+            
+        user_prompt = f"【アンケート結果】\n{opts['q1']}: 星{rating}\n"
+        user_prompt += f"{opts['q2']}: 星{rating2}\n"
+        user_prompt += f"{opts['q3']}: 星{rating3}\n"
+        user_prompt += f"{opts['q4']}: 星{rating4}\n"
+        user_prompt += f"{opts['q5']}: 星{rating5}\n"
+        if comment:
+            user_prompt += f"自由記入コメント: {comment}\n"
+
+        headers = {
+            "Authorization": f"Bearer {os.environ.get('OPENROUTER_API_KEY')}",
+            "HTTP-Referer": "https://gugulabo.com",
+            "X-Title": "Gugulabo Review Generator",
+            "Content-Type": "application/json"
+        }
+        payload = {
+            "model": "google/gemini-2.5-flash",
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}
+            ],
+            "temperature": 0.7,
+            "max_tokens": 400
+        }
+        resp = requests.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=payload, timeout=15)
+        if resp.status_code == 200:
+            result_json = resp.json()
+            if "choices" in result_json and len(result_json["choices"]) > 0:
+                ai_draft = result_json["choices"][0]["message"]["content"].strip()
+    except Exception as e:
+        print("AI draft generation failed:", e)
+
     conn = get_db()
-    conn.execute(
-        "INSERT INTO feedbacks (shop_id, rating, comment) VALUES (?, ?, ?)",
-        (shop["id"], rating, comment),
-    )
+    if DB_TYPE == "postgresql":
+        # postgres syntax implies parameters
+        conn.execute(
+            "INSERT INTO feedbacks (shop_id, rating, rating2, rating3, rating4, rating5, comment, ai_draft) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
+            (shop["id"], rating, rating2, rating3, rating4, rating5, comment, ai_draft),
+        )
+    else:
+        conn.execute(
+            "INSERT INTO feedbacks (shop_id, rating, rating2, rating3, rating4, rating5, comment, ai_draft) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            (shop["id"], rating, rating2, rating3, rating4, rating5, comment, ai_draft),
+        )
     conn.commit()
     conn.close()
 
@@ -1133,7 +1284,16 @@ def submit_feedback(slug):
         except Exception:
             pass
 
-    return jsonify({"success": True})
+    # Fetch the review_url to give back to the client
+    conn = get_db()
+    shop_info = conn.execute("SELECT review_url FROM shops WHERE slug = ?", (slug,)).fetchone()
+    conn.close()
+
+    return jsonify({
+        "success": True, 
+        "ai_draft": ai_draft,
+        "review_url": shop_info["review_url"] if shop_info else ""
+    })
 
 
 @app.route("/shop/<slug>/coupon", methods=["POST"])
@@ -2102,53 +2262,6 @@ def admin_update_plan(user_id):
     conn.close()
     flash("プラン情報を更新しました。", "success")
     return redirect(url_for("admin_users"))
-
-
-@app.route("/feedback/<int:feedback_id>/feature", methods=["POST"])
-@login_required
-def toggle_feature(feedback_id):
-    conn = get_db()
-    fb = conn.execute(
-        "SELECT f.id, s.user_id FROM feedbacks f JOIN shops s ON s.id = f.shop_id WHERE f.id = ?",
-        (feedback_id,)
-    ).fetchone()
-    if not fb or fb["user_id"] != current_user.id:
-        conn.close()
-        return jsonify({"success": False}), 403
-    conn.execute(
-        "UPDATE feedbacks SET is_featured = CASE WHEN is_featured = 1 THEN 0 ELSE 1 END WHERE id = ?",
-        (feedback_id,)
-    )
-    conn.commit()
-    new_val = conn.execute("SELECT is_featured FROM feedbacks WHERE id = ?", (feedback_id,)).fetchone()["is_featured"]
-    conn.close()
-    return jsonify({"success": True, "is_featured": new_val})
-
-
-@app.route("/widget/<slug>")
-def widget_data(slug):
-    conn = get_db()
-    rows = conn.execute(
-        """SELECT f.rating, f.comment, f.submitted_at::date as date
-           FROM feedbacks f
-           JOIN shops s ON s.id = f.shop_id
-           WHERE s.slug = ? AND f.is_featured = 1
-           ORDER BY f.submitted_at DESC""",
-        (slug,)
-    ).fetchall()
-    conn.close()
-    data = [{"rating": r["rating"], "comment": r["comment"], "date": str(r["date"])} for r in rows]
-    return jsonify(data)
-
-
-@app.route("/widget-settings")
-@login_required
-def widget_settings():
-    conn = get_db()
-    shop = conn.execute("SELECT slug FROM shops WHERE user_id = ?", (current_user.id,)).fetchone()
-    conn.close()
-    return render_template("widget_settings.html", shop=shop)
-
 
 @app.route("/meo")
 def meo_guide():
