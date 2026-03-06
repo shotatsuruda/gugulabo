@@ -391,6 +391,54 @@
                     style="max-width:380px;">
                 <p id="shop_label" class="mt-3 mb-1 fw-bold" style="font-size:0.9rem;"></p>
                 <p id="url_label" class="mb-0 url-text"></p>
+
+                <!-- ===== POPテンプレート選択 ===== -->
+                <hr style="border-color:#E8E4DF;margin:1.5rem 0 1rem;">
+                <div class="text-start">
+                    <p class="fw-semibold mb-2" style="font-size:0.88rem;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                            stroke="#8C7B6B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            style="vertical-align:-2px;margin-right:5px;">
+                            <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/>
+                        </svg>POPテンプレートで保存
+                    </p>
+                    <div class="d-flex gap-2 flex-wrap mb-3" id="pop_template_list">
+                        <div class="pop-tpl-card" id="pop-tpl-1" onclick="selectPopTemplate(1)"
+                            title="テンプレート1（オレンジ）">
+                            <img src="/static/pop_template_1.png" alt="テンプレート1">
+                            <div class="pop-tpl-name">オレンジ</div>
+                        </div>
+                        <div class="pop-tpl-card" id="pop-tpl-2" onclick="selectPopTemplate(2)"
+                            title="テンプレート2（ピンク）">
+                            <img src="/static/pop_template_2.png" alt="テンプレート2">
+                            <div class="pop-tpl-name">ピンク</div>
+                        </div>
+                        <div class="pop-tpl-card" id="pop-tpl-3" onclick="selectPopTemplate(3)"
+                            title="テンプレート3（水色）">
+                            <img src="/static/pop_template_3.png" alt="テンプレート3">
+                            <div class="pop-tpl-name">水色</div>
+                        </div>
+                        <div class="pop-tpl-card" id="pop-tpl-4" onclick="selectPopTemplate(4)"
+                            title="テンプレート4（グリーン）">
+                            <img src="/static/pop_template_4.png" alt="テンプレート4">
+                            <div class="pop-tpl-name">グリーン</div>
+                        </div>
+                    </div>
+                    <button id="pop_download_btn" class="btn btn-primary btn-sm d-none" onclick="downloadPopTemplate()">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            style="vertical-align:-1px;margin-right:4px;">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="7 10 12 15 17 10"/>
+                            <line x1="12" y1="15" x2="12" y2="3"/>
+                        </svg>このテンプレートでダウンロード
+                    </button>
+                    <span id="pop_dl_loading" class="d-none" style="font-size:0.82rem;color:#9A9A9A;">
+                        <span class="spinner-border spinner-border-sm" role="status"
+                            style="width:0.9rem;height:0.9rem;border-width:0.15em;vertical-align:-2px;margin-right:5px;"></span>生成中...
+                    </span>
+                </div>
+
             </div>
         </div>
 
@@ -430,11 +478,43 @@
 
 
 {% block scripts %}
+<style>
+    .pop-tpl-card {
+        cursor: pointer;
+        border: 2px solid #E8E4DF;
+        border-radius: 8px;
+        padding: 4px;
+        text-align: center;
+        transition: border-color .15s, box-shadow .15s;
+        width: 80px;
+        flex-shrink: 0;
+    }
+    .pop-tpl-card img {
+        width: 70px;
+        height: 110px;
+        object-fit: cover;
+        border-radius: 4px;
+        display: block;
+    }
+    .pop-tpl-card .pop-tpl-name {
+        font-size: 0.7rem;
+        color: #9A9A9A;
+        margin-top: 3px;
+    }
+    .pop-tpl-card:hover {
+        border-color: #8C7B6B;
+    }
+    .pop-tpl-card.active {
+        border-color: #8C7B6B;
+        box-shadow: 0 0 0 3px rgba(140,123,107,.2);
+    }
+</style>
 <script>
     let shops = [];
     let currentQRData = null;
     let currentShop = null;
     let _slugEdited = false;
+    let selectedPopTemplate = null;
 
     function _suggestSlugFromName(v) {
         if (!v) return "";
@@ -741,6 +821,55 @@
         a.href = 'data:image/png;base64,' + currentQRData;
         a.download = `QR_${fname}.png`;
         a.click();
+    }
+
+    // ===== POPテンプレート選択 =====
+    function selectPopTemplate(id) {
+        selectedPopTemplate = id;
+        document.querySelectorAll('.pop-tpl-card').forEach((el, i) => {
+            el.classList.toggle('active', i + 1 === id);
+        });
+        document.getElementById('pop_download_btn').classList.remove('d-none');
+    }
+
+    // ===== POPテンプレートダウンロード =====
+    async function downloadPopTemplate() {
+        if (!selectedPopTemplate || !currentShop) return;
+        const surveyUrl = window.location.origin + '/shop/' + currentShop.slug;
+
+        const btn = document.getElementById('pop_download_btn');
+        const loading = document.getElementById('pop_dl_loading');
+        btn.classList.add('d-none');
+        loading.classList.remove('d-none');
+
+        try {
+            const fd = new FormData();
+            fd.append('template_id', selectedPopTemplate);
+            fd.append('url', surveyUrl);
+            fd.append('fg_color', document.getElementById('fg_color').value);
+            fd.append('fg_color2', document.getElementById('fg_color2').value);
+            fd.append('gradient_dir', document.getElementById('gradient_dir').value);
+            fd.append('bg_color', document.getElementById('bg_color').value);
+            fd.append('corner_style', document.querySelector('input[name="corner_style"]:checked').value);
+
+            const res = await fetch('/qr/pop-template', { method: 'POST', body: fd });
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
+                alert('生成に失敗しました: ' + (err.error || res.status));
+                return;
+            }
+            const blob = await res.blob();
+            const fname = currentShop ? currentShop.name.replace(/[\\/:*?"<>|]/g, '_') : 'pop';
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `POP_template${selectedPopTemplate}_${fname}.png`;
+            a.click();
+        } catch (_) {
+            alert('通信エラーが発生しました。');
+        } finally {
+            btn.classList.remove('d-none');
+            loading.classList.add('d-none');
+        }
     }
 
     // ===== 印刷 =====

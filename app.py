@@ -30,7 +30,7 @@ from flask_login import (
     login_user, logout_user,
 )
 from openai import OpenAI
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFilter
 import qrcode
 from qrcode.image.styledpil import StyledPilImage
 from qrcode.image.styles.colormasks import (
@@ -2085,6 +2085,129 @@ def qr_generate():
         return jsonify({"success": True, "image": encoded})
     except Exception as e:
         return jsonify({"success": False, "error": str(e)})
+
+
+def _detect_qr_circle(img: Image.Image) -> tuple:
+    """
+    テンプレート画像内の円形QRコードエリアをエッジ密度グリッドで検出。
+    (center_x, center_y, radius) を返す。
+    """
+    w, h = img.size
+
+    # エッジマップ取得
+    edges = img.convert("L").filter(ImageFilter.FIND_EDGES)
+
+    # ROI: 上部33%を除外、横15～85%
+    x1 = w * 15 // 100
+    y1 = h * 33 // 100
+    x2 = w * 85 // 100
+    y2 = h
+    roi = edges.crop((x1, y1, x2, y2))
+    roi_w, roi_h = roi.size
+
+    # 10×10グリッドでエッジ密度を集計
+    G = 10
+    gw = max(1, roi_w // G)
+    gh = max(1, roi_h // G)
+    grid = [[0] * G for _ in range(G)]
+    for i, b in enumerate(roi.tobytes()):
+        if b > 60:
+            gc = min((i % roi_w) // gw, G - 1)
+            gr = min((i // roi_w) // gh, G - 1)
+            grid[gr][gc] += 1
+
+    # 3×3近傍の合計が最大のセルを探す
+    best, br, bc = 0, G // 2, G // 2
+    for r in range(1, G - 1):
+        for c in range(1, G - 1):
+            s = sum(grid[r + dr][c + dc] for dr in (-1, 0, 1) for dc in (-1, 0, 1))
+            if s > best:
+                best, br, bc = s, r, c
+
+    # 周辺サブROIで重心を精細化
+    sr = max(0, (br - 2) * gh)
+    er = min(roi_h, (br + 3) * gh)
+    sc = max(0, (bc - 2) * gw)
+    ec = min(roi_w, (bc + 3) * gw)
+    sub = roi.crop((sc, sr, ec, er))
+    sub_w = sub.size[0]
+    total_w = wx = wy = 0
+    for i, b in enumerate(sub.tobytes()):
+        if b > 60:
+            total_w += b
+            wx += b * (i % sub_w)
+            wy += b * (i // sub_w)
+
+    if total_w > 0:
+        cx = int(wx / total_w) + sc + x1
+        cy = int(wy / total_w) + sr + y1
+    else:
+        cx = bc * gw + gw // 2 + x1
+        cy = br * gh + gh // 2 + y1
+
+    # 半径: 画像幅の約18%（QRサークルが直径36%程度を占める想定）
+    radius = max(w * 18 // 100, 40)
+    return cx, cy, radius
+
+
+@app.route("/qr/pop-template", methods=["POST"])
+@payment_required
+def qr_pop_template():
+    """POPテンプレートにQRコードを嵌め込んでPNGを返す"""
+    try:
+        template_id = max(1, min(4, int(request.form.get("template_id", "1"))))
+    except (ValueError, TypeError):
+        template_id = 1
+
+    url = (request.form.get("url") or "").strip()
+    if not url:
+        return jsonify({"success": False, "error": "URLが必要です"}), 400
+
+    template_path = os.path.join(app.static_folder, f"pop_template_{template_id}.png")
+    if not os.path.exists(template_path):
+        return jsonify({"success": False, "error": "テンプレートが見つかりません"}), 404
+
+    try:
+        template = Image.open(template_path).convert("RGBA")
+        tw = template.size[0]
+
+        # QRコードエリア検出
+        cx, cy, radius = _detect_qr_circle(template)
+
+        # QRコード生成（円の直径サイズで生成）
+        diam = radius * 2
+        qr_img = build_qr_image(
+            url=url,
+            fg_color=request.form.get("fg_color", "#000000"),
+            fg_color2=request.form.get("fg_color2", "#000000"),
+            gradient_dir=request.form.get("gradient_dir", "radial"),
+            bg_color=request.form.get("bg_color", "#ffffff"),
+            corner_style=request.form.get("corner_style", "square"),
+            size=diam,
+        )
+
+        # 円形マスクでQRをクリップ
+        mask = Image.new("L", (diam, diam), 0)
+        ImageDraw.Draw(mask).ellipse((0, 0, diam - 1, diam - 1), fill=255)
+        qr_circle = Image.new("RGBA", (diam, diam), (255, 255, 255, 255))
+        qr_circle.paste(qr_img.convert("RGBA"), (0, 0))
+        qr_circle.putalpha(mask)
+
+        # テンプレートに貼り付け
+        result = template.copy()
+        result.paste(qr_circle, (cx - radius, cy - radius), mask)
+
+        buf = io.BytesIO()
+        result.convert("RGB").save(buf, format="PNG", optimize=True)
+        buf.seek(0)
+        return send_file(
+            buf,
+            mimetype="image/png",
+            as_attachment=True,
+            download_name=f"pop_template_{template_id}_qr.png",
+        )
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
 
 
 # ----- 管理画面: AI返答生成 -----
