@@ -1208,10 +1208,10 @@ def submit_feedback(slug):
         user_prompt += f"{opts['q3']}: 星{rating3}\n"
         user_prompt += f"{opts['q4']}: 星{rating4}\n"
         user_prompt += f"{opts['q5']}: 星{rating5}\n"
-        if answer6:
+        if answer6 and answer6 != "特になし":
             q6_label = opts.get("q6", {}).get("label", "来店・来院理由") if isinstance(opts.get("q6"), dict) else "来店・来院理由"
             user_prompt += f"{q6_label}: {answer6}\n"
-        if answer7:
+        if answer7 and answer7 != "特になし":
             q7_label = opts.get("q7", {}).get("label", "特によかった点") if isinstance(opts.get("q7"), dict) else "特によかった点"
             user_prompt += f"{q7_label}: {answer7}\n"
         if comment:

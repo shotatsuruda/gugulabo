@@ -459,8 +459,10 @@
 
                 {% if survey_options.q6 %}
                 <div class="q-group">
-                    <div class="q-title">{{ survey_options.q6.label }}</div>
+                    <div class="q-title">{{ survey_options.q6.label }}<span style="font-size:0.78rem;font-weight:400;color:var(--text-muted);margin-left:0.4rem;">（任意）</span></div>
                     <div class="choice-row" id="choices-6">
+                        <button class="choice-btn" data-q="6" data-val=""
+                            onclick="selectChoice(6, '')">特になし</button>
                         {% for choice in survey_options.q6.choices %}
                         <button class="choice-btn" data-q="6" data-val="{{ choice }}"
                             onclick="selectChoice(6, '{{ choice }}')">{{ choice }}</button>
@@ -471,8 +473,10 @@
 
                 {% if survey_options.q7 %}
                 <div class="q-group">
-                    <div class="q-title">{{ survey_options.q7.label }}</div>
+                    <div class="q-title">{{ survey_options.q7.label }}<span style="font-size:0.78rem;font-weight:400;color:var(--text-muted);margin-left:0.4rem;">（任意）</span></div>
                     <div class="choice-row" id="choices-7">
+                        <button class="choice-btn" data-q="7" data-val=""
+                            onclick="selectChoice(7, '')">特になし</button>
                         {% for choice in survey_options.q7.choices %}
                         <button class="choice-btn" data-q="7" data-val="{{ choice }}"
                             onclick="selectChoice(7, '{{ choice }}')">{{ choice }}</button>
@@ -595,9 +599,7 @@
 
         function checkReady() {
             const allRated = Object.values(ratings).every(r => r > 0);
-            const q6ok = !document.getElementById('choices-6') || !!choiceAnswers[6];
-            const q7ok = !document.getElementById('choices-7') || !!choiceAnswers[7];
-            document.getElementById('submit-btn').disabled = !(allRated && q6ok && q7ok);
+            document.getElementById('submit-btn').disabled = !allRated;
         }
 
         async function submitSurvey() {
