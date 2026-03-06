@@ -922,6 +922,30 @@ def index():
         ).fetchone()
         coupon_total = coupon_row["total"] if coupon_row else 0
 
+        # 今月の口コミ投稿数
+        if DB_TYPE == "postgresql":
+            monthly_count = conn.execute(
+                """
+                SELECT COUNT(*) as count
+                FROM feedbacks f
+                JOIN shops s ON s.id = f.shop_id
+                WHERE s.user_id = ?
+                AND submitted_at >= date_trunc('month', CURRENT_DATE)
+                """,
+                (current_user.id,),
+            ).fetchone()["count"]
+        else:
+            monthly_count = conn.execute(
+                """
+                SELECT COUNT(*) as count
+                FROM feedbacks f
+                JOIN shops s ON s.id = f.shop_id
+                WHERE s.user_id = ?
+                AND date(submitted_at) >= date('now', 'start of month')
+                """,
+                (current_user.id,),
+            ).fetchone()["count"]
+
         conn.close()
         feedbacks = [dict(fb) for fb in feedbacks]
         for fb in feedbacks:
@@ -937,6 +961,7 @@ def index():
             rating_dist=rating_dist,
             daily_trend=daily_trend,
             coupon_total=coupon_total,
+            monthly_count=monthly_count,
         )
     return render_template("landing.html")
 
