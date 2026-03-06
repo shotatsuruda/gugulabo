@@ -1096,13 +1096,15 @@ def survey(slug):
 
 @app.route("/shop/demo")
 def shop_demo():
+    if not request.args.get("demo"):
+        return redirect(url_for("shop_demo", demo="1"))
     shop_dict = {
         "slug": "demo",
-        "name": "デモ店舗",
+        "name": "デモ店舗（美容院）",
         "review_url": "https://google.com",
-        "business_type": "マッサージ"
+        "business_type": "美容院"
     }
-    b_type = "マッサージ"
+    b_type = "美容院"
     opts = SURVEY_OPTIONS.get(b_type, SURVEY_OPTIONS["default"])
     return render_template(
         "survey.html",

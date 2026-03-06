@@ -331,6 +331,51 @@
             color: #10b981;
         }
     </style>
+    <style>
+        /* ===== デモ解説オーバーレイ ===== */
+        @keyframes demofloat {
+            0%, 100% { transform: translateY(0px); }
+            50%       { transform: translateY(-7px); }
+        }
+        .demo-bubble {
+            display: none;
+            background: #FFB400;
+            color: #1a1a1a;
+            font-size: 0.85rem;
+            font-weight: 700;
+            padding: 0.5rem 0.9rem;
+            border-radius: 20px;
+            width: fit-content;
+            max-width: 90%;
+            box-shadow: 0 4px 14px rgba(255,180,0,0.35);
+            animation: demofloat 2s ease-in-out infinite;
+            position: relative;
+            line-height: 1.4;
+        }
+        /* 下向き矢印 */
+        .demo-bubble.arrow-down::after {
+            content: '';
+            position: absolute;
+            bottom: -9px;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 9px solid transparent;
+            border-top-color: #FFB400;
+            border-bottom: none;
+        }
+        /* 上向き矢印 */
+        .demo-bubble.arrow-up::before {
+            content: '';
+            position: absolute;
+            top: -9px;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 9px solid transparent;
+            border-bottom-color: #FFB400;
+            border-top: none;
+        }
+        body.demo-mode .demo-bubble { display: block; }
+    </style>
 </head>
 
 <body>
@@ -345,6 +390,7 @@
             <div class="card">
                 <div class="q-group">
                     <div class="q-title">{{ survey_options.q1 }}</div>
+                    <div class="demo-bubble arrow-down" style="margin-bottom:10px;">⭐ 満足度を選んでね！</div>
                     <div class="stars-row" id="stars-1">
                         {% for i in range(1, 6) %}
                         <button class="star-btn" data-val="{{ i }}" onclick="setRating(1, {{ i }})">★</button>
@@ -397,6 +443,7 @@
                 <button class="btn-main" id="submit-btn" onclick="submitSurvey()" disabled>
                     回答を送信&amp;口コミを自動生成
                 </button>
+                <div class="demo-bubble arrow-up" style="margin-top:12px;">タップするとAIが口コミを自動生成！</div>
             </div>
         </div>
 
@@ -429,6 +476,7 @@
                 <textarea class="copy-box" id="ai-draft-box"
                     placeholder="ここにクチコミの案が生成されます。自由に編集や加筆をしてからコピーできます"></textarea>
 
+                <div class="demo-bubble arrow-down" style="margin-bottom:10px;">📝 AIが書いた口コミをそのままコピーして投稿！</div>
                 <button class="btn-main" id="copy-btn" onclick="copyAndGotoGoogle()"
                     style="margin-bottom: 1.5rem; background-color: var(--accent-color);">
                     📝 コピーしてGoogleを開く
@@ -612,6 +660,11 @@
             return String(s)
                 .replace(/&/g, '&amp;').replace(/</g, '&lt;')
                 .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        // ===== デモモード =====
+        if (new URLSearchParams(location.search).get('demo') === '1') {
+            document.body.classList.add('demo-mode');
         }
     </script>
 </body>
