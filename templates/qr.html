@@ -431,7 +431,7 @@
                             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
                             <polyline points="7 10 12 15 17 10"/>
                             <line x1="12" y1="15" x2="12" y2="3"/>
-                        </svg>このテンプレートでダウンロード
+                        </svg>選択したテンプレートでダウンロード
                     </button>
                     <span id="pop_dl_loading" class="d-none" style="font-size:0.82rem;color:#9A9A9A;">
                         <span class="spinner-border spinner-border-sm" role="status"
@@ -486,12 +486,12 @@
         padding: 4px;
         text-align: center;
         transition: border-color .15s, box-shadow .15s;
-        width: 80px;
+        width: 110px;
         flex-shrink: 0;
     }
     .pop-tpl-card img {
-        width: 70px;
-        height: 110px;
+        width: 100px;
+        height: 158px;
         object-fit: cover;
         border-radius: 4px;
         display: block;
@@ -847,10 +847,8 @@
             fd.append('template_id', selectedPopTemplate);
             fd.append('url', surveyUrl);
             fd.append('fg_color', document.getElementById('fg_color').value);
-            fd.append('fg_color2', document.getElementById('fg_color2').value);
-            fd.append('gradient_dir', document.getElementById('gradient_dir').value);
             fd.append('bg_color', document.getElementById('bg_color').value);
-            fd.append('corner_style', document.querySelector('input[name="corner_style"]:checked').value);
+            fd.append('module_shape', document.querySelector('input[name="corner_style"]:checked').value);
 
             const res = await fetch('/qr/pop-template', { method: 'POST', body: fd });
             if (!res.ok) {
