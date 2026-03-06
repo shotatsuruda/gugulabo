@@ -1593,12 +1593,25 @@ def bulk_create():
     
     conn = get_db()
     
+    # Non-admin restriction check
+    allow_creation = True
+    if not current_user.is_admin:
+        existing = conn.execute("SELECT COUNT(*) as cnt FROM shops WHERE user_id = ?", (current_user.id,)).fetchone()
+        if existing and existing["cnt"] >= 1:
+            conn.close()
+            flash("一般ユーザーは1アカウントにつき1店舗までしか登録できません。", "error")
+            return redirect(url_for("bulk_create"))
+
     created_shops = []
     success_count = 0
     error_count = 0
     row_num = 1
     
     for row in reader:
+        # If non-admin and we already processed one new shop successfully, stop
+        if not current_user.is_admin and success_count >= 1:
+            break
+
         # Expected: Name, Review_URL, Unique_ID, Address, Slug, Business_Type, Place_ID
         if not row or len(row) < 2:
             error_count += 1
@@ -1825,9 +1838,9 @@ def add_shop():
     existing = conn.execute(
         "SELECT COUNT(*) as cnt FROM shops WHERE user_id = ?", (current_user.id,)
     ).fetchone()
-    if existing and existing["cnt"] >= 1:
+    if existing and existing["cnt"] >= 1 and not current_user.is_admin:
         conn.close()
-        return jsonify({"error": "店舗は1アカウントにつき1店舗までご登録いただけます。"}), 400
+        return jsonify({"error": "一般店舗は1アカウントにつき1店舗までご登録いただけます。"}), 400
 
     # スラッグ正規化（任意入力時）
     if slug_input:

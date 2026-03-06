@@ -56,6 +56,7 @@
                             </svg>QRコード生成
                         </a>
                     </li>
+                    {% if current_user.is_admin %}
                     <li class="nav-item">
                         <a class="nav-link" href="/bulk-create">
                             <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
@@ -69,6 +70,7 @@
                             </svg>一括登録
                         </a>
                     </li>
+                    {% endif %}
                     <li class="nav-item">
                         <a class="nav-link" href="/review">
                             <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
