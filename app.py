@@ -736,6 +736,35 @@ def generate_review_response(review_text: str, business_type: str = "") -> str:
     return response.choices[0].message.content
 
 
+def predict_business_type_from_name(shop_name: str) -> str:
+    """店舗名から業種を予測する（マッサージ、エステ、美容室、整体院、飲食店など）"""
+    client = OpenAI(
+        api_key=OPENROUTER_API_KEY,
+        base_url="https://openrouter.ai/api/v1",
+    )
+    prompt = f"""以下の店舗名から、最も当てはまる業種を以下の選択肢から1つだけ選んで出力してください。
+選択肢: マッサージ, 整体, エステ, 美容室, ネイルサロン, 脱毛サロン, 飲食店, カフェ, その他
+店舗名だけで判断が難しい場合は「その他」と出力してください。出力は選択した業種名（1単語）のみとし、説明などは一切不要です。
+
+店舗名: {shop_name}"""
+
+    try:
+        response = client.chat.completions.create(
+            model="google/gemini-2.5-flash",
+            max_tokens=20,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        result = response.choices[0].message.content.strip()
+        # カッコなどがついている場合をケア
+        result = result.replace("「", "").replace("」", "").strip()
+        if not result or len(result) > 20: 
+            return "その他"
+        return result
+    except Exception as e:
+        print(f"Failed to predict business type for {shop_name}: {e}")
+        return "その他"
+
+
 # ===== ルート定義 =====
 
 # ----- 認証 -----
@@ -1540,6 +1569,8 @@ def bulk_create():
         flash("データが入力されていません。", "error")
         return redirect(url_for("bulk_create"))
 
+    default_business_type = request.form.get("default_business_type", "massage")
+
     # Parse the pasted data
     lines = csv_data.splitlines()
     if not lines:
@@ -1574,7 +1605,7 @@ def bulk_create():
         unique_id = ""
         address = ""
         slug_input = ""
-        business_type = "massage"
+        business_type = default_business_type
         place_id = ""
         
         url_candidates = [x for x in row if "http" in x]
@@ -1596,13 +1627,19 @@ def bulk_create():
             place_id = row[4].strip()
             # Replace the generic map URL with a direct 'Write a Review' URL
             review_url = f"https://search.google.com/local/writereview?placeid={place_id}"
+            business_type = predict_business_type_from_name(name)
         else:
             unique_id = row[2].strip() if len(row) > 2 else ""
             address = row[3].strip() if len(row) > 3 else ""
             slug_input = row[4].strip() if len(row) > 4 else ""
-            business_type = row[5].strip() if len(row) > 5 else "massage"
+            business_type_input = row[5].strip() if len(row) > 5 else ""
             place_id = row[6].strip() if len(row) > 6 else ""
             
+            if business_type_input:
+                business_type = business_type_input
+            else:
+                business_type = predict_business_type_from_name(name)
+        
         status = "trial"
 
         # Check existing place_id

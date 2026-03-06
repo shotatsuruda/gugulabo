@@ -30,6 +30,18 @@
 
                 <form method="POST" action="{{ url_for('bulk_create') }}" onsubmit="showLoading()">
                     <div class="mb-3">
+                        <label for="default_business_type" class="form-label">業種（データ内に指定がない場合のデフォルト）</label>
+                        <select class="form-select" id="default_business_type" name="default_business_type">
+                            <option value="massage" selected>マッサージ・リラクゼーション</option>
+                            <option value="salon">美容室・サロン</option>
+                            <option value="clinic">整体院・クリニック</option>
+                            <option value="gym">フィットネス・ジム</option>
+                            <option value="restaurant">飲食店</option>
+                            <option value="other">その他</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
                         <label for="csv_data" class="form-label">データ（CSV または タブ区切り）</label>
                         <textarea class="form-control" id="csv_data" name="csv_data" rows="10"
                             placeholder="店舗名&#9;https://g.page/r/...&#9;ID001&#9;東京都渋谷区...&#9;shop-slug&#9;マッサージ&#9;ChIJ..."
