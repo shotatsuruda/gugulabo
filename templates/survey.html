@@ -223,14 +223,27 @@
 
         .copy-box {
             background: var(--bg-color);
-            border: 1px dashed #ccc;
+            border: 1px dashed var(--border-color);
             border-radius: var(--radius-md);
             padding: 1.25rem;
             margin: 1.5rem 0;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
             line-height: 1.7;
             text-align: left;
             white-space: pre-wrap;
+            width: 100%;
+            font-family: inherit;
+            color: var(--text-main);
+            resize: vertical;
+            min-height: 150px;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .copy-box:focus {
+            border: 1px solid var(--accent-color);
+            background: var(--card-bg);
+            box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
         }
 
         /* Coupon Section */
@@ -413,9 +426,8 @@
                     以下の文章をコピーして、Googleマップに応援口コミとして投稿していただけませんか？
                 </p>
 
-                <div class="copy-box" id="ai-draft-box">
-                    <!-- AI Draft Goes Here -->
-                </div>
+                <textarea class="copy-box" id="ai-draft-box"
+                    placeholder="ここにクチコミの案が生成されます。自由に編集や加筆をしてからコピーできます"></textarea>
 
                 <button class="btn-main" id="copy-btn" onclick="copyAndGotoGoogle()"
                     style="margin-bottom: 1.5rem; background-color: var(--accent-color);">
@@ -509,13 +521,13 @@
                 if (data.success) {
                     if (data.review_url) finalReviewUrl = data.review_url;
                     if (data.ai_draft) {
-                        document.getElementById('ai-draft-box').textContent = data.ai_draft;
+                        document.getElementById('ai-draft-box').value = data.ai_draft;
                     } else {
-                        document.getElementById('ai-draft-box').innerHTML = "<span style='color: var(--text-muted)'>文章の自動生成に失敗しました。<br>Googleマップでご自由にご記入をお願いいたします。</span>";
+                        document.getElementById('ai-draft-box').value = "文章の自動生成に失敗しました。\nGoogleマップでご自由にご記入をお願いいたします。";
                     }
                 }
             } catch (err) {
-                document.getElementById('ai-draft-box').innerHTML = "<span style='color: var(--text-muted)'>通信エラーが発生しました。<br>そのままGoogleマップでご記入をお願いいたします。</span>";
+                document.getElementById('ai-draft-box').value = "通信エラーが発生しました。\nそのままGoogleマップでご記入をお願いいたします。";
             }
 
             document.getElementById('step-loading').classList.remove('active');
@@ -523,7 +535,7 @@
         }
 
         function copyAndGotoGoogle() {
-            const textToCopy = document.getElementById('ai-draft-box').textContent;
+            const textToCopy = document.getElementById('ai-draft-box').value;
             if (navigator.clipboard && navigator.clipboard.writeText) {
                 navigator.clipboard.writeText(textToCopy).catch(err => {
                     console.log('Clipboard fallback');
