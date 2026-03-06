@@ -345,6 +345,79 @@
             </div>
         </div>
 
+        <!-- POP生成カード（店舗選択後に表示） -->
+        <div class="card mt-4 d-none" id="pop_settings_card">
+            <div class="card-header">
+                <h5 class="mb-0">POP生成（A4サイズ）</h5>
+            </div>
+            <div class="card-body p-4">
+                <div class="row g-3">
+                    <div class="col-sm-6">
+                        <label class="form-label">キャッチコピー</label>
+                        <input type="text" class="form-control form-control-sm" id="pop_catch_copy"
+                            value="口コミを書いてください！">
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label">サブテキスト</label>
+                        <input type="text" class="form-control form-control-sm" id="pop_sub_text"
+                            value="30秒で書けます">
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label">POP背景色</label>
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                            <input type="color" class="form-control form-control-color" id="pop_bg_color"
+                                value="#ffffff">
+                            <div class="d-flex gap-1 flex-wrap">
+                                <button class="btn btn-outline-secondary btn-sm px-2 py-1"
+                                    onclick="document.getElementById('pop_bg_color').value='#ffffff'">白</button>
+                                <button class="btn btn-outline-secondary btn-sm px-2 py-1"
+                                    onclick="document.getElementById('pop_bg_color').value='#fff7f0'">温白</button>
+                                <button class="btn btn-outline-secondary btn-sm px-2 py-1"
+                                    onclick="document.getElementById('pop_bg_color').value='#f0fdf4'">薄緑</button>
+                                <button class="btn btn-outline-secondary btn-sm px-2 py-1"
+                                    onclick="document.getElementById('pop_bg_color').value='#fdf2f8'">薄ピンク</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label">テキスト色</label>
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                            <input type="color" class="form-control form-control-color" id="pop_text_color"
+                                value="#222222">
+                            <div class="d-flex gap-1 flex-wrap">
+                                <button class="btn btn-outline-secondary btn-sm px-2 py-1"
+                                    onclick="document.getElementById('pop_text_color').value='#222222'">黒</button>
+                                <button class="btn btn-outline-secondary btn-sm px-2 py-1"
+                                    onclick="document.getElementById('pop_text_color').value='#8C7B6B'">ブラウン</button>
+                                <button class="btn btn-outline-secondary btn-sm px-2 py-1"
+                                    onclick="document.getElementById('pop_text_color').value='#2d6a4f'">グリーン</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="d-flex gap-2 mt-4">
+                    <button id="pop_dl_png" class="btn btn-outline-primary flex-fill" onclick="downloadPOP('png')">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            style="vertical-align:-1px;margin-right:4px;">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                            <polyline points="7 10 12 15 17 10" />
+                            <line x1="12" y1="15" x2="12" y2="3" />
+                        </svg>PNG でダウンロード
+                    </button>
+                    <button id="pop_dl_pdf" class="btn btn-outline-secondary flex-fill" onclick="downloadPOP('pdf')">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            style="vertical-align:-1px;margin-right:4px;">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                            <polyline points="14 2 14 8 20 8" />
+                        </svg>PDF でダウンロード
+                    </button>
+                </div>
+                <div id="pop_error" class="alert alert-danger mt-2 d-none" style="font-size:0.82rem;"></div>
+            </div>
+        </div>
+
         <!-- プレビューエリア（生成後に表示） -->
         <div class="card mt-4 d-none" id="preview_card">
             <div class="card-header d-flex justify-content-between align-items-center">
@@ -587,6 +660,7 @@
 
         if (!shopId) {
             document.getElementById('coupon_settings_card').classList.add('d-none');
+            document.getElementById('pop_settings_card').classList.add('d-none');
             document.getElementById('survey_url_hint').classList.add('d-none');
             return;
         }
@@ -601,6 +675,7 @@
 
         await loadCoupon(shopId);
         document.getElementById('coupon_settings_card').classList.remove('d-none');
+        document.getElementById('pop_settings_card').classList.remove('d-none');
         triggerAutoPreview();
     });
 
@@ -758,6 +833,63 @@
             <script>window.onload = () => window.print();<\/script>
         </body></html>`);
         win.document.close();
+    }
+
+    // ===== POP生成 =====
+    async function downloadPOP(fmt) {
+        const shopId = document.getElementById('shop_select').value;
+        if (!shopId) { alert('店舗を選択してください。'); return; }
+        const shop = shops.find(s => s.id == shopId);
+        if (!shop) return;
+        const surveyUrl = window.location.origin + '/shop/' + shop.slug;
+
+        const btnId = `pop_dl_${fmt}`;
+        const btn = document.getElementById(btnId);
+        const origHtml = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span>生成中...';
+        document.getElementById('pop_error').classList.add('d-none');
+
+        const fd = new FormData();
+        fd.append('url', surveyUrl);
+        fd.append('shop_slug', shop.slug);
+        fd.append('fg_color', document.getElementById('fg_color').value);
+        fd.append('fg_color2', document.getElementById('fg_color2').value);
+        fd.append('gradient_dir', document.getElementById('gradient_dir').value);
+        fd.append('bg_color', document.getElementById('bg_color').value);
+        fd.append('corner_style', document.querySelector('input[name="corner_style"]:checked').value);
+        fd.append('catch_copy', document.getElementById('pop_catch_copy').value);
+        fd.append('sub_text', document.getElementById('pop_sub_text').value);
+        fd.append('pop_bg_color', document.getElementById('pop_bg_color').value);
+        fd.append('pop_text_color', document.getElementById('pop_text_color').value);
+        fd.append('format', fmt);
+
+        try {
+            const res = await fetch('/qr/pop', { method: 'POST', body: fd });
+            if (!res.ok) {
+                let errMsg = '生成に失敗しました';
+                try { const e = await res.json(); errMsg = e.error || errMsg; } catch (_) {}
+                const errEl = document.getElementById('pop_error');
+                errEl.textContent = errMsg;
+                errEl.classList.remove('d-none');
+                return;
+            }
+            const blob = await res.blob();
+            const dlUrl = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            const fname = (shop.name || 'pop').replace(/[\\/:*?"<>|]/g, '_');
+            a.href = dlUrl;
+            a.download = `POP_${fname}.${fmt}`;
+            a.click();
+            URL.revokeObjectURL(dlUrl);
+        } catch (e) {
+            const errEl = document.getElementById('pop_error');
+            errEl.textContent = '通信エラー: ' + e.message;
+            errEl.classList.remove('d-none');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = origHtml;
+        }
     }
 
     // ===== ヘルパー =====
