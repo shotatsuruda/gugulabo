@@ -4,7 +4,6 @@ Flask + OpenRouter API + qrcode + Pillow を使用
 """
 
 import base64
-import glob as _glob
 import io
 import os
 import re
@@ -31,7 +30,7 @@ from flask_login import (
     login_user, logout_user,
 )
 from openai import OpenAI
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image
 import qrcode
 from qrcode.image.styledpil import StyledPilImage
 from qrcode.image.styles.colormasks import (
@@ -628,115 +627,6 @@ def hex_to_rgb(hex_color: str) -> tuple:
     """HEXカラー文字列を (R, G, B) タプルに変換する"""
     h = hex_color.lstrip("#")
     return tuple(int(h[i : i + 2], 16) for i in (0, 2, 4))
-
-
-def _find_font(size: int):
-    """日本語フォントを検索して ImageFont を返す。見つからなければデフォルトフォント"""
-    search_dirs = [
-        "/usr/share/fonts",
-        "/usr/local/share/fonts",
-        "/System/Library/Fonts",
-        "/System/Library/Fonts/Supplemental",
-        os.path.expanduser("~/.fonts"),
-    ]
-    prefer_keywords = ["noto", "ipagothic", "ipapgothic", "takaogothic", "vlgothic", "hiraginosans"]
-    all_paths = []
-    for d in search_dirs:
-        all_paths += _glob.glob(os.path.join(d, "**", "*.ttf"), recursive=True)
-        all_paths += _glob.glob(os.path.join(d, "**", "*.otf"), recursive=True)
-    for kw in prefer_keywords:
-        for f in all_paths:
-            if kw in os.path.basename(f).lower():
-                try:
-                    return ImageFont.truetype(f, size)
-                except Exception:
-                    pass
-    for f in all_paths:
-        try:
-            return ImageFont.truetype(f, size)
-        except Exception:
-            pass
-    return ImageFont.load_default(size=size)
-
-
-def _wrap_text(text: str, font, max_width: int, draw) -> list:
-    """テキストを max_width に収まるよう1文字ずつ折り返す（日本語対応）"""
-    lines = []
-    for para in text.split("\n"):
-        if not para:
-            lines.append("")
-            continue
-        current = ""
-        for char in para:
-            test = current + char
-            bbox = draw.textbbox((0, 0), test, font=font)
-            if bbox[2] - bbox[0] <= max_width:
-                current = test
-            else:
-                if current:
-                    lines.append(current)
-                current = char
-        if current:
-            lines.append(current)
-    return lines or [""]
-
-
-def build_pop_image(
-    qr_img: Image.Image,
-    catch_copy: str,
-    sub_text: str,
-    pop_bg_color: str,
-    pop_text_color: str,
-) -> Image.Image:
-    """A4 POP画像を生成して PIL Image (RGB) を返す (1240×1754px = A4 150dpi)"""
-    W, H = 1240, 1754
-    bg_rgb = hex_to_rgb(pop_bg_color)
-    text_rgb = hex_to_rgb(pop_text_color)
-
-    canvas = Image.new("RGB", (W, H), bg_rgb)
-    draw = ImageDraw.Draw(canvas)
-
-    PADDING = 80
-    font_large = _find_font(80)
-    font_small = _find_font(52)
-
-    # キャッチコピー（上部）
-    y = 140
-    if catch_copy:
-        lines = _wrap_text(catch_copy, font_large, W - PADDING * 2, draw)
-        for line in lines:
-            bbox = draw.textbbox((0, 0), line, font=font_large)
-            tw = bbox[2] - bbox[0]
-            th = bbox[3] - bbox[1]
-            draw.text(((W - tw) // 2, y), line, fill=text_rgb, font=font_large)
-            y += th + 12
-    y += 60
-
-    # QR画像（中央）
-    QR_SIZE = 720
-    qr_resized = qr_img.convert("RGBA").resize((QR_SIZE, QR_SIZE), Image.LANCZOS)
-    qr_x = (W - QR_SIZE) // 2
-    qr_y = y
-    pad = 40
-    draw.rounded_rectangle(
-        [qr_x - pad, qr_y - pad, qr_x + QR_SIZE + pad, qr_y + QR_SIZE + pad],
-        radius=40,
-        fill=(255, 255, 255),
-    )
-    canvas.paste(qr_resized, (qr_x, qr_y), qr_resized)
-    y = qr_y + QR_SIZE + pad + 60
-
-    # サブテキスト（下部）
-    if sub_text:
-        lines = _wrap_text(sub_text, font_small, W - PADDING * 2, draw)
-        for line in lines:
-            bbox = draw.textbbox((0, 0), line, font=font_small)
-            tw = bbox[2] - bbox[0]
-            th = bbox[3] - bbox[1]
-            draw.text(((W - tw) // 2, y), line, fill=text_rgb, font=font_small)
-            y += th + 10
-
-    return canvas
 
 
 def build_qr_image(
@@ -2148,59 +2038,6 @@ def qr_generate():
         return jsonify({"success": True, "image": encoded})
     except Exception as e:
         return jsonify({"success": False, "error": str(e)})
-
-
-@app.route("/qr/pop", methods=["POST"])
-@payment_required
-def qr_pop():
-    """QRコードPOP画像を生成してPNGまたはPDFを返す"""
-    url = (request.form.get("url") or "").strip()
-    if not url:
-        return jsonify({"success": False, "error": "URLが必要です"}), 400
-
-    fmt = request.form.get("format", "png").lower()
-    catch_copy = request.form.get("catch_copy", "口コミを書いてください！")
-    sub_text = request.form.get("sub_text", "30秒で書けます")
-    pop_bg_color = request.form.get("pop_bg_color", "#ffffff")
-    pop_text_color = request.form.get("pop_text_color", "#222222")
-    shop_slug = re.sub(r'[\\/:*?"<>|]', '_', request.form.get("shop_slug", "pop"))
-
-    try:
-        qr_img = build_qr_image(
-            url=url,
-            fg_color=request.form.get("fg_color", "#000000"),
-            fg_color2=request.form.get("fg_color2", "#000000"),
-            gradient_dir=request.form.get("gradient_dir", "radial"),
-            bg_color=request.form.get("bg_color", "#ffffff"),
-            corner_style=request.form.get("corner_style", "square"),
-            size=1024,
-        )
-        pop_img = build_pop_image(
-            qr_img=qr_img,
-            catch_copy=catch_copy,
-            sub_text=sub_text,
-            pop_bg_color=pop_bg_color,
-            pop_text_color=pop_text_color,
-        )
-        buf = io.BytesIO()
-        if fmt == "pdf":
-            pop_img.save(buf, format="PDF", resolution=150)
-            buf.seek(0)
-            return send_file(
-                buf, mimetype="application/pdf",
-                as_attachment=True,
-                download_name=f"POP_{shop_slug}.pdf",
-            )
-        else:
-            pop_img.save(buf, format="PNG", optimize=True)
-            buf.seek(0)
-            return send_file(
-                buf, mimetype="image/png",
-                as_attachment=True,
-                download_name=f"POP_{shop_slug}.png",
-            )
-    except Exception as e:
-        return jsonify({"success": False, "error": str(e)}), 500
 
 
 # ----- 管理画面: AI返答生成 -----
