@@ -330,6 +330,29 @@
         .success-text {
             color: #10b981;
         }
+        .choice-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+        .choice-btn {
+            border: 1.5px solid var(--border-color);
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 0.45rem 1rem;
+            font-size: 0.875rem;
+            font-family: inherit;
+            cursor: pointer;
+            transition: background 0.15s, border-color 0.15s, color 0.15s;
+            color: var(--text-main);
+        }
+        .choice-btn.selected {
+            background: var(--accent-color);
+            border-color: var(--accent-color);
+            color: #fff;
+            font-weight: 600;
+        }
     </style>
     <style>
         /* ===== デモ解説オーバーレイ ===== */
@@ -434,6 +457,30 @@
                     </div>
                 </div>
 
+                {% if survey_options.q6 %}
+                <div class="q-group">
+                    <div class="q-title">{{ survey_options.q6.label }}</div>
+                    <div class="choice-row" id="choices-6">
+                        {% for choice in survey_options.q6.choices %}
+                        <button class="choice-btn" data-q="6" data-val="{{ choice }}"
+                            onclick="selectChoice(6, '{{ choice }}')">{{ choice }}</button>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if survey_options.q7 %}
+                <div class="q-group">
+                    <div class="q-title">{{ survey_options.q7.label }}</div>
+                    <div class="choice-row" id="choices-7">
+                        {% for choice in survey_options.q7.choices %}
+                        <button class="choice-btn" data-q="7" data-val="{{ choice }}"
+                            onclick="selectChoice(7, '{{ choice }}')">{{ choice }}</button>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
                 <div class="q-group" style="margin-top: 2.5rem;">
                     <div class="q-title">その他、お気づきの点（任意）</div>
                     <textarea class="survey-textarea" id="feedback-text" rows="3"
@@ -521,6 +568,7 @@
         let finalReviewUrl = "{{ shop.review_url }}";
 
         const ratings = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+        const choiceAnswers = {};
 
         function setRating(qNum, val) {
             ratings[qNum] = val;
@@ -537,10 +585,19 @@
             checkReady();
         }
 
+        function selectChoice(qNum, val) {
+            choiceAnswers[qNum] = val;
+            document.querySelectorAll(`.choice-btn[data-q="${qNum}"]`).forEach(btn => {
+                btn.classList.toggle('selected', btn.dataset.val === val);
+            });
+            checkReady();
+        }
+
         function checkReady() {
-            // Check if all 5 questions are rated
             const allRated = Object.values(ratings).every(r => r > 0);
-            document.getElementById('submit-btn').disabled = !allRated;
+            const q6ok = !document.getElementById('choices-6') || !!choiceAnswers[6];
+            const q7ok = !document.getElementById('choices-7') || !!choiceAnswers[7];
+            document.getElementById('submit-btn').disabled = !(allRated && q6ok && q7ok);
         }
 
         async function submitSurvey() {
@@ -560,7 +617,9 @@
                         rating3: ratings[3],
                         rating4: ratings[4],
                         rating5: ratings[5],
-                        comment: comment
+                        comment: comment,
+                        answer6: choiceAnswers[6] || '',
+                        answer7: choiceAnswers[7] || '',
                     }),
                 });
 
