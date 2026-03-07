@@ -862,6 +862,9 @@
         '3': { x: 424, y: 826, size: 440 },
         '4': { x: 401, y: 545, size: 500 },
         '5': { x: 463, y: 725, size: 380 },
+        '6': { x: 409, y: 640, size: 380 },
+        '7': { x: 409, y: 640, size: 380 },
+        '8': { x: 409, y: 640, size: 380 },
     };
     let popCanvas = null, popCtx = null;
     let popTemplateImg = null, popQRImg = null;
@@ -895,8 +898,12 @@
             popCanvas.style.width  = (popTemplateImg.naturalWidth  * popScale) + 'px';
             popCanvas.style.height = (popTemplateImg.naturalHeight * popScale) + 'px';
 
-            // QR初期位置（中心座標→左上座標に変換）
-            const def = popDefaultPositions[String(templateId)];
+            // QR初期位置（中心座標→左上座標に変換。未定義の場合は画像中央）
+            const def = popDefaultPositions[String(templateId)] || {
+                x: popTemplateImg.naturalWidth  / 2,
+                y: popTemplateImg.naturalHeight / 2,
+                size: Math.min(popTemplateImg.naturalWidth, popTemplateImg.naturalHeight) * 0.4,
+            };
             popQR = { x: def.x - def.size / 2, y: def.y - def.size / 2, size: def.size };
 
             // QR画像をロード（既存の生成済みimg要素から取得）
@@ -906,6 +913,11 @@
             popQRImg.onload = () => drawPopCanvas();
             popQRImg.src = qrImgEl.src;
             if (popQRImg.complete && popQRImg.naturalWidth > 0) drawPopCanvas();
+        };
+        popTemplateImg.onerror = () => {
+            alert(`テンプレート${templateId}の画像が見つかりません。
+画像ファイルをサーバーにアップロードしてください。`);
+            document.getElementById('pop_canvas_editor').classList.add('d-none');
         };
         popTemplateImg.src = `/static/pop_template_${templateId}.png`;
 
