@@ -51,6 +51,56 @@
         </div>
     </section>
 
+    <!-- デモ -->
+    <section id="demo" class="lp-section" style="background:#F8F6F3;">
+      <div class="container">
+        <div class="lp-section-header text-center">
+          <p class="lp-section-label">Live Demo</p>
+          <h2 class="lp-section-title">30秒で体験できます</h2>
+          <p class="lp-section-desc">お客様はこの画面を見ます。業種を選んで実際に操作してみてください。</p>
+        </div>
+
+        <!-- 業種選択タブ -->
+        <div class="d-flex justify-content-center flex-wrap gap-2 mt-4" id="demo-tabs">
+          <button class="demo-tab-btn active" onclick="switchDemoTab(this, 'マッサージ')">マッサージ</button>
+          <button class="demo-tab-btn" onclick="switchDemoTab(this, '整体')">整体</button>
+          <button class="demo-tab-btn" onclick="switchDemoTab(this, '美容院')">美容院</button>
+          <button class="demo-tab-btn" onclick="switchDemoTab(this, '歯科医院')">歯科医院</button>
+          <button class="demo-tab-btn" onclick="switchDemoTab(this, 'エステ')">エステ</button>
+        </div>
+
+        <!-- スマホ風フレーム -->
+        <div class="d-flex justify-content-center mt-4">
+          <div style="border:8px solid #222;border-radius:36px;overflow:hidden;width:375px;height:667px;box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+            <iframe id="demo-iframe" src="/shop/demo?demo=1&business_type=マッサージ" style="width:100%;height:100%;border:none;"></iframe>
+          </div>
+        </div>
+      </div>
+
+      <style>
+        .demo-tab-btn {
+          border: 1.5px solid #C8C0B8;
+          background: #fff;
+          border-radius: 20px;
+          padding: 0.45rem 1.1rem;
+          font-size: 0.875rem;
+          font-family: inherit;
+          cursor: pointer;
+          color: #6B6460;
+          transition: all 0.15s;
+        }
+        .demo-tab-btn:hover { border-color: #8C7B6B; color: #2C2C2C; }
+        .demo-tab-btn.active { background: #2C2C2C; border-color: #2C2C2C; color: #fff; font-weight: 600; }
+      </style>
+      <script>
+        function switchDemoTab(btn, businessType) {
+          document.querySelectorAll('.demo-tab-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          document.getElementById('demo-iframe').src = '/shop/demo?demo=1&business_type=' + encodeURIComponent(businessType);
+        }
+      </script>
+    </section>
+
     <!-- 数字で語る -->
     <section style="background:#ffffff;padding:2.5rem 0;border-bottom:1px solid #E8E4DF;">
         <div class="container">
@@ -301,56 +351,6 @@
     </section>
 
 
-
-    <!-- デモ -->
-    <section id="demo" class="lp-section" style="background:#F8F6F3;">
-      <div class="container">
-        <div class="lp-section-header text-center">
-          <p class="lp-section-label">Live Demo</p>
-          <h2 class="lp-section-title">30秒で体験できます</h2>
-          <p class="lp-section-desc">お客様はこの画面を見ます。業種を選んで実際に操作してみてください。</p>
-        </div>
-
-        <!-- 業種選択タブ -->
-        <div class="d-flex justify-content-center flex-wrap gap-2 mt-4" id="demo-tabs">
-          <button class="demo-tab-btn active" onclick="switchDemoTab(this, 'マッサージ')">マッサージ</button>
-          <button class="demo-tab-btn" onclick="switchDemoTab(this, '整体')">整体</button>
-          <button class="demo-tab-btn" onclick="switchDemoTab(this, '美容院')">美容院</button>
-          <button class="demo-tab-btn" onclick="switchDemoTab(this, '歯科医院')">歯科医院</button>
-          <button class="demo-tab-btn" onclick="switchDemoTab(this, 'エステ')">エステ</button>
-        </div>
-
-        <!-- スマホ風フレーム -->
-        <div class="d-flex justify-content-center mt-4">
-          <div style="border:8px solid #222;border-radius:36px;overflow:hidden;width:375px;height:667px;box-shadow:0 20px 60px rgba(0,0,0,0.2);">
-            <iframe id="demo-iframe" src="/shop/demo?demo=1&business_type=マッサージ" style="width:100%;height:100%;border:none;"></iframe>
-          </div>
-        </div>
-      </div>
-
-      <style>
-        .demo-tab-btn {
-          border: 1.5px solid #C8C0B8;
-          background: #fff;
-          border-radius: 20px;
-          padding: 0.45rem 1.1rem;
-          font-size: 0.875rem;
-          font-family: inherit;
-          cursor: pointer;
-          color: #6B6460;
-          transition: all 0.15s;
-        }
-        .demo-tab-btn:hover { border-color: #8C7B6B; color: #2C2C2C; }
-        .demo-tab-btn.active { background: #2C2C2C; border-color: #2C2C2C; color: #fff; font-weight: 600; }
-      </style>
-      <script>
-        function switchDemoTab(btn, businessType) {
-          document.querySelectorAll('.demo-tab-btn').forEach(b => b.classList.remove('active'));
-          btn.classList.add('active');
-          document.getElementById('demo-iframe').src = '/shop/demo?demo=1&business_type=' + encodeURIComponent(businessType);
-        }
-      </script>
-    </section>
 
     <!-- 料金 -->
     <section class="lp-section lp-section-bg" id="pricing">
