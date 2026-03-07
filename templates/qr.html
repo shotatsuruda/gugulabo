@@ -429,19 +429,31 @@
                             <div class="pop-tpl-name">パープル</div>
                         </div>
                     </div>
-                    <button id="pop_download_btn" class="btn btn-primary btn-sm d-none" onclick="downloadPopTemplate()">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                            style="vertical-align:-1px;margin-right:4px;">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                            <polyline points="7 10 12 15 17 10"/>
-                            <line x1="12" y1="15" x2="12" y2="3"/>
-                        </svg>選択したテンプレートでダウンロード
-                    </button>
-                    <span id="pop_dl_loading" class="d-none" style="font-size:0.82rem;color:#9A9A9A;">
-                        <span class="spinner-border spinner-border-sm" role="status"
-                            style="width:0.9rem;height:0.9rem;border-width:0.15em;vertical-align:-2px;margin-right:5px;"></span>生成中...
-                    </span>
+                    <!-- キャンバスエディタ（テンプレート選択後に表示） -->
+                    <div id="pop_canvas_editor" class="d-none">
+                        <p class="mb-2" style="font-size:0.8rem;color:#6b7280;">
+                            QRコードをドラッグで移動、角の青い丸でリサイズできます
+                        </p>
+                        <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
+                            <canvas id="pop_canvas"
+                                style="cursor:move;border:1px solid #E8E4DF;border-radius:6px;display:block;max-width:100%;touch-action:none;">
+                            </canvas>
+                        </div>
+                        <div class="mt-2 d-flex gap-2 align-items-center flex-wrap">
+                            <button class="btn btn-primary btn-sm" onclick="downloadPopCanvas()">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round" style="vertical-align:-1px;margin-right:4px;">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                    <polyline points="7 10 12 15 17 10"/>
+                                    <line x1="12" y1="15" x2="12" y2="3"/>
+                                </svg>この位置でダウンロード
+                            </button>
+                            <button class="btn btn-outline-secondary btn-sm" onclick="resetPopQRPosition()">
+                                位置をリセット
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
             </div>
@@ -828,51 +840,158 @@
         a.click();
     }
 
-    // ===== POPテンプレート選択 =====
+    // ===== POPテンプレート キャンバスエディタ =====
+    const popDefaultPositions = {
+        '1': { x: 623, y: 823, size: 440 },
+        '2': { x: 599, y: 825, size: 430 },
+        '3': { x: 424, y: 826, size: 440 },
+        '4': { x: 401, y: 545, size: 500 },
+        '5': { x: 463, y: 725, size: 380 },
+    };
+    let popCanvas = null, popCtx = null;
+    let popTemplateImg = null, popQRImg = null;
+    let popQR = { x: 0, y: 0, size: 300 };
+    let popScale = 1;
+    let popDrag = null;
+
     function selectPopTemplate(id) {
         selectedPopTemplate = id;
         document.querySelectorAll('.pop-tpl-card').forEach((el, i) => {
             el.classList.toggle('active', i + 1 === id);
         });
-        document.getElementById('pop_download_btn').classList.remove('d-none');
+        openPopCanvasEditor(id);
     }
 
-    // ===== POPテンプレートダウンロード =====
-    async function downloadPopTemplate() {
-        if (!selectedPopTemplate || !currentShop) return;
-        const surveyUrl = window.location.origin + '/shop/' + currentShop.slug;
+    function openPopCanvasEditor(templateId) {
+        const editor = document.getElementById('pop_canvas_editor');
+        editor.classList.remove('d-none');
+        popCanvas = document.getElementById('pop_canvas');
+        popCtx = popCanvas.getContext('2d');
 
-        const btn = document.getElementById('pop_download_btn');
-        const loading = document.getElementById('pop_dl_loading');
-        btn.classList.add('d-none');
-        loading.classList.remove('d-none');
+        // テンプレート画像をロード
+        popTemplateImg = new Image();
+        popTemplateImg.crossOrigin = 'anonymous';
+        popTemplateImg.onload = () => {
+            popCanvas.width = popTemplateImg.naturalWidth;
+            popCanvas.height = popTemplateImg.naturalHeight;
+            // 表示スケール（コンテナ幅に合わせる）
+            const maxW = popCanvas.parentElement.parentElement.offsetWidth || 500;
+            popScale = Math.min(1, maxW / popTemplateImg.naturalWidth);
+            popCanvas.style.width  = (popTemplateImg.naturalWidth  * popScale) + 'px';
+            popCanvas.style.height = (popTemplateImg.naturalHeight * popScale) + 'px';
 
-        try {
-            const fd = new FormData();
-            fd.append('template_id', selectedPopTemplate);
-            fd.append('url', surveyUrl);
-            fd.append('fg_color', document.getElementById('fg_color').value);
-            fd.append('bg_color', document.getElementById('bg_color').value);
-            fd.append('module_shape', document.querySelector('input[name="corner_style"]:checked').value);
+            // QR初期位置（中心座標→左上座標に変換）
+            const def = popDefaultPositions[String(templateId)];
+            popQR = { x: def.x - def.size / 2, y: def.y - def.size / 2, size: def.size };
 
-            const res = await fetch('/qr/pop-template', { method: 'POST', body: fd });
-            if (!res.ok) {
-                const err = await res.json().catch(() => ({}));
-                alert('生成に失敗しました: ' + (err.error || res.status));
-                return;
-            }
-            const blob = await res.blob();
-            const fname = currentShop ? currentShop.name.replace(/[\\/:*?"<>|]/g, '_') : 'pop';
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = `POP_template${selectedPopTemplate}_${fname}.png`;
-            a.click();
-        } catch (_) {
-            alert('通信エラーが発生しました。');
-        } finally {
-            btn.classList.remove('d-none');
-            loading.classList.add('d-none');
+            // QR画像をロード（既存の生成済みimg要素から取得）
+            const qrImgEl = document.getElementById('qr_preview');
+            popQRImg = new Image();
+            popQRImg.crossOrigin = 'anonymous';
+            popQRImg.onload = () => drawPopCanvas();
+            popQRImg.src = qrImgEl.src;
+            if (popQRImg.complete && popQRImg.naturalWidth > 0) drawPopCanvas();
+        };
+        popTemplateImg.src = `/static/pop_template_${templateId}.png`;
+
+        // イベント登録（上書き）
+        popCanvas.onmousedown  = onPopMouseDown;
+        popCanvas.onmousemove  = onPopMouseMove;
+        popCanvas.onmouseup    = onPopMouseUp;
+        popCanvas.onmouseleave = onPopMouseUp;
+        popCanvas.ontouchstart = onPopTouchStart;
+        popCanvas.ontouchmove  = onPopTouchMove;
+        popCanvas.ontouchend   = onPopMouseUp;
+
+        editor.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function drawPopCanvas() {
+        if (!popCtx) return;
+        popCtx.clearRect(0, 0, popCanvas.width, popCanvas.height);
+        if (popTemplateImg) popCtx.drawImage(popTemplateImg, 0, 0);
+        if (popQRImg && popQRImg.complete && popQRImg.naturalWidth > 0) {
+            popCtx.drawImage(popQRImg, popQR.x, popQR.y, popQR.size, popQR.size);
         }
+        // 選択枠
+        popCtx.save();
+        popCtx.strokeStyle = 'rgba(74,144,226,0.85)';
+        popCtx.lineWidth = 3 / popScale;
+        popCtx.setLineDash([8 / popScale, 4 / popScale]);
+        popCtx.strokeRect(popQR.x, popQR.y, popQR.size, popQR.size);
+        popCtx.setLineDash([]);
+        // リサイズハンドル（右下）
+        const hR = 10 / popScale;
+        popCtx.fillStyle = '#4A90E2';
+        popCtx.beginPath();
+        popCtx.arc(popQR.x + popQR.size, popQR.y + popQR.size, hR, 0, Math.PI * 2);
+        popCtx.fill();
+        popCtx.restore();
+    }
+
+    function popCanvasPos(e) {
+        const r = popCanvas.getBoundingClientRect();
+        return { x: (e.clientX - r.left) / popScale, y: (e.clientY - r.top) / popScale };
+    }
+    function popTouchPos(e) {
+        const t = e.touches[0], r = popCanvas.getBoundingClientRect();
+        return { x: (t.clientX - r.left) / popScale, y: (t.clientY - r.top) / popScale };
+    }
+    function hitResize(p) {
+        const hR = 20 / popScale;
+        return Math.hypot(p.x - (popQR.x + popQR.size), p.y - (popQR.y + popQR.size)) < hR;
+    }
+    function hitMove(p) {
+        return p.x >= popQR.x && p.x <= popQR.x + popQR.size &&
+               p.y >= popQR.y && p.y <= popQR.y + popQR.size;
+    }
+    function startDrag(p) {
+        if (hitResize(p)) {
+            popDrag = { mode: 'resize', sx: p.x, sy: p.y, origSize: popQR.size };
+        } else if (hitMove(p)) {
+            popDrag = { mode: 'move', sx: p.x, sy: p.y, origX: popQR.x, origY: popQR.y };
+        }
+    }
+    function moveDrag(p) {
+        if (!popDrag) {
+            popCanvas.style.cursor = hitResize(p) ? 'se-resize' : hitMove(p) ? 'move' : 'default';
+            return;
+        }
+        const dx = p.x - popDrag.sx, dy = p.y - popDrag.sy;
+        if (popDrag.mode === 'move') {
+            popQR.x = popDrag.origX + dx;
+            popQR.y = popDrag.origY + dy;
+        } else {
+            popQR.size = Math.max(40 / popScale, popDrag.origSize + Math.max(dx, dy));
+        }
+        drawPopCanvas();
+    }
+    function onPopMouseDown(e)  { startDrag(popCanvasPos(e)); }
+    function onPopMouseMove(e)  { moveDrag(popCanvasPos(e)); }
+    function onPopMouseUp()     { popDrag = null; }
+    function onPopTouchStart(e) { e.preventDefault(); startDrag(popTouchPos(e)); }
+    function onPopTouchMove(e)  { e.preventDefault(); moveDrag(popTouchPos(e)); }
+
+    function resetPopQRPosition() {
+        if (!selectedPopTemplate) return;
+        const def = popDefaultPositions[String(selectedPopTemplate)];
+        popQR = { x: def.x - def.size / 2, y: def.y - def.size / 2, size: def.size };
+        drawPopCanvas();
+    }
+
+    function downloadPopCanvas() {
+        if (!popCanvas || !popQRImg) return;
+        // ハンドルなしで再描画
+        popCtx.clearRect(0, 0, popCanvas.width, popCanvas.height);
+        if (popTemplateImg) popCtx.drawImage(popTemplateImg, 0, 0);
+        if (popQRImg && popQRImg.complete) popCtx.drawImage(popQRImg, popQR.x, popQR.y, popQR.size, popQR.size);
+        const fname = currentShop ? currentShop.name.replace(/[\\/:*?"<>|]/g, '_') : 'pop';
+        const a = document.createElement('a');
+        a.href = popCanvas.toDataURL('image/png');
+        a.download = `POP_template${selectedPopTemplate}_${fname}.png`;
+        a.click();
+        // ハンドルを再描画
+        drawPopCanvas();
     }
 
     // ===== 印刷 =====
