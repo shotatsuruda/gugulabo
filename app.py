@@ -2100,12 +2100,13 @@ def qr_pop_template():
     if not url:
         return jsonify({"success": False, "error": "URLが必要です"}), 400
 
-    # 各テンプレートのQRコード中心座標とサイズ（818×1280px 基準）
+    # 各テンプレートのQR枠の中心座標とサイズ（実測値）
     qr_positions = {
-        "1": {"cx": 400, "cy": 870, "size": 280},
-        "2": {"cx": 420, "cy": 850, "size": 280},
-        "3": {"cx": 400, "cy": 850, "size": 280},
-        "4": {"cx": 400, "cy": 850, "size": 280},
+        "1": {"cx": 628, "cy": 822, "size": 430},
+        "2": {"cx": 604, "cy": 827, "size": 425},
+        "3": {"cx": 427, "cy": 828, "size": 445},
+        "4": {"cx": 499, "cy": 535, "size": 450},
+        "5": {"cx": 467, "cy": 726, "size": 390},
     }
     pos = qr_positions.get(template_id, qr_positions["1"])
 
