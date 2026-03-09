@@ -2505,14 +2505,13 @@ def line_connect(shop_id):
 @app.route('/shop/<int:shop_id>/line-connect/complete', methods=['POST'])
 @login_required
 def line_connect_complete(shop_id):
-    """友だち追加後に連携完了ボタンを押した時の処理。"""
     conn = get_db()
     shop = conn.execute(
-        "SELECT id FROM shops WHERE id = ? AND user_id = ?", (shop_id, current_user.id)
+        "SELECT * FROM shops WHERE id = ? AND user_id = ?",
+        (shop_id, current_user.id)
     ).fetchone()
     if not shop:
-        conn.close()
-        return jsonify({"success": False, "message": "店舗が見つかりません"}), 404
+        return jsonify({"success": False, "message": "店舗が見つかりません"})
 
     pending = conn.execute(
         """SELECT line_user_id FROM line_pending
@@ -2521,17 +2520,20 @@ def line_connect_complete(shop_id):
     ).fetchone()
 
     if not pending:
-        conn.close()
         return jsonify({
             "success": False,
-            "message": "LINE連携が確認できませんでした。先にLINEで友だち追加してください。"
+            "message": "LINE連携が確認できませんでした。先にLINEでメッセージを送ってください。"
         })
 
-    line_user_id = pending['line_user_id']
-    conn.execute("UPDATE shops SET line_user_id = ? WHERE id = ?", (line_user_id, shop_id))
-    conn.execute("DELETE FROM line_pending WHERE line_user_id = ?", (line_user_id,))
+    conn.execute(
+        "UPDATE shops SET line_user_id = ? WHERE id = ?",
+        (pending['line_user_id'], shop_id)
+    )
+    conn.execute(
+        "DELETE FROM line_pending WHERE line_user_id = ?",
+        (pending['line_user_id'],)
+    )
     conn.commit()
-    conn.close()
     return jsonify({"success": True, "message": "LINE連携が完了しました！"})
 
 

@@ -5,64 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LINE連携 | গগラボ</title>
     <style>
-        body {
-            font-family: sans-serif;
-            max-width: 480px;
-            margin: 40px auto;
-            padding: 20px;
-            text-align: center;
-        }
-        .step {
-            background: #f5f5f5;
-            border-radius: 12px;
-            padding: 20px;
-            margin: 16px 0;
-            text-align: left;
-        }
-        .step-number {
-            background: #00B900;
-            color: white;
-            border-radius: 50%;
-            width: 28px;
-            height: 28px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            margin-right: 8px;
-        }
-        .btn-line {
-            background: #00B900;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            padding: 16px 32px;
-            font-size: 16px;
-            cursor: pointer;
-            width: 100%;
-            margin: 8px 0;
-            text-decoration: none;
-            display: block;
-        }
-        .btn-complete {
-            background: #333;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            padding: 16px 32px;
-            font-size: 16px;
-            cursor: pointer;
-            width: 100%;
-            margin: 8px 0;
-        }
-        #result {
-            margin-top: 16px;
-            padding: 12px;
-            border-radius: 8px;
-            display: none;
-        }
-        .success { background: #e6f4ea; color: #2d6a4f; }
-        .error { background: #fce8e6; color: #c62828; }
+        body { font-family: sans-serif; max-width: 480px; margin: 40px auto; padding: 20px; text-align: center; }
+        .step { background: #f5f5f5; border-radius: 12px; padding: 20px; margin: 16px 0; text-align: left; }
+        .step-number { background: #00B900; color: white; border-radius: 50%; width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 8px; }
+        .btn-line { background: #00B900; color: white; border: none; border-radius: 8px; padding: 16px 32px; font-size: 16px; cursor: pointer; width: 100%; margin: 8px 0; text-decoration: none; display: block; }
+        .btn-complete { background: #333; color: white; border: none; border-radius: 8px; padding: 16px 32px; font-size: 16px; cursor: pointer; width: 100%; margin: 8px 0; }
+        .success { background: #e6f4ea; color: #2d6a4f; padding: 12px; border-radius: 8px; margin-top: 16px; }
+        .error { background: #fce8e6; color: #c62828; padding: 12px; border-radius: 8px; margin-top: 16px; }
     </style>
 </head>
 <body>
@@ -71,7 +20,7 @@
 
     <div class="step">
         <span class="step-number">1</span>
-        下のボタンからLINE公式アカウントを友だち追加してください
+        下のボタンからLINE公式アカウントを友だち追加して、メッセージを1件送ってください
     </div>
 
     <a href="{{ line_add_url }}" class="btn-line" target="_blank">
@@ -80,7 +29,7 @@
 
     <div class="step">
         <span class="step-number">2</span>
-        友だち追加が完了したら下のボタンを押してください
+        LINEでメッセージを送ったら下のボタンを押してください
     </div>
 
     <button class="btn-complete" onclick="completeConnect()">
@@ -99,9 +48,7 @@
                 method: 'POST'
             });
             const data = await res.json();
-
             const result = document.getElementById('result');
-            result.style.display = 'block';
 
             if (data.success) {
                 result.className = 'success';
