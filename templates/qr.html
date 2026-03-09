@@ -59,11 +59,6 @@
                         </select>
                     </div>
                     <div class="mb-2">
-                        <label class="form-label">GoogleレビューURL</label>
-                        <input type="url" class="form-control form-control-sm" id="new_shop_url"
-                            placeholder="https://g.page/r/..." required>
-                    </div>
-                    <div class="mb-3">
                         <label class="form-label">
                             Google Place ID
                             <span style="font-weight:400;color:#9A9A9A;font-size:0.72rem;">― 省略可</span>
@@ -71,8 +66,15 @@
                         <input type="text" class="form-control form-control-sm" id="new_shop_place_id"
                             placeholder="例：ChIJN1t_tDeuEmsRUsoyG83frY4">
                         <div class="form-text">
+                            入力するとレビューURLを自動補完 ／
                             <a href="https://developers.google.com/maps/documentation/javascript/examples/places-placeid-finder" target="_blank" style="color:#8C7B6B;">Place IDの調べ方</a>
                         </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">GoogleレビューURL</label>
+                        <input type="url" class="form-control form-control-sm" id="new_shop_url"
+                            placeholder="https://g.page/r/...（Place ID入力で自動補完）">
+                        <div class="form-text">Place ID を入力すると自動補完されます。直接入力も可。</div>
                     </div>
                     <button type="submit" class="btn btn-primary btn-sm w-100">
                         <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none"
@@ -714,6 +716,24 @@
             shops.map(s => `<option value="${s.id}">${esc(s.name)}</option>`).join('');
         if (cur) sel.value = cur;
     }
+
+    // ===== Place ID → レビューURL 自動補完 =====
+    document.getElementById('new_shop_place_id').addEventListener('input', function () {
+        const placeId = this.value.trim();
+        const urlField = document.getElementById('new_shop_url');
+        const autoPrefix = 'https://search.google.com/local/writereview?placeid=';
+        if (placeId) {
+            // 未入力 or 既に自動補完済みの場合のみ上書き
+            if (!urlField.value || urlField.value.startsWith(autoPrefix)) {
+                urlField.value = autoPrefix + placeId;
+            }
+        } else {
+            // Place ID を消したら自動補完URLも消す
+            if (urlField.value.startsWith(autoPrefix)) {
+                urlField.value = '';
+            }
+        }
+    });
 
     // ===== 店舗追加 =====
     document.getElementById('add_shop_form').addEventListener('submit', async (e) => {

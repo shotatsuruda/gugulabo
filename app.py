@@ -2020,16 +2020,21 @@ def add_shop():
     business_type = (data.get("business_type") or "").strip()
     place_id      = (data.get("place_id")      or "").strip()
     status        = (data.get("status")        or "trial").strip() or "trial"
+
+    # place_id があれば口コミ投稿URLを自動生成（ユーザー未入力時）
+    if place_id and not review_url:
+        review_url = f"https://search.google.com/local/writereview?placeid={place_id}"
+
     if not name or not review_url:
-        return jsonify({"error": "name と review_url は必須です"}), 400
+        return jsonify({"error": "name と review_url は必須です（place ID を入力するか URL を直接入力してください）"}), 400
 
     conn = get_db()
 
-    # 既存店舗の重複チェック（place_id 基準）
+    # 既存店舗の重複チェック（現ユーザーの place_id 基準のみ）
     if place_id:
         dup = conn.execute(
-            "SELECT id FROM shops WHERE place_id = ?",
-            (place_id,),
+            "SELECT id FROM shops WHERE place_id = ? AND user_id = ?",
+            (place_id, current_user.id),
         ).fetchone()
         if dup:
             conn.close()
@@ -2051,16 +2056,25 @@ def add_shop():
         slug = None
 
     # INSERT（slug重複時はNULLで再挿入 → 後で shop-{id} を設定）
+    # place_id UNIQUE 制約違反は別ユーザーが既に登録済みの場合に発生
     try:
         cursor = conn.execute(
             "INSERT INTO shops (name, review_url, slug, user_id, business_type, place_id, status) VALUES (?, ?, ?, ?, ?, ?, ?)",
             (name, review_url, slug, current_user.id, business_type, place_id or None, status),
         )
-    except DBIntegrityError:
-        cursor = conn.execute(
-            "INSERT INTO shops (name, review_url, slug, user_id, business_type, place_id, status) VALUES (?, ?, ?, ?, ?, ?, ?)",
-            (name, review_url, None, current_user.id, business_type, place_id or None, status),
-        )
+    except DBIntegrityError as e:
+        if place_id and "place_id" in str(e).lower():
+            conn.close()
+            return jsonify({"error": "この Place ID はすでに別のアカウントで登録されています。"}), 409
+        # slug 重複の場合は slug=NULL で再試行
+        try:
+            cursor = conn.execute(
+                "INSERT INTO shops (name, review_url, slug, user_id, business_type, place_id, status) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                (name, review_url, None, current_user.id, business_type, place_id or None, status),
+            )
+        except DBIntegrityError:
+            conn.close()
+            return jsonify({"error": "この Place ID はすでに別のアカウントで登録されています。"}), 409
     shop_id = cursor.lastrowid
     if not slug:
         conn.execute("UPDATE shops SET slug = ? WHERE id = ?", (f"shop-{shop_id}", shop_id))
