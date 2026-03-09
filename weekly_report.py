@@ -32,6 +32,9 @@ def get_prev_avg_rating(db, shop_id):
 
 
 def run():
+    print("週次レポートは現在無効化中です（Google Business Profile API審査待ち）")
+    return
+
     db = sqlite3.connect(DB_PATH)
     db.row_factory = sqlite3.Row
 
