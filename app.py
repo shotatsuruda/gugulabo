@@ -4,6 +4,8 @@ Flask + OpenRouter API + qrcode + Pillow を使用
 """
 
 import base64
+import hashlib
+import hmac
 import io
 import os
 import re
@@ -77,6 +79,11 @@ MAIL_SMTP_PORT = int(os.environ.get("MAIL_SMTP_PORT", "587"))
 MAIL_USERNAME = os.environ.get("MAIL_USERNAME", "")
 MAIL_PASSWORD = os.environ.get("MAIL_PASSWORD", "")
 MAIL_FROM = os.environ.get("MAIL_FROM", MAIL_USERNAME)
+
+# ===== LINE 設定 =====
+LINE_CHANNEL_SECRET      = os.environ.get("LINE_CHANNEL_SECRET", "")
+LINE_CHANNEL_ACCESS_TOKEN = os.environ.get("LINE_CHANNEL_ACCESS_TOKEN", "")
+LINE_ADD_FRIEND_URL      = os.environ.get("LINE_ADD_FRIEND_URL", "")
 
 # ===== Stripe 設定 =====
 STRIPE_SECRET_KEY    = os.environ.get("STRIPE_SECRET_KEY", "")
@@ -289,6 +296,8 @@ def init_db():
         conn.execute("ALTER TABLE shops ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'trial'")
         conn.execute("ALTER TABLE shops ADD COLUMN IF NOT EXISTS unique_id TEXT")
         conn.execute("ALTER TABLE shops ADD COLUMN IF NOT EXISTS address TEXT")
+        conn.execute("ALTER TABLE shops ADD COLUMN IF NOT EXISTS line_user_id TEXT")
+        conn.execute("ALTER TABLE shops ADD COLUMN IF NOT EXISTS zero_review_weeks INTEGER DEFAULT 0")
     else:
         try:
             conn.execute("ALTER TABLE shops ADD COLUMN slug TEXT")
@@ -326,6 +335,14 @@ def init_db():
             conn.execute("ALTER TABLE shops ADD COLUMN status TEXT NOT NULL DEFAULT 'trial'")
         except Exception:
             pass  # カラムが既に存在する場合はスキップ
+        try:
+            conn.execute("ALTER TABLE shops ADD COLUMN line_user_id TEXT")
+        except Exception:
+            pass
+        try:
+            conn.execute("ALTER TABLE shops ADD COLUMN zero_review_weeks INTEGER DEFAULT 0")
+        except Exception:
+            pass
 
     # users テーブルへの各カラム追加（マイグレーション）
     if DB_TYPE == "postgresql":
@@ -447,6 +464,49 @@ def init_db():
             discount_text TEXT NOT NULL,
             expires_at    TEXT NOT NULL,
             sent_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        """
+    )
+
+    # LINE友だち追加時の一時保存テーブル
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS line_pending (
+            line_user_id TEXT PRIMARY KEY,
+            created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        """
+    )
+
+    # 取得済み口コミ管理テーブル（重複送信防止）
+    conn.execute(
+        f"""
+        CREATE TABLE IF NOT EXISTS fetched_reviews (
+            id          {pk},
+            shop_id     INTEGER NOT NULL,
+            review_id   TEXT NOT NULL UNIQUE,
+            author_name TEXT,
+            rating      INTEGER,
+            text        TEXT,
+            review_time TEXT,
+            reply_draft TEXT,
+            fetched_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (shop_id) REFERENCES shops(id)
+        )
+        """
+    )
+
+    # 週次サマリー履歴テーブル
+    conn.execute(
+        f"""
+        CREATE TABLE IF NOT EXISTS weekly_summaries (
+            id           {pk},
+            shop_id      INTEGER NOT NULL,
+            week_start   DATE NOT NULL,
+            review_count INTEGER DEFAULT 0,
+            avg_rating   REAL,
+            sent_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (shop_id) REFERENCES shops(id)
         )
         """
     )
@@ -1940,7 +2000,7 @@ def get_shops():
     """ログイン中ユーザーの店舗一覧をJSON形式で返す"""
     conn = get_db()
     shops = conn.execute(
-        "SELECT id, name, review_url, slug, place_id, status, business_type, created_at FROM shops WHERE user_id = ? ORDER BY created_at DESC",
+        "SELECT id, name, review_url, slug, place_id, line_user_id, status, business_type, created_at FROM shops WHERE user_id = ? ORDER BY created_at DESC",
         (current_user.id,),
     ).fetchall()
     conn.close()
@@ -2005,6 +2065,31 @@ def add_shop():
     conn.commit()
     conn.close()
     return jsonify({"success": True}), 201
+
+
+@app.route("/qr/shops/<int:shop_id>", methods=["PATCH"])
+@payment_required
+def update_shop(shop_id):
+    """店舗の place_id / line_user_id を更新する（所有者のみ）"""
+    conn = get_db()
+    shop = conn.execute(
+        "SELECT id FROM shops WHERE id = ? AND user_id = ?", (shop_id, current_user.id)
+    ).fetchone()
+    if not shop:
+        conn.close()
+        return jsonify({"error": "店舗が見つかりません"}), 404
+
+    data = request.get_json()
+    place_id     = (data.get("place_id")     or "").strip() or None
+    line_user_id = (data.get("line_user_id") or "").strip() or None
+
+    conn.execute(
+        "UPDATE shops SET place_id = ?, line_user_id = ? WHERE id = ?",
+        (place_id, line_user_id, shop_id)
+    )
+    conn.commit()
+    conn.close()
+    return jsonify({"success": True})
 
 
 @app.route("/qr/shops/<int:shop_id>", methods=["DELETE"])
@@ -2380,6 +2465,71 @@ def bulk_urls_csv():
         as_attachment=True,
         download_name=f"shop_urls_{datetime.now().strftime('%Y%m%d%H%M%S')}.csv"
     )
+
+# ===== LINE連携 =====
+
+@app.route('/webhook/line', methods=['POST'])
+def line_webhook():
+    data = request.json
+    for event in data.get('events', []):
+        line_user_id = event['source']['userId']
+        if event['type'] == 'follow':
+            db = get_db()
+            db.execute(
+                """INSERT OR REPLACE INTO line_pending
+                   (line_user_id, created_at) VALUES (?, CURRENT_TIMESTAMP)""",
+                (line_user_id,)
+            )
+            db.commit()
+    return 'OK', 200
+
+
+@app.route('/shop/<int:shop_id>/line-connect')
+@login_required
+def line_connect(shop_id):
+    """LINE連携用ページを表示する（所有者のみ）"""
+    conn = get_db()
+    shop = conn.execute(
+        "SELECT * FROM shops WHERE id = ? AND user_id = ?", (shop_id, current_user.id)
+    ).fetchone()
+    conn.close()
+    if not shop:
+        return "店舗が見つかりません", 404
+    return render_template('line_connect.html', shop=shop, line_add_url=LINE_ADD_FRIEND_URL)
+
+
+@app.route('/shop/<int:shop_id>/line-connect/complete', methods=['POST'])
+@login_required
+def line_connect_complete(shop_id):
+    """友だち追加後に連携完了ボタンを押した時の処理。"""
+    conn = get_db()
+    shop = conn.execute(
+        "SELECT id FROM shops WHERE id = ? AND user_id = ?", (shop_id, current_user.id)
+    ).fetchone()
+    if not shop:
+        conn.close()
+        return jsonify({"success": False, "message": "店舗が見つかりません"}), 404
+
+    pending = conn.execute(
+        """SELECT line_user_id FROM line_pending
+           WHERE created_at >= datetime('now', '-5 minutes')
+           ORDER BY created_at DESC LIMIT 1"""
+    ).fetchone()
+
+    if not pending:
+        conn.close()
+        return jsonify({
+            "success": False,
+            "message": "LINE連携が確認できませんでした。先にLINEで友だち追加してください。"
+        })
+
+    line_user_id = pending['line_user_id']
+    conn.execute("UPDATE shops SET line_user_id = ? WHERE id = ?", (line_user_id, shop_id))
+    conn.execute("DELETE FROM line_pending WHERE line_user_id = ?", (line_user_id,))
+    conn.commit()
+    conn.close()
+    return jsonify({"success": True, "message": "LINE連携が完了しました！"})
+
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)), debug=False)

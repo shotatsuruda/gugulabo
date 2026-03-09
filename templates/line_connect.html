@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LINE連携 | গগラボ</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            max-width: 480px;
+            margin: 40px auto;
+            padding: 20px;
+            text-align: center;
+        }
+        .step {
+            background: #f5f5f5;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 16px 0;
+            text-align: left;
+        }
+        .step-number {
+            background: #00B900;
+            color: white;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+        .btn-line {
+            background: #00B900;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 16px 32px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+            margin: 8px 0;
+            text-decoration: none;
+            display: block;
+        }
+        .btn-complete {
+            background: #333;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 16px 32px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+            margin: 8px 0;
+        }
+        #result {
+            margin-top: 16px;
+            padding: 12px;
+            border-radius: 8px;
+            display: none;
+        }
+        .success { background: #e6f4ea; color: #2d6a4f; }
+        .error { background: #fce8e6; color: #c62828; }
+    </style>
+</head>
+<body>
+    <h2>📱 LINE連携設定</h2>
+    <p>{{ shop.name }}</p>
+
+    <div class="step">
+        <span class="step-number">1</span>
+        下のボタンからLINE公式アカウントを友だち追加してください
+    </div>
+
+    <a href="{{ line_add_url }}" class="btn-line" target="_blank">
+        LINEで友だち追加する
+    </a>
+
+    <div class="step">
+        <span class="step-number">2</span>
+        友だち追加が完了したら下のボタンを押してください
+    </div>
+
+    <button class="btn-complete" onclick="completeConnect()">
+        LINE連携を完了する
+    </button>
+
+    <div id="result"></div>
+
+    <script>
+        async function completeConnect() {
+            const btn = document.querySelector('.btn-complete');
+            btn.textContent = '確認中...';
+            btn.disabled = true;
+
+            const res = await fetch('/shop/{{ shop.id }}/line-connect/complete', {
+                method: 'POST'
+            });
+            const data = await res.json();
+
+            const result = document.getElementById('result');
+            result.style.display = 'block';
+
+            if (data.success) {
+                result.className = 'success';
+                result.textContent = '✅ ' + data.message;
+                btn.textContent = '連携完了！';
+            } else {
+                result.className = 'error';
+                result.textContent = '❌ ' + data.message;
+                btn.textContent = 'LINE連携を完了する';
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
