@@ -643,16 +643,23 @@
             document.getElementById('step-finish').classList.add('active');
         }
 
-        function copyAndGotoGoogle() {
+        async function copyAndGotoGoogle() {
             const textToCopy = document.getElementById('ai-draft-box').value;
+            let copied = false;
             if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(textToCopy).catch(err => {
-                    console.log('Clipboard fallback');
-                });
-            } else {
+                try {
+                    await navigator.clipboard.writeText(textToCopy);
+                    copied = true;
+                } catch (err) {
+                    console.log('Clipboard API failed, trying fallback');
+                }
+            }
+            if (!copied) {
                 const textArea = document.createElement("textarea");
                 textArea.value = textToCopy;
+                textArea.style.cssText = 'position:fixed;opacity:0;top:0;left:0;';
                 document.body.appendChild(textArea);
+                textArea.focus();
                 textArea.select();
                 try { document.execCommand('copy'); } catch (err) { }
                 document.body.removeChild(textArea);
