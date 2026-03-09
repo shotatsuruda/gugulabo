@@ -2472,15 +2472,19 @@ def bulk_urls_csv():
 def line_webhook():
     data = request.json
     for event in data.get('events', []):
-        line_user_id = event['source']['userId']
-        if event['type'] == 'follow':
-            db = get_db()
-            db.execute(
-                """INSERT OR REPLACE INTO line_pending
-                   (line_user_id, created_at) VALUES (?, CURRENT_TIMESTAMP)""",
-                (line_user_id,)
-            )
-            db.commit()
+        try:
+            line_user_id = event['source']['userId']
+            if event["type"] in ("follow", "message"):
+                db = get_db()
+                db.execute(
+                    """INSERT OR REPLACE INTO line_pending
+                       (line_user_id, created_at) VALUES (?, CURRENT_TIMESTAMP)""",
+                    (line_user_id,)
+                )
+                db.commit()
+                print(f"LINE pending saved: {line_user_id}", flush=True)
+        except Exception as e:
+            print(f"LINE webhook error: {e}", flush=True)
     return 'OK', 200
 
 
