@@ -643,40 +643,28 @@
             document.getElementById('step-finish').classList.add('active');
         }
 
-        async function copyAndGotoGoogle() {
+        function copyAndGotoGoogle() {
             const textArea = document.getElementById('ai-draft-box');
             const textToCopy = textArea.value;
-            let copied = false;
 
-            // HTTPS環境では Clipboard API を優先
-            if (window.isSecureContext && navigator.clipboard && navigator.clipboard.writeText) {
-                try {
-                    await navigator.clipboard.writeText(textToCopy);
-                    copied = true;
-                } catch (err) {
-                    console.log('Clipboard API failed, trying fallback');
-                }
-            }
+            // 同期コピー（ユーザージェスチャー内 → execCommand が確実に動く）
+            textArea.focus();
+            textArea.select();
+            textArea.setSelectionRange(0, 99999); // iOS Safari対応
+            document.execCommand('copy');
 
-            // HTTP環境・フォールバック: 表示中のtextareaを直接選択してコピー
-            if (!copied) {
-                try {
-                    textArea.focus();
-                    textArea.select();
-                    textArea.setSelectionRange(0, 99999); // iOS Safari対応
-                    copied = document.execCommand('copy');
-                } catch (err) {
-                    console.log('execCommand failed:', err);
-                }
+            // HTTPS環境では Clipboard API でも上書きコピー（保険）
+            if (window.isSecureContext && navigator.clipboard) {
+                navigator.clipboard.writeText(textToCopy).catch(() => {});
             }
 
             const btn = document.getElementById('copy-btn');
             btn.textContent = "コピー完了！Googleを開きます...";
 
-            setTimeout(() => {
-                window.open(finalReviewUrl, '_blank', 'noopener,noreferrer');
-                btn.textContent = "📝 コピーしてGoogleを開く";
-            }, 1200);
+            // ユーザージェスチャー内で直接 open → ポップアップ警告なし
+            window.open(finalReviewUrl, '_blank', 'noopener,noreferrer');
+
+            setTimeout(() => { btn.textContent = "📝 コピーしてGoogleを開く"; }, 3000);
         }
 
         async function requestCoupon() {
