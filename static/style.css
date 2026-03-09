@@ -1081,9 +1081,9 @@ footer {
 
 /* ----- フッター ----- */
 .lp-footer {
-    background-color: #1a1a2e;
-    color: #ffffff;
-    padding: 40px 0;
+    background-color: #1a1a2e !important;
+    color: #ffffff !important;
+    padding: 40px 0 !important;
 }
 
 .lp-footer-logo {
