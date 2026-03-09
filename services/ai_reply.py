@@ -1,13 +1,11 @@
 import os
 import requests
 
-OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY")
-
-
 def generate_reply(review: dict, business_type: str) -> str:
     """
     口コミ1件に対してAI返答文を生成する。
     """
+    OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY")
     rating = review["rating"]
     text = review["text"]
     author = review["author"]

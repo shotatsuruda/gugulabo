@@ -1,14 +1,12 @@
 import os
 import requests
 
-PLACES_API_KEY = os.environ.get("PLACES_API_KEY")
-
-
 def get_reviews(place_id: str) -> dict:
     """
     Places API（New）でplace_idの口コミを取得する。
     返り値：{ rating: float, reviews: [ {id, author, rating, text, time}, ... ] }
     """
+    PLACES_API_KEY = os.environ.get("PLACES_API_KEY")
     url = f"https://places.googleapis.com/v1/places/{place_id}"
     headers = {
         "X-Goog-Api-Key": PLACES_API_KEY,
