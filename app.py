@@ -188,6 +188,8 @@ def payment_required(f):
     @login_required
     def decorated(*args, **kwargs):
         if not current_user.is_paid:
+            if request.is_json:
+                return jsonify({"error": "ご利用にはトライアルまたは有料プランへの登録が必要です。"}), 402
             return redirect(url_for("subscribe"))
         return f(*args, **kwargs)
     return decorated
