@@ -678,12 +678,18 @@
                 <div class="fw-semibold small text-truncate">${esc(s.name)}${s.business_type ? ` <span style="font-size:0.7rem;background:#F5F3F0;border:1px solid #E8E4DF;border-radius:4px;padding:1px 5px;color:#8C7B6B;">${esc(s.business_type)}</span>` : ''}</div>
                 <div class="url-text text-truncate">${esc(s.review_url)}</div>
                 <div class="url-text text-truncate"><a href="${surveyUrl}" target="_blank" style="color:#8C7B6B;">${surveyUrl}</a></div>
-                <div class="mt-1">
+                <div class="mt-1 d-flex align-items-center gap-2 flex-wrap">
                     ${s.line_user_id
                         ? `<span style="font-size:0.72rem;color:#00B900;">✅ LINE連携済み</span>`
                         : `<a href="/shop/${s.id}/line-connect" style="font-size:0.72rem;color:#00B900;">📱 LINE連携する</a>`
                     }
+                    ${s.place_id
+                        ? `<span style="font-size:0.72rem;color:#4285F4;">✅ Googleマップ連携済み</span>
+                           <button onclick="fetchPlaceId(${s.id}, this)" style="background:none;border:none;color:#999;cursor:pointer;font-size:0.72rem;padding:0;">再連携</button>`
+                        : `<button onclick="fetchPlaceId(${s.id}, this)" style="background:#4285F4;color:white;border:none;border-radius:6px;padding:2px 8px;cursor:pointer;font-size:0.72rem;">🗺️ Googleマップと自動連携</button>`
+                    }
                 </div>
+                <div id="place-result-${s.id}" style="font-size:0.72rem;margin-top:2px;"></div>
             </div>
             <div class="d-flex gap-1 flex-shrink-0">
                 <button class="btn btn-outline-secondary btn-sm py-0 px-1"
@@ -746,6 +752,26 @@
         if (!confirm('この店舗を削除しますか？')) return;
         await fetch(`/qr/shops/${id}`, { method: 'DELETE' });
         await loadShops();
+    }
+
+    // ===== Googleマップ自動連携 =====
+    async function fetchPlaceId(shopId, btn) {
+        const originalText = btn.textContent;
+        btn.textContent = '検索中...';
+        btn.disabled = true;
+
+        const res = await fetch(`/shop/${shopId}/fetch-place-id`, { method: 'POST' });
+        const data = await res.json();
+        const result = document.getElementById(`place-result-${shopId}`);
+
+        if (data.success) {
+            result.innerHTML = `<span style="color:#4285F4;">✅ ${esc(data.place_name)}（${esc(data.place_address)}）</span>`;
+            await loadShops();
+        } else {
+            result.innerHTML = `<span style="color:red;">❌ ${esc(data.message)}</span>`;
+            btn.textContent = originalText;
+            btn.disabled = false;
+        }
     }
 
     // ===== 店舗編集モーダル =====

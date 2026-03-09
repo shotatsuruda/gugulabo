@@ -2488,6 +2488,52 @@ def line_webhook():
     return 'OK', 200
 
 
+@app.route('/shop/<int:shop_id>/fetch-place-id', methods=['POST'])
+@login_required
+def fetch_place_id(shop_id):
+    import requests
+    conn = get_db()
+    shop = conn.execute(
+        "SELECT * FROM shops WHERE id = ? AND user_id = ?",
+        (shop_id, current_user.id)
+    ).fetchone()
+    if not shop:
+        return jsonify({"success": False, "message": "店舗が見つかりません"})
+
+    query = f"{shop['name']} {shop['address'] or ''}"
+    url = "https://places.googleapis.com/v1/places:searchText"
+    headers = {
+        "X-Goog-Api-Key": os.environ.get("PLACES_API_KEY"),
+        "X-Goog-FieldMask": "places.id,places.displayName,places.formattedAddress"
+    }
+    payload = {"textQuery": query}
+
+    response = requests.post(url, headers=headers, json=payload)
+    data = response.json()
+
+    places = data.get("places", [])
+    if not places:
+        return jsonify({"success": False, "message": "店舗が見つかりませんでした。店舗名・住所を確認してください。"})
+
+    place = places[0]
+    place_id = place["id"]
+    place_name = place["displayName"]["text"]
+    place_address = place.get("formattedAddress", "")
+
+    conn.execute(
+        "UPDATE shops SET place_id = ? WHERE id = ?",
+        (place_id, shop_id)
+    )
+    conn.commit()
+
+    return jsonify({
+        "success": True,
+        "message": "連携完了！",
+        "place_name": place_name,
+        "place_address": place_address
+    })
+
+
 @app.route('/shop/<int:shop_id>/line-connect')
 @login_required
 def line_connect(shop_id):
