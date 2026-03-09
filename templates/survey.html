@@ -644,9 +644,12 @@
         }
 
         async function copyAndGotoGoogle() {
-            const textToCopy = document.getElementById('ai-draft-box').value;
+            const textArea = document.getElementById('ai-draft-box');
+            const textToCopy = textArea.value;
             let copied = false;
-            if (navigator.clipboard && navigator.clipboard.writeText) {
+
+            // HTTPS環境では Clipboard API を優先
+            if (window.isSecureContext && navigator.clipboard && navigator.clipboard.writeText) {
                 try {
                     await navigator.clipboard.writeText(textToCopy);
                     copied = true;
@@ -654,15 +657,17 @@
                     console.log('Clipboard API failed, trying fallback');
                 }
             }
+
+            // HTTP環境・フォールバック: 表示中のtextareaを直接選択してコピー
             if (!copied) {
-                const textArea = document.createElement("textarea");
-                textArea.value = textToCopy;
-                textArea.style.cssText = 'position:fixed;opacity:0;top:0;left:0;';
-                document.body.appendChild(textArea);
-                textArea.focus();
-                textArea.select();
-                try { document.execCommand('copy'); } catch (err) { }
-                document.body.removeChild(textArea);
+                try {
+                    textArea.focus();
+                    textArea.select();
+                    textArea.setSelectionRange(0, 99999); // iOS Safari対応
+                    copied = document.execCommand('copy');
+                } catch (err) {
+                    console.log('execCommand failed:', err);
+                }
             }
 
             const btn = document.getElementById('copy-btn');
