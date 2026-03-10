@@ -647,33 +647,23 @@
             const textArea = document.getElementById('ai-draft-box');
             const textToCopy = textArea.value;
 
-            // 同期コピー（ユーザージェスチャー内 → execCommand が確実に動く）
+            // 同期コピー（ユーザージェスチャー内で確実に完了させる）
             textArea.focus();
             textArea.select();
             textArea.setSelectionRange(0, 99999); // iOS Safari対応
             document.execCommand('copy');
 
-            // HTTPS環境では Clipboard API でも上書きコピー（保険）
-            if (window.isSecureContext && navigator.clipboard) {
-                navigator.clipboard.writeText(textToCopy).catch(() => {});
-            }
+            // レビューURLを生成
+            const placeId = "{{ shop.place_id }}";
+            const reviewUrl = placeId
+                ? `https://search.google.com/local/writereview?placeid=${placeId}`
+                : finalReviewUrl;
+
+            // ユーザージェスチャー内で即時実行（ポップアップブロック回避）
+            window.open(reviewUrl, '_blank', 'noopener,noreferrer');
 
             const btn = document.getElementById('copy-btn');
             btn.textContent = "コピー完了！Googleを開きます...";
-
-            const placeId = "{{ shop.place_id }}";
-            let reviewUrl;
-
-            if (placeId) {
-                // レビュー文をURLパラメータに埋め込んで自動入力を試みる
-                const encodedText = encodeURIComponent(textToCopy);
-                reviewUrl = `https://search.google.com/local/writereview?placeid=${placeId}&review=${encodedText}`;
-            } else {
-                reviewUrl = finalReviewUrl;
-            }
-
-            window.open(reviewUrl, '_blank', 'noopener,noreferrer');
-
             setTimeout(() => { btn.textContent = "📝 コピーしてGoogleを開く"; }, 3000);
         }
 
