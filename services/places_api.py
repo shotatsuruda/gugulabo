@@ -12,7 +12,8 @@ def get_reviews(place_id: str) -> dict:
         "X-Goog-Api-Key": PLACES_API_KEY,
         "X-Goog-FieldMask": "rating,reviews"
     }
-    response = requests.get(url, headers=headers)
+    params = {"reviews_sort": "newest"}
+    response = requests.get(url, headers=headers, params=params)
     response.raise_for_status()
     data = response.json()
 
