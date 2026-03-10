@@ -87,9 +87,9 @@ LINE_ADD_FRIEND_URL      = os.environ.get("LINE_ADD_FRIEND_URL", "")
 
 # ===== Stripe 設定 =====
 STRIPE_SECRET_KEY    = os.environ.get("STRIPE_SECRET_KEY", "")
-STRIPE_PUBLIC_KEY    = os.environ.get("STRIPE_PUBLIC_KEY", "pk_live_51T5hfRI0UveP0nntiIpAIEgEV0Y7l1IKDrRogRQj4jbvypaHpoxPoI6ouFxLG10po9LHh3STXiSESu5sSqwtoB4U0055zkbWIL")
-STRIPE_PRICE_ID         = os.environ.get("STRIPE_PRICE_ID", "price_1T67E9I0UveP0nntM4yqbZ9q")
-STRIPE_PRICE_ID_YEARLY  = os.environ.get("STRIPE_PRICE_ID_YEARLY", "price_1T67bmI0UveP0nntQVL8Ieen")
+STRIPE_PUBLIC_KEY    = os.environ.get("STRIPE_PUBLIC_KEY", "")
+STRIPE_PRICE_ID         = os.environ.get("STRIPE_PRICE_ID", "")
+STRIPE_PRICE_ID_YEARLY  = os.environ.get("STRIPE_PRICE_ID_YEARLY", "")
 STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET", "")
 if STRIPE_SECRET_KEY:
     stripe.api_key = STRIPE_SECRET_KEY
@@ -125,19 +125,20 @@ class User(UserMixin):
 
     @property
     def is_paid(self):
-        """管理者 or 有料プラン契約中 or トライアル期間中ならアクセス可能"""
+        """管理者 or 有料プラン契約中 or 管理者作成ユーザー or トライアル期間中ならアクセス可能"""
         if self.is_admin or bool(self.plan):
             return True
-        if self.trial_ends_at:
-            try:
-                trial_end = (
-                    self.trial_ends_at if hasattr(self.trial_ends_at, "date")
-                    else datetime.fromisoformat(str(self.trial_ends_at))
-                )
-                return trial_end > datetime.now()
-            except Exception:
-                return False
-        return False
+        if self.trial_ends_at is None:
+            # trial_ends_at が NULL = 管理者作成ユーザー → 無料永続利用
+            return True
+        try:
+            trial_end = (
+                self.trial_ends_at if hasattr(self.trial_ends_at, "date")
+                else datetime.fromisoformat(str(self.trial_ends_at))
+            )
+            return trial_end > datetime.now()
+        except Exception:
+            return False
 
     @property
     def trial_days_remaining(self):
@@ -1642,10 +1643,9 @@ def create_checkout_session():
             customer_email=current_user.email,
             metadata={"user_id": str(current_user.id), "plan_name": plan_name},
         )
-        return redirect(checkout_session.url, code=303)
+        return jsonify({"url": checkout_session.url})
     except Exception as e:
-        flash(f"決済ページの作成に失敗しました: {e}", "error")
-        return redirect(url_for("subscribe"))
+        return jsonify({"error": str(e)}), 400
 
 
 @app.route("/success")

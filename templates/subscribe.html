@@ -52,9 +52,10 @@
                             <li>AI による返答文の生成</li>
                         </ul>
 
-                        <form method="POST" action="/create-checkout-session">
+                        <form id="checkout-form-monthly" method="POST" action="/create-checkout-session">
                             <input type="hidden" name="plan" value="monthly">
-                            <button type="submit" class="btn btn-outline-primary w-100"
+                            <button type="button" id="btn-monthly" onclick="startCheckout('monthly')"
+                                class="btn btn-outline-primary w-100"
                                 style="font-size:0.9rem;padding:0.65rem;">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
                                     fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -92,9 +93,10 @@
                             <li>AI による返答文の生成</li>
                         </ul>
 
-                        <form method="POST" action="/create-checkout-session">
+                        <form id="checkout-form-yearly" method="POST" action="/create-checkout-session">
                             <input type="hidden" name="plan" value="yearly">
-                            <button type="submit" class="btn btn-primary w-100"
+                            <button type="button" id="btn-yearly" onclick="startCheckout('yearly')"
+                                class="btn btn-primary w-100"
                                 style="font-size:0.9rem;padding:0.65rem;">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
                                     fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -118,4 +120,34 @@
     </div>
 </div>
 
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function startCheckout(plan) {
+  const btn = document.getElementById('btn-' + plan);
+  btn.disabled = true;
+  btn.textContent = '処理中...';
+
+  try {
+    const resp = await fetch('/create-checkout-session', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+      body: 'plan=' + plan
+    });
+    const data = await resp.json();
+    if (data.url) {
+      window.location.href = data.url;
+    } else {
+      alert('エラーが発生しました: ' + (data.error || '不明なエラー'));
+      btn.disabled = false;
+      btn.textContent = plan === 'monthly' ? '月額プランで始める' : '年間プランで始める';
+    }
+  } catch (e) {
+    alert('通信エラーが発生しました');
+    btn.disabled = false;
+    btn.textContent = plan === 'monthly' ? '月額プランで始める' : '年間プランで始める';
+  }
+}
+</script>
 {% endblock %}
