@@ -661,35 +661,14 @@
             const btn = document.getElementById('copy-btn');
             btn.textContent = "コピー完了！Googleマップを開きます...";
 
-            // デバイス別にGoogleマップアプリへディープリンク誘導
+            // Universal Links によりiOSはGoogleマップアプリが自動起動、
+            // アプリ未インストールまたはAndroid・PCはブラウザで口コミ入力画面を開く
             const placeId = "{{ shop.place_id }}";
-            const fallbackUrl = finalReviewUrl;
-            const ua = navigator.userAgent;
+            const reviewUrl = placeId
+                ? `https://search.google.com/local/writereview?placeid=${placeId}`
+                : finalReviewUrl;
 
-            if (placeId) {
-                if (/android/i.test(ua)) {
-                    // Android：intentスキームでGoogleマップアプリを直接起動
-                    window.location.href =
-                        `intent://maps.google.com/maps?action=reviewplace&placeid=${placeId}#Intent;scheme=https;package=com.google.android.apps.maps;end`;
-                } else if (/iphone|ipad/i.test(ua)) {
-                    // iOS：comgooglemapsスキームでアプリ起動を試みる
-                    window.location.href = `comgooglemaps://?action=reviewplace&placeid=${placeId}`;
-                    // アプリ未インストール時は2.5秒後にブラウザURLへフォールバック
-                    const fallbackTimer = setTimeout(() => {
-                        window.location.href = fallbackUrl;
-                    }, 2500);
-                    // アプリが起動してページが非表示になったらタイマーをキャンセル
-                    document.addEventListener('visibilitychange', () => {
-                        if (document.hidden) clearTimeout(fallbackTimer);
-                    }, { once: true });
-                } else {
-                    // PC：既存のブラウザURLそのまま
-                    window.location.href = fallbackUrl;
-                }
-            } else {
-                // place_idが未設定の場合は既存動作を維持
-                window.location.href = fallbackUrl;
-            }
+            window.location.href = reviewUrl;
 
             setTimeout(() => { btn.textContent = "📝 コピーしてGoogleを開く"; }, 3000);
         }
