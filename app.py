@@ -2021,8 +2021,8 @@ def add_shop():
     place_id      = (data.get("place_id")      or "").strip()
     status        = (data.get("status")        or "trial").strip() or "trial"
 
-    # place_id があれば口コミ投稿URLを自動生成（ユーザー未入力時）
-    if place_id and not review_url:
+    # place_id があれば口コミ投稿URLを自動生成（place_id優先・既存URLも上書き）
+    if place_id:
         review_url = f"https://search.google.com/local/writereview?placeid={place_id}"
 
     if not name or not review_url:
