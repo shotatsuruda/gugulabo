@@ -577,6 +577,28 @@ with app.app_context():
 
 # ===== クーポン関連ユーティリティ =====
 
+def get_review_url_from_place_id(place_id):
+    """Places API で place_id から CID を取得し #lrd 形式の口コミURLを返す。
+    失敗時は writereview 形式にフォールバックする。"""
+    api_key = os.environ.get("PLACES_API_KEY")
+    if api_key:
+        try:
+            import requests as _requests
+            res = _requests.get(
+                f"https://places.googleapis.com/v1/places/{place_id}",
+                headers={"X-Goog-Api-Key": api_key, "X-Goog-FieldMask": "id,googleMapsUri"},
+                timeout=10,
+            )
+            maps_uri = res.json().get("googleMapsUri", "")
+            if "cid=" in maps_uri:
+                cid = maps_uri.split("cid=")[1].split("&")[0]
+                cid_hex = hex(int(cid))[2:]
+                return f"https://www.google.com/maps?hl=ja#lrd=0x0:{cid_hex},3"
+        except Exception:
+            pass
+    return f"https://search.google.com/local/writereview?placeid={place_id}"
+
+
 def _generate_coupon_code() -> str:
     """
     読みやすいクーポンコードを生成する。
@@ -1849,8 +1871,8 @@ def bulk_create():
         if is_scraper_format:
             address = row[3].strip()
             place_id = row[4].strip()
-            # Replace the generic map URL with a direct 'Write a Review' URL
-            review_url = f"https://search.google.com/local/writereview?placeid={place_id}"
+            # place_id から #lrd 形式の口コミURLを生成（失敗時は writereview にフォールバック）
+            review_url = get_review_url_from_place_id(place_id)
             business_type = predict_business_type_from_name(name)
         else:
             unique_id = row[2].strip() if len(row) > 2 else ""
@@ -2021,9 +2043,9 @@ def add_shop():
     place_id      = (data.get("place_id")      or "").strip()
     status        = (data.get("status")        or "trial").strip() or "trial"
 
-    # place_id があれば口コミ投稿URLを自動生成（place_id優先・既存URLも上書き）
+    # place_id があれば #lrd 形式の口コミURLを自動生成（place_id優先・既存URLも上書き）
     if place_id:
-        review_url = f"https://search.google.com/local/writereview?placeid={place_id}"
+        review_url = get_review_url_from_place_id(place_id)
 
     if not name or not review_url:
         return jsonify({"error": "name と review_url は必須です（place ID を入力するか URL を直接入力してください）"}), 400
