@@ -675,7 +675,13 @@
                     // iOS：comgooglemapsスキームでアプリ起動を試みる
                     window.location.href = `comgooglemaps://?action=reviewplace&placeid=${placeId}`;
                     // アプリ未インストール時は2.5秒後にブラウザURLへフォールバック
-                    setTimeout(() => { window.location.href = fallbackUrl; }, 2500);
+                    const fallbackTimer = setTimeout(() => {
+                        window.location.href = fallbackUrl;
+                    }, 2500);
+                    // アプリが起動してページが非表示になったらタイマーをキャンセル
+                    document.addEventListener('visibilitychange', () => {
+                        if (document.hidden) clearTimeout(fallbackTimer);
+                    }, { once: true });
                 } else {
                     // PC：既存のブラウザURLそのまま
                     window.location.href = fallbackUrl;
