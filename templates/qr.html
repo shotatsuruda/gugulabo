@@ -680,12 +680,20 @@
                 <div class="fw-semibold small text-truncate">${esc(s.name)}${s.business_type ? ` <span style="font-size:0.7rem;background:#F5F3F0;border:1px solid #E8E4DF;border-radius:4px;padding:1px 5px;color:#8C7B6B;">${esc(s.business_type)}</span>` : ''}</div>
                 <div class="url-text text-truncate">${esc(s.review_url)}</div>
                 <div class="url-text text-truncate"><a href="${surveyUrl}" target="_blank" style="color:#8C7B6B;">${surveyUrl}</a></div>
-                ${s.line_user_id || s.place_id ? `
+                ${/* LINE連携は非公開中
+                    s.line_user_id || s.place_id ? `
                     <div class="mt-1 d-flex align-items-center gap-2 flex-wrap">
                         ${s.line_user_id
                             ? '<span style="font-size:0.72rem;color:#00B900;">✅ LINE連携済み</span>'
                             : '<a href="/shop/' + s.id + '/line-connect" style="font-size:0.72rem;color:#00B900;">📱 LINE連携する</a>'
                         }
+                        ${s.place_id
+                            ? '<span style="font-size:0.72rem;color:#4285F4;">✅ Googleマップ連携済み</span><button onclick="fetchPlaceId(' + s.id + ', this)" style="background:none;border:none;color:#999;cursor:pointer;font-size:0.72rem;padding:0;">再連携</button>'
+                            : '<button onclick="fetchPlaceId(' + s.id + ', this)" style="background:#4285F4;color:white;border:none;border-radius:6px;padding:2px 8px;cursor:pointer;font-size:0.72rem;">🗺️ Googleマップと自動連携</button>'
+                        }
+                    </div>` : ''
+                */ s.place_id ? `
+                    <div class="mt-1 d-flex align-items-center gap-2 flex-wrap">
                         ${s.place_id
                             ? '<span style="font-size:0.72rem;color:#4285F4;">✅ Googleマップ連携済み</span><button onclick="fetchPlaceId(' + s.id + ', this)" style="background:none;border:none;color:#999;cursor:pointer;font-size:0.72rem;padding:0;">再連携</button>'
                             : '<button onclick="fetchPlaceId(' + s.id + ', this)" style="background:#4285F4;color:white;border:none;border-radius:6px;padding:2px 8px;cursor:pointer;font-size:0.72rem;">🗺️ Googleマップと自動連携</button>'

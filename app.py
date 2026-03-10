@@ -2568,20 +2568,16 @@ def fetch_place_id(shop_id):
 @app.route('/shop/<int:shop_id>/line-connect')
 @login_required
 def line_connect(shop_id):
-    """LINE連携用ページを表示する（所有者のみ）"""
-    conn = get_db()
-    shop = conn.execute(
-        "SELECT * FROM shops WHERE id = ? AND user_id = ?", (shop_id, current_user.id)
-    ).fetchone()
-    conn.close()
-    if not shop:
-        return "店舗が見つかりません", 404
-    return render_template('line_connect.html', shop=shop, line_add_url=LINE_ADD_FRIEND_URL)
+    """LINE連携は現在非公開"""
+    return "このページは現在準備中です", 404
 
 
 @app.route('/shop/<int:shop_id>/line-connect/complete', methods=['POST'])
 @login_required
 def line_connect_complete(shop_id):
+    """LINE連携は現在非公開"""
+    return jsonify({"success": False, "message": "この機能は現在準備中です"}), 404
+
     conn = get_db()
     shop = conn.execute(
         "SELECT * FROM shops WHERE id = ? AND user_id = ?",
