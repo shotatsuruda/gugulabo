@@ -578,24 +578,7 @@ with app.app_context():
 # ===== クーポン関連ユーティリティ =====
 
 def get_review_url_from_place_id(place_id):
-    """Places API で place_id から CID を取得し #lrd 形式の口コミURLを返す。
-    失敗時は writereview 形式にフォールバックする。"""
-    api_key = os.environ.get("PLACES_API_KEY")
-    if api_key:
-        try:
-            import requests as _requests
-            res = _requests.get(
-                f"https://places.googleapis.com/v1/places/{place_id}",
-                headers={"X-Goog-Api-Key": api_key, "X-Goog-FieldMask": "id,googleMapsUri"},
-                timeout=10,
-            )
-            maps_uri = res.json().get("googleMapsUri", "")
-            if "cid=" in maps_uri:
-                cid = maps_uri.split("cid=")[1].split("&")[0]
-                cid_hex = hex(int(cid))[2:]
-                return f"https://www.google.com/maps?hl=ja#lrd=0x0:{cid_hex},3"
-        except Exception:
-            pass
+    """place_id から口コミ投稿URLを返す。"""
     return f"https://search.google.com/local/writereview?placeid={place_id}"
 
 
