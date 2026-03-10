@@ -1850,7 +1850,7 @@ def bulk_create():
             address = row[3].strip()
             place_id = row[4].strip()
             # Replace the generic map URL with a direct 'Write a Review' URL
-            review_url = f"https://maps.google.com/?action=reviewbusiness&placeid={place_id}"
+            review_url = f"https://search.google.com/local/writereview?placeid={place_id}"
             business_type = predict_business_type_from_name(name)
         else:
             unique_id = row[2].strip() if len(row) > 2 else ""
@@ -2023,7 +2023,7 @@ def add_shop():
 
     # place_id があれば口コミ投稿URLを自動生成（ユーザー未入力時）
     if place_id and not review_url:
-        review_url = f"https://maps.google.com/?action=reviewbusiness&placeid={place_id}"
+        review_url = f"https://search.google.com/local/writereview?placeid={place_id}"
 
     if not name or not review_url:
         return jsonify({"error": "name と review_url は必須です（place ID を入力するか URL を直接入力してください）"}), 400
