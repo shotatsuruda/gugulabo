@@ -662,14 +662,8 @@
             textArea.setSelectionRange(0, 99999); // iOS Safari対応
             document.execCommand('copy');
 
-            // レビューURLを生成
-            const placeId = "{{ shop.place_id }}";
-            const reviewUrl = placeId
-                ? `https://search.google.com/local/writereview?placeid=${placeId}`
-                : finalReviewUrl;
-
-            // ユーザージェスチャー内で即時実行（ポップアップブロック回避）
-            window.open(reviewUrl, '_blank', 'noopener,noreferrer');
+            // DBに保存済みの #lrd 形式URLをそのまま使用
+            window.open(finalReviewUrl, '_blank', 'noopener,noreferrer');
 
             const btn = document.getElementById('copy-btn');
             btn.textContent = "コピー完了！Googleを開きます...";
