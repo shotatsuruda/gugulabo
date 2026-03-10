@@ -662,11 +662,16 @@
             btn.textContent = "コピー完了！Googleを開きます...";
 
             const placeId = "{{ shop.place_id }}";
-            const reviewUrl = placeId
-                ? `https://search.google.com/local/writereview?placeid=${placeId}`
-                : finalReviewUrl;
+            let reviewUrl;
 
-            // 新しいタブで開くことでクリップボードを保持したまま貼り付けができる
+            if (placeId) {
+                // レビュー文をURLパラメータに埋め込んで自動入力を試みる
+                const encodedText = encodeURIComponent(textToCopy);
+                reviewUrl = `https://search.google.com/local/writereview?placeid=${placeId}&review=${encodedText}`;
+            } else {
+                reviewUrl = finalReviewUrl;
+            }
+
             window.open(reviewUrl, '_blank', 'noopener,noreferrer');
 
             setTimeout(() => { btn.textContent = "📝 コピーしてGoogleを開く"; }, 3000);
