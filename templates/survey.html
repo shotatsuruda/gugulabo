@@ -503,7 +503,7 @@
             <div class="card" style="text-align: center; padding: 4rem 1.5rem;">
                 <div class="loader"></div>
                 <h3 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem;">処理中...</h3>
-                <p style="color: var(--text-muted); font-size: 0.9rem;">レビューの下書きを作成しています</p>
+                <p style="color: var(--text-muted); font-size: 0.9rem;">アンケート内容を元にAIが文章を作成しています</p>
             </div>
         </div>
 
@@ -532,6 +532,9 @@
                     style="margin-bottom: 1.5rem; background-color: var(--accent-color);">
                     📝 コピーしてGoogleを開く
                 </button>
+                <p id="ios-chrome-hint" style="display:none; font-size:0.8rem; color:var(--text-muted); margin-bottom:1rem; line-height:1.5;">
+                    💡 iPhoneをお使いの方は、Chromeブラウザでこのページを開くとよりスムーズに投稿できます
+                </p>
 
                 <div
                     style="text-align: left; background: var(--bg-color); border: 1px solid var(--border-color); padding: 1.25rem; border-radius: var(--radius-md);">
@@ -641,6 +644,12 @@
 
             document.getElementById('step-loading').classList.remove('active');
             document.getElementById('step-finish').classList.add('active');
+        }
+
+        // iPhoneの場合のみChrome案内を表示
+        if (/iphone|ipad/i.test(navigator.userAgent)) {
+            const hint = document.getElementById('ios-chrome-hint');
+            if (hint) hint.style.display = 'block';
         }
 
         function copyAndGotoGoogle() {
