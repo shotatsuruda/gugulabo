@@ -1677,6 +1677,11 @@ def cancel():
     return render_template("cancel.html")
 
 
+@app.route("/legal")
+def legal():
+    return render_template("legal.html")
+
+
 @app.route("/cancel-subscription", methods=["POST"])
 @payment_required
 def cancel_subscription():

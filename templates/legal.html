@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block title %}特定商取引法に基づく表記 | গগラボ{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-4">
+    <div class="col-lg-8 col-md-10">
+
+        <h2 class="fw-bold mb-4" style="font-size:1.4rem;">特定商取引法に基づく表記</h2>
+
+        <table class="table table-bordered" style="font-size:0.9rem;">
+            <tbody>
+                <tr>
+                    <th style="width:35%;background:#f8f5f2;white-space:nowrap;">販売者名</th>
+                    <td>鶴田将太</td>
+                </tr>
+                <tr>
+                    <th style="background:#f8f5f2;">所在地</th>
+                    <td>奈良県生駒市<br>
+                        <span style="font-size:0.82rem;color:#9A9A9A;">※番地はお問い合わせいただいた場合、遅滞なく開示します。</span>
+                    </td>
+                </tr>
+                <tr>
+                    <th style="background:#f8f5f2;">メールアドレス</th>
+                    <td><a href="mailto:seiryu.design@gmail.com">seiryu.design@gmail.com</a></td>
+                </tr>
+                <tr>
+                    <th style="background:#f8f5f2;">サービス名</th>
+                    <td>gugulabo（Googleレビュー管理サービス）</td>
+                </tr>
+                <tr>
+                    <th style="background:#f8f5f2;">販売価格</th>
+                    <td>
+                        月額プラン：3,980円／月（税込）<br>
+                        年額プラン：39,800円／年（税込）
+                    </td>
+                </tr>
+                <tr>
+                    <th style="background:#f8f5f2;">支払方法</th>
+                    <td>クレジットカード（Stripe）</td>
+                </tr>
+                <tr>
+                    <th style="background:#f8f5f2;">支払時期</th>
+                    <td>お申し込み時、および毎月・毎年の更新時に自動決済</td>
+                </tr>
+                <tr>
+                    <th style="background:#f8f5f2;">サービス提供時期</th>
+                    <td>決済完了後、即時利用可能</td>
+                </tr>
+                <tr>
+                    <th style="background:#f8f5f2;">返品・キャンセルについて</th>
+                    <td>サービスの性質上、決済完了後の返金はお受けできません。<br>
+                        解約はいつでも可能で、解約後は次回更新日以降の請求は発生しません。</td>
+                </tr>
+                <tr>
+                    <th style="background:#f8f5f2;">動作環境</th>
+                    <td>最新版のChrome / Safari / Firefox 推奨</td>
+                </tr>
+            </tbody>
+        </table>
+
+    </div>
+</div>
+{% endblock %}
