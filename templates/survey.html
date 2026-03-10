@@ -544,7 +544,8 @@
                             style="color:var(--star-active); letter-spacing:2px; font-size: 1.1rem; vertical-align: middle;">★★★★★</span>
                         をタップ
                     </p>
-                    <p style="font-size: 0.85rem; color: var(--text-muted);">2. 感想欄にコピーした文章を「貼り付け」して投稿</p>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem;">2. 入力欄を<strong>長押し</strong>して「ペースト」をタップ</p>
+                    <p style="font-size: 0.85rem; color: var(--text-muted);">3. 「投稿する」をタップして完了</p>
                 </div>
             </div>
 
@@ -667,7 +668,7 @@
             window.open(finalReviewUrl, '_blank', 'noopener,noreferrer');
 
             const btn = document.getElementById('copy-btn');
-            btn.textContent = "コピー完了！Googleを開きます...";
+            btn.textContent = "✅ コピー完了！Googleが開きます";
             setTimeout(() => { btn.textContent = "📝 コピーしてGoogleを開く"; }, 3000);
         }
 
