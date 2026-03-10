@@ -659,16 +659,15 @@
             }
 
             const btn = document.getElementById('copy-btn');
-            btn.textContent = "コピー完了！Googleマップを開きます...";
+            btn.textContent = "コピー完了！Googleを開きます...";
 
-            // Universal Links によりiOSはGoogleマップアプリが自動起動、
-            // アプリ未インストールまたはAndroid・PCはブラウザで口コミ入力画面を開く
             const placeId = "{{ shop.place_id }}";
             const reviewUrl = placeId
                 ? `https://search.google.com/local/writereview?placeid=${placeId}`
                 : finalReviewUrl;
 
-            window.location.href = reviewUrl;
+            // 新しいタブで開くことでクリップボードを保持したまま貼り付けができる
+            window.open(reviewUrl, '_blank', 'noopener,noreferrer');
 
             setTimeout(() => { btn.textContent = "📝 コピーしてGoogleを開く"; }, 3000);
         }
