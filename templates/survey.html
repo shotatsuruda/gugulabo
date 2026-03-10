@@ -659,10 +659,31 @@
             }
 
             const btn = document.getElementById('copy-btn');
-            btn.textContent = "コピー完了！Googleを開きます...";
+            btn.textContent = "コピー完了！Googleマップを開きます...";
 
-            // ユーザージェスチャー内で直接 open → ポップアップ警告なし
-            window.open(finalReviewUrl, '_blank', 'noopener,noreferrer');
+            // デバイス別にGoogleマップアプリへディープリンク誘導
+            const placeId = "{{ shop.place_id }}";
+            const fallbackUrl = finalReviewUrl;
+            const ua = navigator.userAgent;
+
+            if (placeId) {
+                if (/android/i.test(ua)) {
+                    // Android：intentスキームでGoogleマップアプリを直接起動
+                    window.location.href =
+                        `intent://maps.google.com/maps?action=reviewplace&placeid=${placeId}#Intent;scheme=https;package=com.google.android.apps.maps;end`;
+                } else if (/iphone|ipad/i.test(ua)) {
+                    // iOS：comgooglemapsスキームでアプリ起動を試みる
+                    window.location.href = `comgooglemaps://?action=reviewplace&placeid=${placeId}`;
+                    // アプリ未インストール時は2.5秒後にブラウザURLへフォールバック
+                    setTimeout(() => { window.location.href = fallbackUrl; }, 2500);
+                } else {
+                    // PC：既存のブラウザURLそのまま
+                    window.location.href = fallbackUrl;
+                }
+            } else {
+                // place_idが未設定の場合は既存動作を維持
+                window.location.href = fallbackUrl;
+            }
 
             setTimeout(() => { btn.textContent = "📝 コピーしてGoogleを開く"; }, 3000);
         }
