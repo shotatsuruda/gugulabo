@@ -45,11 +45,5 @@ def get_new_reviews(shop_id: int, place_id: str, db_conn) -> tuple:
     )
     seen_ids = {row[0] for row in cursor.fetchall()}
 
-    from datetime import datetime, timezone, timedelta
-    one_week_ago = datetime.now(timezone.utc) - timedelta(days=7)
-    new_reviews = [
-        r for r in all_reviews
-        if r["id"] not in seen_ids
-        and datetime.fromisoformat(r["time"].replace("Z", "+00:00")) >= one_week_ago
-    ]
+    new_reviews = [r for r in all_reviews if r["id"] not in seen_ids]
     return new_reviews, data["rating"]

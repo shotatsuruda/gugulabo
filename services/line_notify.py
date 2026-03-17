@@ -1,11 +1,13 @@
 import os
 import requests
 
+LINE_CHANNEL_ACCESS_TOKEN = os.environ.get("LINE_CHANNEL_ACCESS_TOKEN")
+
+
 def send_line_message(line_user_id: str, message: str):
     """
     LINE Messaging APIで個別ユーザーにメッセージを送信する。
     """
-    LINE_CHANNEL_ACCESS_TOKEN = os.environ.get("LINE_CHANNEL_ACCESS_TOKEN")
     url = "https://api.line.me/v2/bot/message/push"
     headers = {
         "Authorization": f"Bearer {LINE_CHANNEL_ACCESS_TOKEN}",
