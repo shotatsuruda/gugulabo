@@ -291,6 +291,39 @@
         }
         .btn-plan-outline:hover { background: #1C1C1C; color: #fff; }
 
+        /* ---- LINE Report ---- */
+        .line-card {
+            background: #2A2A2A;
+            border-radius: 12px;
+            padding: 28px;
+            color: white;
+        }
+        .line-card-icon { font-size: 36px; margin-bottom: 12px; }
+        .line-card h3 { font-size: 18px; font-weight: bold; margin-bottom: 12px; color: white; }
+        .line-card p { font-size: 14px; color: #AAAAAA; line-height: 1.8; }
+        .line-cards-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin: 48px 0;
+        }
+        .line-samples {
+            display: flex;
+            gap: 24px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 24px 0 40px;
+        }
+        .line-samples img {
+            max-width: 320px;
+            width: 100%;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+        }
+        @media (max-width: 768px) {
+            .line-cards-grid { grid-template-columns: 1fr; }
+        }
+
         /* ---- Final CTA ---- */
         .final-cta { padding: 100px 0; background: #1C1C1C; text-align: center; }
         .final-cta h2 {
@@ -649,6 +682,58 @@
         <div class="demo-frame">
             <iframe id="demo-iframe" src="/shop/demo?demo=1&business_type=美容院"></iframe>
         </div>
+    </div>
+</section>
+
+<!-- ========== LINE REPORT ========== -->
+<section id="line-report" style="background:#1C1C1C;padding:80px 0;">
+    <div class="wrap">
+
+        <!-- 見出しエリア -->
+        <div style="text-align:center;margin-bottom:48px;">
+            <span style="display:inline-block;font-size:13px;font-weight:700;color:#C9A96E;letter-spacing:0.1em;margin-bottom:16px;">オーナー向け機能</span>
+            <h2 style="font-family:var(--serif);font-size:36px;color:#fff;margin-bottom:12px;">口コミが増えるだけじゃない。</h2>
+            <p style="font-family:var(--serif);font-size:22px;color:#fff;margin-bottom:24px;">毎週LINEで、返信漏れゼロ・MEO改善も自動化</p>
+            <p style="font-size:15px;color:#CCCCCC;max-width:600px;margin:0 auto;line-height:1.9;">
+                口コミへの返信はGoogleの評価アルゴリズムに影響します。<br>
+                でも忙しいオーナーが毎日チェックするのは現実的ではありません。<br>
+                গগラボは毎週月曜朝9時に、新着口コミへのAI返信案と<br>
+                MEOアドバイスをLINEでお届けします。
+            </p>
+        </div>
+
+        <!-- 3カード -->
+        <div class="line-cards-grid">
+            <div class="line-card">
+                <div class="line-card-icon">📅</div>
+                <h3>見逃しゼロ</h3>
+                <p>新着口コミをまとめて週1回LINEで通知。いつ届くかわかっているから、確認し忘れがありません。忙しい施術の合間でもサッと確認できます。</p>
+            </div>
+            <div class="line-card">
+                <div class="line-card-icon">🤖</div>
+                <h3>返信文をそのままコピペ</h3>
+                <p>各口コミに対してAIが返信案を自動生成。コピーしてGoogleマップに貼り付けるだけで完了。丁寧な返信がオーナーの誠実な印象を作ります。</p>
+            </div>
+            <div class="line-card">
+                <div class="line-card-icon">📊</div>
+                <h3>毎週変わるMEOアドバイス</h3>
+                <p>季節トレンド・Googleプロフィール改善・口コミ返答のコツをローテーションでお届け。継続するだけで集客力が底上げされます。</p>
+            </div>
+        </div>
+
+        <!-- LINEサンプル画像 -->
+        <p style="text-align:center;color:#fff;font-size:20px;font-weight:bold;margin-bottom:24px;">実際にこんなLINEが届きます</p>
+        <div class="line-samples">
+            <img src="/static/images/line-sample-1.jpg" alt="LINEレポートサンプル1">
+            <img src="/static/images/line-sample-2.jpg" alt="LINEレポートサンプル2">
+        </div>
+
+        <!-- ボトムCTA -->
+        <div style="text-align:center;">
+            <p style="color:#C9A96E;font-size:14px;margin-bottom:20px;">LINEレポートは全プランに含まれています</p>
+            <a href="/register" style="display:inline-block;background:#C9A96E;color:#fff;padding:14px 40px;border-radius:6px;font-size:16px;font-weight:bold;text-decoration:none;">無料で始める</a>
+        </div>
+
     </div>
 </section>
 
