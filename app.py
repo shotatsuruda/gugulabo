@@ -1128,13 +1128,48 @@ SURVEY_OPTIONS = {
         "q7": {"label": "特によかった点", "choices": ["技術", "接客", "雰囲気", "説明の丁寧さ", "価格"]},
     },
     "美容院": {
-        "q1": "総合的な満足度",
-        "q2": "接客・スタッフの対応",
-        "q3": "施術・技術の質",
-        "q4": "サロンの雰囲気・清潔感",
-        "q5": "また来店したいか",
-        "q6": {"label": "利用メニュー", "choices": ["カット", "カラー", "パーマ", "トリートメント", "その他"]},
-        "q7": {"label": "特によかった点", "choices": ["技術", "接客", "仕上がり", "雰囲気", "価格"]},
+        "questions": [
+            {
+                "id": "menu",
+                "text": "今回のメニューは何でしたか？",
+                "type": "multi",
+                "required": True,
+                "options": ["カット", "カラー", "パーマ", "縮毛矯正",
+                            "トリートメント", "ヘッドスパ", "ブリーチ",
+                            "インナーカラー", "その他"]
+            },
+            {
+                "id": "satisfaction",
+                "text": "仕上がりはいかがでしたか？",
+                "type": "single",
+                "required": True,
+                "options": ["とても満足", "満足", "普通", "少し不満", "不満"]
+            },
+            {
+                "id": "good_points",
+                "text": "特によかった点を教えてください",
+                "type": "multi",
+                "required": False,
+                "options": ["カラーの発色", "スタイルの提案力", "カットの技術",
+                            "グレージュ・透明感の仕上がり", "縮毛矯正の自然さ",
+                            "ヘアダメージへの配慮", "スタッフの対応",
+                            "店内の雰囲気", "丁寧なカウンセリング", "施術時間"]
+            },
+            {
+                "id": "revisit",
+                "text": "また来店したいと思いますか？",
+                "type": "single",
+                "required": True,
+                "options": ["ぜひまた来たい", "たぶん来ると思う", "まだわからない"]
+            },
+            {
+                "id": "comment",
+                "text": "お気づきの点など（任意）",
+                "type": "text",
+                "required": False,
+                "placeholder": "担当スタイリストへのメッセージやご要望があればご記入ください"
+            }
+        ]
     },
     "飲食店": {
         "q1": "総合的な満足度",
@@ -1235,21 +1270,35 @@ def submit_feedback(slug):
         return jsonify({"success": False, "error": "店舗が見つかりません"}), 404
 
     data = request.get_json()
-    rating  = data.get("rating")
-    rating2 = data.get("rating2")
-    rating3 = data.get("rating3")
-    rating4 = data.get("rating4")
-    rating5 = data.get("rating5")
-    comment  = (data.get("comment")  or "").strip()
-    answer6  = (data.get("answer6")  or "").strip()
-    answer7  = (data.get("answer7")  or "").strip()
-    
+    comment = (data.get("comment") or "").strip()
+
     submitted_at = datetime.now().strftime("%Y年%m月%d日 %H:%M")
 
     # 業種に応じてアンケート項目を取得
     shop_dict = dict(shop)
     b_type = shop_dict.get("business_type") or "default"
     opts = SURVEY_OPTIONS.get(b_type, SURVEY_OPTIONS["default"])
+
+    # 美容院：選択式アンケートのデータ読み取り
+    if b_type == "美容院":
+        menu         = (data.get("menu")         or "").strip()
+        satisfaction = (data.get("satisfaction")  or "").strip()
+        good_points  = (data.get("good_points")   or "").strip()
+        revisit      = (data.get("revisit")        or "").strip()
+        sat_map = {"とても満足": 5, "満足": 4, "普通": 3, "少し不満": 2, "不満": 1}
+        rating  = sat_map.get(satisfaction, 3)
+        rating2 = rating3 = rating4 = rating5 = 0
+        answer6 = menu
+        answer7 = good_points
+    else:
+        menu = satisfaction = good_points = revisit = ""
+        rating  = data.get("rating")
+        rating2 = data.get("rating2")
+        rating3 = data.get("rating3")
+        rating4 = data.get("rating4")
+        rating5 = data.get("rating5")
+        answer6 = (data.get("answer6") or "").strip()
+        answer7 = (data.get("answer7") or "").strip()
 
     # ===== AI（OpenRouter）によるレビュー下書きの生成 =====
     ai_draft = ""
@@ -1328,19 +1377,41 @@ def submit_feedback(slug):
 
 ルール絶対遵守: 【トーン：シンプル】などのメタ情報や前置きテキストは含めず、純粋な口コミテキストのみを出力してください。"""
             
-        user_prompt = f"【アンケート結果】\n{opts['q1']}: 星{rating}\n"
-        user_prompt += f"{opts['q2']}: 星{rating2}\n"
-        user_prompt += f"{opts['q3']}: 星{rating3}\n"
-        user_prompt += f"{opts['q4']}: 星{rating4}\n"
-        user_prompt += f"{opts['q5']}: 星{rating5}\n"
-        if answer6 and answer6 != "特になし":
-            q6_label = opts.get("q6", {}).get("label", "来店・来院理由") if isinstance(opts.get("q6"), dict) else "来店・来院理由"
-            user_prompt += f"{q6_label}: {answer6}\n"
-        if answer7 and answer7 != "特になし":
-            q7_label = opts.get("q7", {}).get("label", "特によかった点") if isinstance(opts.get("q7"), dict) else "特によかった点"
-            user_prompt += f"{q7_label}: {answer7}\n"
-        if comment:
-            user_prompt += f"自由記入コメント: {comment}\n"
+        if b_type == "美容院":
+            system_prompt = "あなたはGoogleマップの口コミを書く一般のお客様です。指示に従って自然な口コミを作成してください。"
+            user_prompt = (
+                "あなたは美容室のお客様です。以下のアンケート回答をもとに、"
+                "Googleマップに投稿する自然な口コミ文章を日本語で書いてください。\n\n"
+                f"【アンケート回答】\n"
+                f"- 今回のメニュー: {menu}\n"
+                f"- 仕上がりの満足度: {satisfaction}\n"
+                f"- よかった点: {good_points}\n"
+                f"- また来店したいか: {revisit}\n"
+                f"- コメント: {comment}\n\n"
+                "【口コミ作成のルール】\n"
+                "- 200〜300文字程度\n"
+                "- 美容室らしい言葉を使う（グレージュ、インナーカラー、縮毛矯正など）\n"
+                "- 「です・ます調」で自然な文体\n"
+                "- 満足度が「普通」以下の場合は星4以下を示唆する表現にする\n"
+                "- 「また来たい」場合は再来店の意思を含める\n"
+                "- 箇条書きや記号は使わない\n"
+                "- 冒頭に「サンプル」などのテスト感のある言葉は使わない\n\n"
+                "口コミ文章のみを出力してください。"
+            )
+        else:
+            user_prompt = f"【アンケート結果】\n{opts['q1']}: 星{rating}\n"
+            user_prompt += f"{opts['q2']}: 星{rating2}\n"
+            user_prompt += f"{opts['q3']}: 星{rating3}\n"
+            user_prompt += f"{opts['q4']}: 星{rating4}\n"
+            user_prompt += f"{opts['q5']}: 星{rating5}\n"
+            if answer6 and answer6 != "特になし":
+                q6_label = opts.get("q6", {}).get("label", "来店・来院理由") if isinstance(opts.get("q6"), dict) else "来店・来院理由"
+                user_prompt += f"{q6_label}: {answer6}\n"
+            if answer7 and answer7 != "特になし":
+                q7_label = opts.get("q7", {}).get("label", "特によかった点") if isinstance(opts.get("q7"), dict) else "特によかった点"
+                user_prompt += f"{q7_label}: {answer7}\n"
+            if comment:
+                user_prompt += f"自由記入コメント: {comment}\n"
 
         headers = {
             "Authorization": f"Bearer {os.environ.get('OPENROUTER_API_KEY')}",

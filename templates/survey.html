@@ -353,6 +353,24 @@
             color: #fff;
             font-weight: 600;
         }
+        /* ===== 選択式（美容院）===== */
+        .pill-group {
+            display: flex; flex-wrap: wrap; gap: 10px;
+            justify-content: center; margin: 16px 0;
+        }
+        .pill-btn {
+            padding: 10px 20px; border-radius: 20px;
+            border: 1px solid #ddd; background: white;
+            font-size: 14px; cursor: pointer;
+            transition: all 0.2s; font-family: inherit;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .pill-btn.selected {
+            background: #C9A96E; color: white; border-color: #C9A96E;
+        }
+        .question-block { margin-bottom: 32px; text-align: center; }
+        .question-label { font-size: 16px; font-weight: bold; color: #1C1C1C; margin-bottom: 4px; }
+        .question-sub { font-size: 12px; color: #888; margin-bottom: 12px; }
     </style>
     <style>
         /* ===== デモ解説オーバーレイ ===== */
@@ -408,9 +426,88 @@
             <p class="subtitle">サービス向上のため、アンケートにご協力ください</p>
         </div>
 
-        {# ===== STEP 1: 5-Star Survey ===== #}
+        {# ===== STEP 1: Survey ===== #}
         <div class="section active" id="step-survey">
             <div class="card">
+
+                {% if shop.business_type == '美容院' %}
+                {# ===== 美容院：選択式 ===== #}
+
+                <!-- Q1 メニュー（複数選択） -->
+                <div class="question-block">
+                    <div class="question-label">今回のメニューは何でしたか？</div>
+                    <div class="question-sub">複数選択できます</div>
+                    <div class="demo-bubble arrow-down" style="margin:0 auto 12px;">📋 受けたメニューを選んでね！</div>
+                    <div class="pill-group" id="q-menu">
+                        <button type="button" class="pill-btn" data-q="menu" data-v="カット">カット</button>
+                        <button type="button" class="pill-btn" data-q="menu" data-v="カラー">カラー</button>
+                        <button type="button" class="pill-btn" data-q="menu" data-v="パーマ">パーマ</button>
+                        <button type="button" class="pill-btn" data-q="menu" data-v="縮毛矯正">縮毛矯正</button>
+                        <button type="button" class="pill-btn" data-q="menu" data-v="トリートメント">トリートメント</button>
+                        <button type="button" class="pill-btn" data-q="menu" data-v="ヘッドスパ">ヘッドスパ</button>
+                        <button type="button" class="pill-btn" data-q="menu" data-v="ブリーチ">ブリーチ</button>
+                        <button type="button" class="pill-btn" data-q="menu" data-v="インナーカラー">インナーカラー</button>
+                        <button type="button" class="pill-btn" data-q="menu" data-v="その他">その他</button>
+                    </div>
+                </div>
+
+                <!-- Q2 満足度（単一選択） -->
+                <div class="question-block">
+                    <div class="question-label">仕上がりはいかがでしたか？</div>
+                    <div class="demo-bubble arrow-down" style="margin:0 auto 12px;">⭐ 満足度を選んでね！</div>
+                    <div class="pill-group" id="q-satisfaction">
+                        <button type="button" class="pill-btn" data-q="satisfaction" data-single="true" data-v="とても満足">とても満足</button>
+                        <button type="button" class="pill-btn" data-q="satisfaction" data-single="true" data-v="満足">満足</button>
+                        <button type="button" class="pill-btn" data-q="satisfaction" data-single="true" data-v="普通">普通</button>
+                        <button type="button" class="pill-btn" data-q="satisfaction" data-single="true" data-v="少し不満">少し不満</button>
+                        <button type="button" class="pill-btn" data-q="satisfaction" data-single="true" data-v="不満">不満</button>
+                    </div>
+                </div>
+
+                <!-- Q3 よかった点（複数選択・任意） -->
+                <div class="question-block">
+                    <div class="question-label">特によかった点を教えてください</div>
+                    <div class="question-sub">任意・複数選択できます</div>
+                    <div class="pill-group" id="q-good-points">
+                        <button type="button" class="pill-btn" data-q="good_points" data-v="カラーの発色">カラーの発色</button>
+                        <button type="button" class="pill-btn" data-q="good_points" data-v="スタイルの提案力">スタイルの提案力</button>
+                        <button type="button" class="pill-btn" data-q="good_points" data-v="カットの技術">カットの技術</button>
+                        <button type="button" class="pill-btn" data-q="good_points" data-v="グレージュ・透明感の仕上がり">グレージュ・透明感</button>
+                        <button type="button" class="pill-btn" data-q="good_points" data-v="縮毛矯正の自然さ">縮毛矯正の自然さ</button>
+                        <button type="button" class="pill-btn" data-q="good_points" data-v="ヘアダメージへの配慮">ダメージへの配慮</button>
+                        <button type="button" class="pill-btn" data-q="good_points" data-v="スタッフの対応">スタッフの対応</button>
+                        <button type="button" class="pill-btn" data-q="good_points" data-v="店内の雰囲気">店内の雰囲気</button>
+                        <button type="button" class="pill-btn" data-q="good_points" data-v="丁寧なカウンセリング">カウンセリング</button>
+                        <button type="button" class="pill-btn" data-q="good_points" data-v="施術時間">施術時間</button>
+                    </div>
+                </div>
+
+                <!-- Q4 再来店（単一選択） -->
+                <div class="question-block">
+                    <div class="question-label">また来店したいと思いますか？</div>
+                    <div class="pill-group" id="q-revisit">
+                        <button type="button" class="pill-btn" data-q="revisit" data-single="true" data-v="ぜひまた来たい">ぜひまた来たい</button>
+                        <button type="button" class="pill-btn" data-q="revisit" data-single="true" data-v="たぶん来ると思う">たぶん来ると思う</button>
+                        <button type="button" class="pill-btn" data-q="revisit" data-single="true" data-v="まだわからない">まだわからない</button>
+                    </div>
+                </div>
+
+                <!-- Q5 自由記述（任意） -->
+                <div class="question-block">
+                    <div class="question-label">お気づきの点など（任意）</div>
+                    <textarea class="survey-textarea" id="feedback-text" rows="3"
+                        placeholder="担当スタイリストへのメッセージやご要望があればご記入ください"></textarea>
+                </div>
+
+                <!-- hidden fields -->
+                <input type="hidden" id="hidden-menu">
+                <input type="hidden" id="hidden-satisfaction">
+                <input type="hidden" id="hidden-good-points">
+                <input type="hidden" id="hidden-revisit">
+
+                {% else %}
+                {# ===== その他業種：星評価 ===== #}
+
                 <div class="q-group">
                     <div class="q-title">{{ survey_options.q1 }}</div>
                     <div class="demo-bubble arrow-down" style="margin-bottom:10px;">⭐ 満足度を選んでね！</div>
@@ -420,7 +517,6 @@
                         {% endfor %}
                     </div>
                 </div>
-
                 <div class="q-group">
                     <div class="q-title">{{ survey_options.q2 }}</div>
                     <div class="stars-row" id="stars-2">
@@ -429,7 +525,6 @@
                         {% endfor %}
                     </div>
                 </div>
-
                 <div class="q-group">
                     <div class="q-title">{{ survey_options.q3 }}</div>
                     <div class="stars-row" id="stars-3">
@@ -438,7 +533,6 @@
                         {% endfor %}
                     </div>
                 </div>
-
                 <div class="q-group">
                     <div class="q-title">{{ survey_options.q4 }}</div>
                     <div class="stars-row" id="stars-4">
@@ -447,7 +541,6 @@
                         {% endfor %}
                     </div>
                 </div>
-
                 <div class="q-group">
                     <div class="q-title">{{ survey_options.q5 }}</div>
                     <div class="stars-row" id="stars-5">
@@ -461,25 +554,20 @@
                 <div class="q-group">
                     <div class="q-title">{{ survey_options.q6.label }}<span style="font-size:0.78rem;font-weight:400;color:var(--text-muted);margin-left:0.4rem;">（任意）</span></div>
                     <div class="choice-row" id="choices-6">
-                        <button class="choice-btn" data-q="6" data-val=""
-                            onclick="selectChoice(6, '')">特になし</button>
+                        <button class="choice-btn" data-q="6" data-val="" onclick="selectChoice(6, '')">特になし</button>
                         {% for choice in survey_options.q6.choices %}
-                        <button class="choice-btn" data-q="6" data-val="{{ choice }}"
-                            onclick="selectChoice(6, '{{ choice }}')">{{ choice }}</button>
+                        <button class="choice-btn" data-q="6" data-val="{{ choice }}" onclick="selectChoice(6, '{{ choice }}')">{{ choice }}</button>
                         {% endfor %}
                     </div>
                 </div>
                 {% endif %}
-
                 {% if survey_options.q7 %}
                 <div class="q-group">
                     <div class="q-title">{{ survey_options.q7.label }}<span style="font-size:0.78rem;font-weight:400;color:var(--text-muted);margin-left:0.4rem;">（任意）</span></div>
                     <div class="choice-row" id="choices-7">
-                        <button class="choice-btn" data-q="7" data-val=""
-                            onclick="selectChoice(7, '')">特になし</button>
+                        <button class="choice-btn" data-q="7" data-val="" onclick="selectChoice(7, '')">特になし</button>
                         {% for choice in survey_options.q7.choices %}
-                        <button class="choice-btn" data-q="7" data-val="{{ choice }}"
-                            onclick="selectChoice(7, '{{ choice }}')">{{ choice }}</button>
+                        <button class="choice-btn" data-q="7" data-val="{{ choice }}" onclick="selectChoice(7, '{{ choice }}')">{{ choice }}</button>
                         {% endfor %}
                     </div>
                 </div>
@@ -490,6 +578,8 @@
                     <textarea class="survey-textarea" id="feedback-text" rows="3"
                         placeholder="具体的なエピソードなどをご記入ください"></textarea>
                 </div>
+
+                {% endif %}
 
                 <button class="btn-main" id="submit-btn" onclick="submitSurvey()" disabled>
                     回答を送信&amp;口コミを自動生成
@@ -573,6 +663,7 @@
 
     <script>
         const SHOP_SLUG = {{ shop.slug | tojson }};
+        const BUSINESS_TYPE = {{ shop.business_type | tojson }};
         let finalReviewUrl = "{{ shop.review_url }}";
 
         const ratings = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
@@ -584,11 +675,7 @@
             const buttons = container.querySelectorAll('.star-btn');
             buttons.forEach(btn => {
                 const bVal = parseInt(btn.dataset.val);
-                if (bVal <= val) {
-                    btn.classList.add('lit');
-                } else {
-                    btn.classList.remove('lit');
-                }
+                btn.classList.toggle('lit', bVal <= val);
             });
             checkReady();
         }
@@ -601,32 +688,83 @@
             checkReady();
         }
 
+        // ===== ピルボタン選択制御（美容院） =====
+        document.querySelectorAll('.pill-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const q = this.dataset.q;
+                const isSingle = this.dataset.single === 'true';
+                if (isSingle) {
+                    document.querySelectorAll(`.pill-btn[data-q="${q}"]`)
+                        .forEach(b => b.classList.remove('selected'));
+                }
+                this.classList.toggle('selected');
+                updateHidden(q);
+                checkReady();
+            });
+        });
+
+        function updateHidden(q) {
+            const selected = [...document.querySelectorAll(
+                `.pill-btn[data-q="${q}"].selected`
+            )].map(b => b.dataset.v).join(',');
+            const map = {
+                'menu': 'hidden-menu',
+                'satisfaction': 'hidden-satisfaction',
+                'good_points': 'hidden-good-points',
+                'revisit': 'hidden-revisit'
+            };
+            const el = document.getElementById(map[q]);
+            if (el) el.value = selected;
+        }
+
         function checkReady() {
-            const allRated = Object.values(ratings).every(r => r > 0);
-            document.getElementById('submit-btn').disabled = !allRated;
+            const btn = document.getElementById('submit-btn');
+            if (BUSINESS_TYPE === '美容院') {
+                const menuOk = document.querySelector('.pill-btn[data-q="menu"].selected');
+                const satOk  = document.querySelector('.pill-btn[data-q="satisfaction"].selected');
+                const revOk  = document.querySelector('.pill-btn[data-q="revisit"].selected');
+                btn.disabled = !(menuOk && satOk && revOk);
+            } else {
+                const allRated = Object.values(ratings).every(r => r > 0);
+                btn.disabled = !allRated;
+            }
         }
 
         async function submitSurvey() {
-            const comment = document.getElementById('feedback-text').value.trim();
+            const commentEl = document.getElementById('feedback-text');
+            const comment = commentEl ? commentEl.value.trim() : '';
 
             document.getElementById('step-survey').classList.remove('active');
             document.getElementById('step-loading').classList.add('active');
             window.scrollTo({ top: 0, behavior: 'smooth' });
 
+            let body;
+            if (BUSINESS_TYPE === '美容院') {
+                body = {
+                    menu:         document.getElementById('hidden-menu').value,
+                    satisfaction: document.getElementById('hidden-satisfaction').value,
+                    good_points:  document.getElementById('hidden-good-points').value,
+                    revisit:      document.getElementById('hidden-revisit').value,
+                    comment:      comment,
+                };
+            } else {
+                body = {
+                    rating:  ratings[1],
+                    rating2: ratings[2],
+                    rating3: ratings[3],
+                    rating4: ratings[4],
+                    rating5: ratings[5],
+                    comment: comment,
+                    answer6: choiceAnswers[6] || '',
+                    answer7: choiceAnswers[7] || '',
+                };
+            }
+
             try {
                 const res = await fetch('/shop/' + SHOP_SLUG + '/feedback', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        rating: ratings[1],
-                        rating2: ratings[2],
-                        rating3: ratings[3],
-                        rating4: ratings[4],
-                        rating5: ratings[5],
-                        comment: comment,
-                        answer6: choiceAnswers[6] || '',
-                        answer7: choiceAnswers[7] || '',
-                    }),
+                    body: JSON.stringify(body),
                 });
 
                 const data = await res.json();
