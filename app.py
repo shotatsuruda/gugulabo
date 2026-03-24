@@ -25,7 +25,7 @@ import stripe
 from dotenv import load_dotenv
 from flask import (
     Flask, abort, flash, jsonify, redirect, render_template,
-    request, url_for, send_file
+    request, url_for, send_file, make_response
 )
 from flask_login import (
     LoginManager, UserMixin, current_user, login_required,
@@ -1031,7 +1031,10 @@ def index():
             coupon_total=coupon_total,
             monthly_count=monthly_count,
         )
-    return render_template("landing.html")
+    resp = make_response(render_template("landing.html"))
+    resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    resp.headers["Pragma"] = "no-cache"
+    return resp
 
 
 @app.route("/contact", methods=["POST"])
@@ -2519,6 +2522,17 @@ def line_webhook():
                 )
                 db.commit()
                 print(f"LINE pending saved: {line_user_id}", flush=True)
+
+                # 友だち追加時は案内メッセージを送信
+                if event["type"] == "follow":
+                    try:
+                        from services.line_notify import send_line_message
+                        send_line_message(
+                            line_user_id,
+                            "🎉 友だち追加ありがとうございます！\n\nGugulabo（গগラボ）です。\n\nLINE連携を完了するには、ブラウザに戻って「LINE連携を完了する」ボタンを押してください。\n\n連携完了後、毎週月曜日の朝9時にGoogleレビューの新着通知やMEOアドバイスをお届けします。"
+                        )
+                    except Exception as e:
+                        print(f"follow message error: {e}", flush=True)
         except Exception as e:
             print(f"LINE webhook error: {e}", flush=True)
     return 'OK', 200
@@ -2573,16 +2587,20 @@ def fetch_place_id(shop_id):
 @app.route('/shop/<int:shop_id>/line-connect')
 @login_required
 def line_connect(shop_id):
-    """LINE連携は現在非公開"""
-    return "このページは現在準備中です", 404
+    conn = get_db()
+    shop = conn.execute(
+        "SELECT * FROM shops WHERE id = ? AND user_id = ?",
+        (shop_id, current_user.id)
+    ).fetchone()
+    if not shop:
+        return "店舗が見つかりません", 404
+    line_add_url = os.environ.get("LINE_ADD_FRIEND_URL", "")
+    return render_template("line_connect.html", shop=shop, line_add_url=line_add_url)
 
 
 @app.route('/shop/<int:shop_id>/line-connect/complete', methods=['POST'])
 @login_required
 def line_connect_complete(shop_id):
-    """LINE連携は現在非公開"""
-    return jsonify({"success": False, "message": "この機能は現在準備中です"}), 404
-
     conn = get_db()
     shop = conn.execute(
         "SELECT * FROM shops WHERE id = ? AND user_id = ?",
@@ -2612,7 +2630,31 @@ def line_connect_complete(shop_id):
         (pending['line_user_id'],)
     )
     conn.commit()
+
+    # LINE連携完了メッセージを送信
+    try:
+        from services.line_notify import send_line_message
+        send_line_message(
+            pending['line_user_id'],
+            "✅ LINE連携が完了しました！\n\nこれからGoogleレビューの新着通知や返答案、MEOアドバイスをお届けします。\n毎週月曜日の朝9時にレポートをお送りします。"
+        )
+    except Exception as e:
+        print(f"LINE連携完了メッセージ送信エラー: {e}", flush=True)
+
     return jsonify({"success": True, "message": "LINE連携が完了しました！"})
+
+
+@app.route('/threads/callback')
+def threads_callback():
+    """Threads OAuth コールバック（一時的・トークン取得用）"""
+    code = request.args.get('code', '')
+    return f"""
+    <html><body>
+    <h2>Threads OAuth Code</h2>
+    <p>以下のcodeをコピーしてください：</p>
+    <textarea rows="4" cols="80" onclick="this.select()">{code}</textarea>
+    </body></html>
+    """
 
 
 if __name__ == "__main__":
