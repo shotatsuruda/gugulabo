@@ -291,6 +291,43 @@
         }
         .btn-plan-outline:hover { background: #1C1C1C; color: #fff; }
 
+        /* ---- Review Samples ---- */
+        .review-sample-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+        .review-sample-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 28px;
+            border: 1px solid #EDE8E0;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        }
+        .review-menu-tag {
+            display: inline-block;
+            background: #F5EDE8;
+            color: #C9A96E;
+            font-size: 12px;
+            border-radius: 20px;
+            padding: 4px 12px;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+        .review-sample-text {
+            font-size: 14px;
+            line-height: 1.9;
+            color: #444;
+        }
+        .review-ai-label {
+            color: #888;
+            font-size: 12px;
+            margin-top: 16px;
+        }
+        @media (max-width: 768px) {
+            .review-sample-grid { grid-template-columns: 1fr; }
+        }
+
         /* ---- LINE Report ---- */
         .line-card {
             background: #2A2A2A;
@@ -539,6 +576,58 @@
         </div>
     </div>
 </div>
+
+<!-- ========== REVIEW SAMPLES ========== -->
+<section id="review-samples" style="background:#FBF8F5;padding:80px 0;">
+    <div class="wrap">
+
+        <!-- 見出し -->
+        <div style="text-align:center;margin-bottom:48px;">
+            <span style="display:inline-block;font-size:13px;font-weight:700;color:#C9A96E;letter-spacing:0.1em;margin-bottom:12px;">AIが生成する口コミの例</span>
+            <h2 style="font-family:var(--serif);font-size:32px;color:#1C1C1C;margin-bottom:12px;">美容室ならではの言葉で、自然な口コミを生成します</h2>
+            <p style="font-size:15px;color:#888;">お客様が選んだメニューや満足した点をもとに、AIが自動で口コミ文を作成します。</p>
+        </div>
+
+        <!-- 口コミカード3枚 -->
+        <div class="review-sample-grid">
+
+            <div class="review-sample-card">
+                <div style="margin-bottom:12px;">
+                    <span style="color:#C9A96E;font-size:18px;">★★★★★</span>
+                    <span class="review-menu-tag">カラー・グレージュ</span>
+                </div>
+                <p class="review-sample-text">グレージュカラーでお世話になりました。カウンセリングの段階からとても丁寧で、なりたいイメージをしっかり汲み取っていただけました。仕上がりは透明感があってとても気に入っています。色落ちのことまでアドバイスしてくださって、またぜひお願いしたいと思います。</p>
+                <p class="review-ai-label">AIが生成しました ✨</p>
+            </div>
+
+            <div class="review-sample-card">
+                <div style="margin-bottom:12px;">
+                    <span style="color:#C9A96E;font-size:18px;">★★★★★</span>
+                    <span class="review-menu-tag">縮毛矯正</span>
+                </div>
+                <p class="review-sample-text">縮毛矯正をお願いしました。いつもうねりが気になっていたのですが、自然なストレートに仕上げていただきました。ダメージが少なく、手触りもサラサラで大満足です。施術中も丁寧に説明してくださり、安心してお任せできました。</p>
+                <p class="review-ai-label">AIが生成しました ✨</p>
+            </div>
+
+            <div class="review-sample-card">
+                <div style="margin-bottom:12px;">
+                    <span style="color:#C9A96E;font-size:18px;">★★★★★</span>
+                    <span class="review-menu-tag">カット・インナーカラー</span>
+                </div>
+                <p class="review-sample-text">カットとインナーカラーをお願いしました。インナーカラーは初挑戦だったのですが、スタイリストさんが似合う色味を提案してくださって、想像以上の仕上がりに大興奮でした！店内の雰囲気もとても落ち着いていて、リラックスして施術を受けられました。</p>
+                <p class="review-ai-label">AIが生成しました ✨</p>
+            </div>
+
+        </div>
+
+        <!-- 注記 -->
+        <p style="text-align:center;color:#888;font-size:13px;margin-top:40px;">
+            ※上記はデモ用のサンプルです。<br>
+            実際の口コミはお客様のアンケート回答をもとに生成されます。
+        </p>
+
+    </div>
+</section>
 
 <!-- ========== SYMPATHY / PROBLEM ========== -->
 <section class="sec">
