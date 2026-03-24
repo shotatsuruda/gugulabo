@@ -96,6 +96,8 @@
             display: grid; grid-template-columns: 60fr 40fr;
             gap: 60px; align-items: center;
         }
+        .hero-img { order: 2; }
+        .hero-left { order: 1; }
         .hero-tag {
             display: inline-block; font-size: 13px; font-weight: 700;
             color: var(--color-gold); letter-spacing: 0.1em; margin-bottom: 20px;
@@ -360,7 +362,7 @@
             /* ---- ③ ヒーロー ---- */
             .hero { padding: 32px 0 16px; }
             .hero-grid { display: flex; flex-direction: column; gap: 0; }
-            .hero-img { order: -1; margin: 0 0 20px; }
+            .hero-img { order: 0; margin: 0 0 20px; }
             .hero-img img { width: 100%; border-radius: 12px; }
             .hero-title { font-size: 32px; }
             .hero-sub { font-size: 15px; margin-bottom: 20px; }
@@ -464,6 +466,10 @@
     <div class="wrap">
         <div class="hero-grid">
 
+            <div class="hero-img">
+                <img src="/static/images/lp/hero.png" alt="美容室でのサービス風景">
+            </div>
+
             <div class="hero-left">
                 <span class="hero-tag">美容室専用 Googleクチコミ自動化</span>
                 <h1 class="hero-title">口コミを『お願い』するのを、<br>やめませんか。</h1>
@@ -473,10 +479,6 @@
                     <a href="#demo" class="btn-hero-outline">デモを見る</a>
                 </div>
                 <p class="hero-note">✓ クレジットカード不要</p>
-            </div>
-
-            <div class="hero-img">
-                <img src="/static/images/lp/hero.png" alt="美容室でのサービス風景">
             </div>
 
         </div>
