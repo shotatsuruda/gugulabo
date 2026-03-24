@@ -306,16 +306,16 @@
         /* ---- Sticky CTA (mobile only) ---- */
         #sticky-cta {
             display: none;
-            position: fixed; bottom: 0; left: 0; right: 0;
-            padding: 0 16px 16px; z-index: 200;
+            position: fixed; bottom: 0; left: 0; width: 100%;
+            background: #1C1C1C; z-index: 200;
             opacity: 0; pointer-events: none;
             transition: opacity 0.3s;
         }
         #sticky-cta.visible { opacity: 1; pointer-events: auto; }
         #sticky-cta a {
-            display: block; background: #1C1C1C; color: #fff;
+            display: block; color: #fff;
             text-align: center; font-size: 16px; font-weight: 700;
-            padding: 18px; border-radius: 8px;
+            padding: 16px; border-radius: 0;
             text-decoration: none; font-family: var(--sans);
         }
         #sticky-cta a:hover { background: #333; }
@@ -372,7 +372,7 @@
             .hamburger { display: block; }
 
             /* ---- ③ ヒーロー ---- */
-            .hero { padding: 32px 0 48px; }
+            .hero { padding: 32px 0 16px; }
             .hero-grid { display: flex; flex-direction: column; gap: 0; }
             .hero-left { display: contents; }
             .hero-tag { order: 1; }
@@ -393,13 +393,14 @@
 
             /* ---- ⑤ 共感セクション ---- */
             .problem-grid { grid-template-columns: 1fr; gap: 24px; }
-            .problem-img { display: none; }
+            .problem-img { display: block; height: 240px; overflow: hidden; margin-bottom: 16px; }
+            .problem-img img { width: 100%; height: 100%; object-fit: cover; border-radius: 12px; }
             .problem-text h2 { font-size: 24px; }
             .problem-list li { font-size: 14px; padding: 12px 0; }
 
             /* ---- ⑥ 解決策 ---- */
-            .solution-steps { flex-direction: column; gap: 4px; }
-            .step-item { padding: 16px; border-radius: 8px; }
+            .solution-steps { flex-direction: column; gap: 8px; }
+            .step-item { padding: 12px; border-radius: 8px; }
             .step-item h3 { font-size: 14px; }
             .step-num { font-size: 20px; }
             .step-arrow { display: flex; justify-content: center; font-size: 18px; transform: rotate(90deg); padding: 2px 0; }
