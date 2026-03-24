@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html class="scroll-smooth" lang="ja" translate="no">
+<html lang="ja" translate="no">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,604 +9,746 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/static/favicon-180.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        gold:        '#C9A84C',
-                        'gold-dark': '#A8873A',
-                        'gold-pale': '#F0E4BB',
-                        blush:       '#F5EDE8',
-                        'blush-mid': '#EDE0D8',
-                        'blush-low': '#FBF6F3',
-                        ink:         '#2C2C2C',
-                        muted:       '#7A6E6A',
-                        subtle:      '#C8BDB8',
-                    },
-                    fontFamily: {
-                        serif:  ['"Noto Serif JP"', 'serif'],
-                        sans:   ['"Noto Sans JP"', 'sans-serif'],
-                        label:  ['"Plus Jakarta Sans"', '"Noto Sans JP"', 'sans-serif'],
-                    },
-                }
-            }
-        }
-    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
-        * { -webkit-font-smoothing: antialiased; }
-        body { font-family: 'Noto Sans JP', sans-serif; color: #2C2C2C; background: #F5EDE8; }
-        .font-serif  { font-family: 'Noto Serif JP', serif; }
-        .font-label  { font-family: 'Plus Jakarta Sans', 'Noto Sans JP', sans-serif; }
-        /* Glassmorphism nav */
-        .bg-glass { background: rgba(245,237,232,0.82); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); }
-        /* Gold gradient */
-        .gold-grad { background: linear-gradient(135deg, #A8873A 0%, #C9A84C 100%); }
-        /* Demo tabs */
-        .demo-tab { border: 1.5px solid #C8BDB8; background: #fff; border-radius: 9999px; padding: 0.38rem 1.1rem; font-size: 0.85rem; cursor: pointer; color: #7A6E6A; transition: all 0.15s; font-family: 'Noto Sans JP', sans-serif; }
-        .demo-tab:hover  { border-color: #C9A84C; color: #2C2C2C; }
-        .demo-tab.active { background: #2C2C2C; border-color: #2C2C2C; color: #fff; font-weight: 600; }
-        /* Contact inputs */
-        .input-line { display: block; width: 100%; background: transparent; border: none; border-bottom: 1.5px solid #C8BDB8; padding: 0.6rem 0; outline: none; font-size: 0.95rem; color: #2C2C2C; transition: border-color 0.2s; font-family: 'Noto Sans JP', sans-serif; }
-        .input-line::placeholder { color: #C8BDB8; }
-        .input-line:focus { border-bottom-color: #C9A84C; }
-        textarea.input-line { border: 1.5px solid #C8BDB8; border-radius: 10px; padding: 0.75rem; resize: none; }
-        textarea.input-line:focus { border-color: #C9A84C; }
-        /* Hover lift */
-        .card-lift { transition: transform 0.25s ease, box-shadow 0.25s ease; }
-        .card-lift:hover { transform: translateY(-4px); }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --ink:     #1A1A1A;
+            --accent:  #B5936A;
+            --bg:      #FFFFFF;
+            --bg-alt:  #F8F8F8;
+            --muted:   #666666;
+            --border:  #E5E5E5;
+            --serif:   'Noto Serif JP', serif;
+            --sans:    'Noto Sans JP', sans-serif;
+        }
+
+        html { scroll-behavior: smooth; }
+        body { font-family: var(--sans); font-size: 16px; color: var(--ink); background: var(--bg); line-height: 1.7; -webkit-font-smoothing: antialiased; }
+
+        /* ---- Layout ---- */
+        .wrap { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+        .sec       { padding: 60px 0; }
+        .sec-alt   { padding: 60px 0; background: var(--bg-alt); }
+
+        /* ---- Type ---- */
+        .label { font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); }
+        h1 { font-family: var(--serif); font-size: clamp(36px, 5vw, 56px); line-height: 1.2; font-weight: 700; }
+        h2 { font-family: var(--serif); font-size: clamp(28px, 4vw, 42px); line-height: 1.25; font-weight: 700; }
+        h3 { font-size: 18px; font-weight: 700; }
+        p  { font-size: 16px; color: var(--muted); line-height: 1.8; }
+
+        /* ---- Buttons ---- */
+        .btn-primary {
+            display: inline-block; background: var(--ink); color: #fff;
+            font-size: 15px; font-weight: 700; font-family: var(--sans);
+            padding: 14px 32px; border-radius: 4px; text-decoration: none;
+            border: none; cursor: pointer;
+        }
+        .btn-primary:hover { background: #333; }
+        .btn-outline {
+            display: inline-block; border: 1.5px solid var(--ink); color: var(--ink);
+            font-size: 15px; font-weight: 700; font-family: var(--sans);
+            padding: 13px 32px; border-radius: 4px; text-decoration: none;
+            background: transparent; cursor: pointer;
+        }
+        .btn-outline:hover { background: var(--ink); color: #fff; }
+
+        /* ---- Nav ---- */
+        nav {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+            background: rgba(255,255,255,0.95); backdrop-filter: blur(8px);
+            border-bottom: 1px solid var(--border);
+        }
+        .nav-inner {
+            max-width: 1100px; margin: 0 auto; padding: 0 24px;
+            height: 60px; display: flex; align-items: center; justify-content: space-between; gap: 24px;
+        }
+        .nav-logo { font-family: var(--serif); font-size: 20px; color: var(--ink); text-decoration: none; font-weight: 700; }
+        .nav-links { display: flex; align-items: center; gap: 28px; }
+        .nav-links a { font-size: 14px; color: var(--muted); text-decoration: none; }
+        .nav-links a:hover { color: var(--ink); }
+        .nav-right { display: flex; align-items: center; gap: 16px; }
+        .nav-right a { font-size: 14px; color: var(--muted); text-decoration: none; }
+        .nav-right a:hover { color: var(--ink); }
+        .hamburger { display: none; background: none; border: none; cursor: pointer; }
+        #mobile-nav { display: none; background: var(--bg); border-top: 1px solid var(--border); padding: 16px 24px; flex-direction: column; gap: 16px; }
+        #mobile-nav a { font-size: 15px; color: var(--muted); text-decoration: none; }
+        #mobile-nav.open { display: flex; }
+
+        /* ---- Hero ---- */
+        .hero { padding: 80px 0 60px; }
+        .hero-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; }
+        .hero-eyebrow { margin-bottom: 20px; }
+        .hero-title { margin-bottom: 20px; }
+        .hero-sub { font-size: 17px; color: var(--muted); margin-bottom: 32px; max-width: 440px; }
+        .hero-note { font-size: 13px; color: #999; margin-top: 14px; }
+        .hero-btns { display: flex; gap: 12px; flex-wrap: wrap; }
+
+        /* Phone mockup */
+        .mockup-phone {
+            width: 100%; max-width: 320px; margin: 0 auto;
+            border: 8px solid #1A1A1A; border-radius: 36px;
+            background: #fff; overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.12);
+        }
+        .mockup-bar {
+            background: #1A1A1A; height: 28px; display: flex; align-items: center; justify-content: center;
+        }
+        .mockup-notch { width: 60px; height: 10px; background: #333; border-radius: 8px; }
+        .mockup-body { padding: 20px 16px; }
+        .mockup-badge {
+            display: inline-block; background: #FFF3E8; color: var(--accent);
+            font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; margin-bottom: 14px;
+        }
+        .mockup-question { font-weight: 700; font-size: 14px; color: var(--ink); margin-bottom: 12px; }
+        .mockup-stars { color: var(--accent); font-size: 22px; letter-spacing: 2px; margin-bottom: 14px; }
+        .mockup-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+        .mockup-tag {
+            border: 1px solid var(--border); border-radius: 20px;
+            font-size: 12px; color: var(--muted); padding: 4px 12px;
+        }
+        .mockup-tag.sel { background: var(--ink); color: #fff; border-color: var(--ink); }
+        .mockup-review {
+            background: var(--bg-alt); border-radius: 8px; padding: 12px;
+            font-size: 12px; color: var(--muted); line-height: 1.7; margin-bottom: 14px;
+            border-left: 3px solid var(--accent);
+        }
+        .mockup-btn {
+            display: block; width: 100%; background: var(--ink); color: #fff;
+            text-align: center; padding: 11px; border-radius: 6px;
+            font-size: 13px; font-weight: 700;
+        }
+
+        /* ---- Stats ---- */
+        .stats-row { display: flex; }
+        .stat { flex: 1; padding: 28px 20px; text-align: center; border-right: 1px solid var(--border); }
+        .stat:last-child { border-right: none; }
+        .stat-num { font-family: var(--serif); font-size: 40px; font-weight: 700; color: var(--accent); line-height: 1; }
+        .stat-unit { font-size: 16px; }
+        .stat-label { font-size: 13px; color: var(--muted); margin-top: 6px; }
+
+        /* ---- Section header ---- */
+        .sec-header { margin-bottom: 44px; }
+        .sec-header .label { display: block; margin-bottom: 10px; }
+        .sec-header h2 { margin-bottom: 12px; }
+        .sec-header p { max-width: 560px; }
+        .sec-header.center { text-align: center; }
+        .sec-header.center p { margin: 0 auto; }
+
+        /* ---- 3-col grid ---- */
+        .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+        .grid2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+
+        /* ---- Cards ---- */
+        .card {
+            background: var(--bg); border: 1px solid var(--border);
+            border-radius: 8px; padding: 28px 24px;
+        }
+        .card-alt { background: var(--bg-alt); border: none; border-radius: 8px; padding: 28px 24px; }
+        .card-num { font-family: var(--serif); font-size: 48px; color: var(--border); font-weight: 700; line-height: 1; margin-bottom: 12px; }
+        .card-icon { font-size: 28px; margin-bottom: 12px; }
+        .card h3 { margin-bottom: 8px; }
+        .card p, .card-alt p { font-size: 15px; }
+
+        /* Feature card */
+        .feat-card { display: flex; gap: 16px; align-items: flex-start; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 24px; }
+        .feat-icon { width: 40px; height: 40px; border-radius: 8px; background: #F3EDE6; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .feat-icon svg { stroke: var(--accent); }
+        .feat-card h3 { margin-bottom: 4px; font-size: 16px; }
+        .feat-card p { font-size: 14px; }
+
+        /* ---- Demo ---- */
+        .demo-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 28px; }
+        .demo-tab { border: 1.5px solid var(--border); background: var(--bg); border-radius: 4px; padding: 7px 18px; font-size: 14px; cursor: pointer; color: var(--muted); font-family: var(--sans); }
+        .demo-tab:hover { border-color: var(--ink); color: var(--ink); }
+        .demo-tab.active { background: var(--ink); border-color: var(--ink); color: #fff; font-weight: 600; }
+        .demo-frame { border: 8px solid #1A1A1A; border-radius: 36px; overflow: hidden; width: 375px; height: 667px; box-shadow: 0 16px 48px rgba(0,0,0,0.14); margin: 0 auto; display: block; }
+        .demo-frame iframe { width: 100%; height: 100%; border: none; display: block; }
+
+        /* ---- Step ---- */
+        .step-card { padding: 28px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; }
+        .step-num { font-family: var(--serif); font-size: 13px; font-weight: 700; color: var(--accent); letter-spacing: .1em; margin-bottom: 14px; }
+        .step-card h3 { margin-bottom: 8px; }
+
+        /* ---- Before/After ---- */
+        .ba-box { display: flex; align-items: center; gap: 32px; justify-content: center; flex-wrap: wrap; }
+        .ba-item { text-align: center; }
+        .ba-label { font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+        .ba-num { font-family: var(--serif); font-weight: 700; line-height: 1; }
+        .ba-num.before { font-size: 52px; color: #CCC; }
+        .ba-num.after  { font-size: 72px; color: var(--accent); }
+        .ba-stars { font-size: 20px; margin-top: 6px; }
+        .ba-arrow { font-size: 32px; color: var(--border); }
+        .ba-quote { text-align: center; font-size: 14px; color: var(--muted); font-style: italic; margin-top: 32px; }
+
+        /* ---- LINE ---- */
+        .line-screens { display: flex; justify-content: center; gap: 24px; flex-wrap: wrap; margin-top: 36px; }
+        .line-phone {
+            width: 180px; border: 6px solid #1A1A1A; border-radius: 28px; overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+        }
+        .line-phone img { width: 100%; display: block; }
+
+        /* ---- Pricing ---- */
+        .pricing-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 720px; margin: 0 auto; }
+        .plan { border: 1px solid var(--border); border-radius: 8px; padding: 36px 32px; }
+        .plan.featured { background: var(--ink); border-color: var(--ink); color: #fff; }
+        .plan-name { font-size: 13px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: 16px; }
+        .plan.featured .plan-name { color: #aaa; }
+        .plan-price { font-family: var(--serif); font-size: 44px; font-weight: 700; line-height: 1; margin-bottom: 4px; }
+        .plan-period { font-size: 15px; color: var(--muted); }
+        .plan.featured .plan-period { color: #aaa; }
+        .plan-note { font-size: 13px; color: var(--accent); margin-bottom: 24px; margin-top: 4px; }
+        .plan-features { list-style: none; margin-bottom: 28px; }
+        .plan-features li { font-size: 15px; padding: 8px 0; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; color: var(--muted); }
+        .plan.featured .plan-features li { border-color: #333; color: #ccc; }
+        .plan-features li::before { content: '✓'; color: var(--accent); font-weight: 700; flex-shrink: 0; }
+        .plan-badge { display: inline-block; background: var(--accent); color: #fff; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; margin-bottom: 16px; }
+        .btn-plan-white { display: block; background: #fff; color: var(--ink); text-align: center; padding: 13px; border-radius: 4px; font-size: 15px; font-weight: 700; text-decoration: none; }
+        .btn-plan-outline { display: block; border: 1.5px solid var(--ink); color: var(--ink); text-align: center; padding: 12px; border-radius: 4px; font-size: 15px; font-weight: 700; text-decoration: none; }
+        .btn-plan-outline:hover { background: var(--ink); color: #fff; }
+        .pricing-cta { text-align: center; margin-top: 36px; }
+        .pricing-cta p { font-size: 14px; color: #999; margin-top: 10px; }
+
+        /* ---- FAQ ---- */
+        .faq-list { max-width: 720px; margin: 0 auto; }
+        .faq-item { border-bottom: 1px solid var(--border); padding: 24px 0; }
+        .faq-q { font-weight: 700; font-size: 16px; margin-bottom: 10px; display: flex; gap: 12px; }
+        .faq-q span { color: var(--accent); flex-shrink: 0; }
+        .faq-a { font-size: 15px; color: var(--muted); line-height: 1.8; padding-left: 28px; }
+
+        /* ---- Contact ---- */
+        .contact-wrap { max-width: 560px; margin: 0 auto; }
+        .form-group { margin-bottom: 24px; }
+        .form-label { display: block; font-size: 14px; font-weight: 700; margin-bottom: 8px; }
+        .form-input {
+            display: block; width: 100%; border: 1.5px solid var(--border);
+            border-radius: 4px; padding: 12px 14px; font-size: 15px;
+            font-family: var(--sans); color: var(--ink);
+            background: var(--bg); outline: none;
+        }
+        .form-input:focus { border-color: var(--ink); }
+        textarea.form-input { resize: vertical; min-height: 120px; }
+        .form-error { font-size: 13px; color: #c0392b; margin-bottom: 12px; display: none; }
+        .contact-success { text-align: center; padding: 48px 0; display: none; }
+        .success-check { width: 56px; height: 56px; background: #F3EDE6; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; }
+
+        /* ---- Banner ---- */
+        .free-banner {
+            background: #FFF8F0; border: 1px solid #EDD9C0; border-radius: 6px;
+            padding: 14px 20px; font-size: 14px; color: #8C6A3F; font-weight: 500;
+            text-align: center; max-width: 560px; margin: 0 auto 36px;
+        }
+
+        /* ---- Final CTA ---- */
+        .cta-box { background: var(--ink); border-radius: 8px; padding: 60px 40px; text-align: center; }
+        .cta-box h2 { color: #fff; margin-bottom: 24px; }
+        .cta-box p  { color: #888; font-size: 14px; margin-top: 14px; }
+
+        /* ---- Footer ---- */
+        footer { background: var(--ink); padding: 40px 0; }
+        .footer-inner { max-width: 1100px; margin: 0 auto; padding: 0 24px; text-align: center; }
+        .footer-logo { font-family: var(--serif); font-size: 20px; color: var(--accent); margin-bottom: 8px; }
+        .footer-tagline { font-size: 13px; color: #555; margin-bottom: 20px; }
+        .footer-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; margin-bottom: 20px; }
+        .footer-links a { font-size: 13px; color: #666; text-decoration: none; }
+        .footer-links a:hover { color: var(--accent); }
+        .footer-copy { font-size: 12px; color: #444; }
+
+        /* ---- Responsive ---- */
+        @media (max-width: 768px) {
+            .nav-links { display: none; }
+            .hamburger { display: block; }
+            .hero-grid { grid-template-columns: 1fr; gap: 40px; }
+            .mockup-phone { max-width: 280px; }
+            .grid3 { grid-template-columns: 1fr; }
+            .grid2 { grid-template-columns: 1fr; }
+            .stats-row { flex-direction: column; }
+            .stat { border-right: none; border-bottom: 1px solid var(--border); }
+            .stat:last-child { border-bottom: none; }
+            .pricing-grid { grid-template-columns: 1fr; }
+            .demo-frame { width: 100%; max-width: 340px; height: 580px; }
+            .cta-box { padding: 40px 20px; }
+        }
     </style>
 </head>
 <body>
 
 <!-- ========== NAV ========== -->
-<nav class="fixed top-0 w-full z-50 bg-glass shadow-[0_2px_20px_rgba(44,44,44,0.06)]">
-    <div class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
+<nav>
+    <div class="nav-inner">
+        <a href="/" class="nav-logo">গগラボ</a>
 
-        <a href="/" class="font-serif font-bold text-xl tracking-wide" style="color:#A8873A;">গগラボ</a>
-
-        <!-- Desktop links -->
-        <div class="hidden md:flex items-center gap-7 text-sm text-muted">
-            <a href="#features" class="hover:text-gold transition-colors">機能</a>
-            <a href="#howto"    class="hover:text-gold transition-colors">使い方</a>
-            <a href="#demo"     class="hover:text-gold transition-colors">デモ</a>
-            <a href="#pricing"  class="hover:text-gold transition-colors">料金</a>
-            <a href="/meo"      class="hover:text-gold transition-colors">MEO対策とは</a>
-            <a href="#contact"  class="hover:text-gold transition-colors">お問い合わせ</a>
+        <div class="nav-links">
+            <a href="#features">機能</a>
+            <a href="#howto">使い方</a>
+            <a href="#demo">デモ</a>
+            <a href="#pricing">料金</a>
+            <a href="/meo">MEO対策とは</a>
+            <a href="#contact">お問い合わせ</a>
         </div>
 
-        <div class="flex items-center gap-3">
-            <a href="/login" class="hidden md:inline text-sm text-muted hover:text-gold transition-colors">ログイン</a>
-            <a href="/register" class="gold-grad text-white text-sm font-bold px-5 py-2 rounded-full hover:opacity-90 transition-opacity shadow-sm">無料で始める</a>
-            <!-- Hamburger -->
-            <button class="md:hidden text-ink" onclick="document.getElementById('mobileNav').classList.toggle('hidden')">
-                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <div class="nav-right">
+            <a href="/login">ログイン</a>
+            <a href="/register" class="btn-primary" style="padding:10px 20px;font-size:14px;">無料で始める</a>
+            <button class="hamburger" onclick="document.getElementById('mobile-nav').classList.toggle('open')" aria-label="メニュー">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1A1A1A" stroke-width="2">
                     <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
                 </svg>
             </button>
         </div>
     </div>
-
-    <!-- Mobile menu -->
-    <div id="mobileNav" class="hidden md:hidden bg-blush border-t border-blush-mid px-6 py-5 flex flex-col gap-4 text-sm">
-        <a href="#features" class="text-muted hover:text-gold" onclick="this.closest('#mobileNav').classList.add('hidden')">機能</a>
-        <a href="#howto"    class="text-muted hover:text-gold" onclick="this.closest('#mobileNav').classList.add('hidden')">使い方</a>
-        <a href="#demo"     class="text-muted hover:text-gold" onclick="this.closest('#mobileNav').classList.add('hidden')">デモ</a>
-        <a href="#pricing"  class="text-muted hover:text-gold" onclick="this.closest('#mobileNav').classList.add('hidden')">料金</a>
-        <a href="/meo"      class="text-muted hover:text-gold">MEO対策とは</a>
-        <a href="#contact"  class="text-muted hover:text-gold" onclick="this.closest('#mobileNav').classList.add('hidden')">お問い合わせ</a>
-        <a href="/login"    class="text-muted hover:text-gold">ログインはこちら</a>
+    <div id="mobile-nav">
+        <a href="#features" onclick="this.parentElement.classList.remove('open')">機能</a>
+        <a href="#howto"    onclick="this.parentElement.classList.remove('open')">使い方</a>
+        <a href="#demo"     onclick="this.parentElement.classList.remove('open')">デモ</a>
+        <a href="#pricing"  onclick="this.parentElement.classList.remove('open')">料金</a>
+        <a href="/meo">MEO対策とは</a>
+        <a href="#contact"  onclick="this.parentElement.classList.remove('open')">お問い合わせ</a>
+        <a href="/login">ログインはこちら</a>
     </div>
 </nav>
 
-<main class="pt-20">
+<!-- ========== HERO ========== -->
+<section class="hero" style="margin-top:60px;">
+    <div class="wrap">
+        <div class="hero-grid">
 
-    <!-- ========== HERO ========== -->
-    <section class="relative min-h-[88vh] flex items-center px-6 py-20 overflow-hidden">
-        <!-- Decorative blobs -->
-        <div class="absolute top-0 right-0 w-[480px] h-[480px] rounded-full blur-3xl pointer-events-none" style="background:rgba(201,168,76,0.12);transform:translate(35%,-35%);"></div>
-        <div class="absolute bottom-0 left-0  w-[320px] h-[320px] rounded-full blur-3xl pointer-events-none" style="background:rgba(201,168,76,0.08);transform:translate(-30%,30%);"></div>
-
-        <div class="max-w-6xl mx-auto w-full grid md:grid-cols-2 gap-14 items-center relative z-10">
-
-            <!-- Left: copy -->
-            <div class="space-y-7">
-                <div class="inline-block px-4 py-1.5 rounded-full text-xs font-label font-bold tracking-widest uppercase" style="background:#F0E4BB;color:#A8873A;">
-                    美容室専用 · Googleクチコミ自動化
+            <!-- Left -->
+            <div>
+                <div class="hero-eyebrow">
+                    <span class="label">美容室専用 Googleクチコミ自動化</span>
                 </div>
-                <h1 class="font-serif text-4xl md:text-[3.1rem] leading-[1.25] text-ink">
-                    美容師の技術を、<br>口コミが<span style="color:#C9A84C;">証明する。</span>
-                </h1>
-                <p class="text-muted leading-relaxed text-lg max-w-md">
-                    カット・カラー・トリートメント——施術後の満足感をそのままGoogleの口コミへ。QRコード1枚で、自然と高評価が集まる仕組みを作ります。
-                </p>
-                <div class="flex flex-col sm:flex-row gap-4">
-                    <a href="/register" class="gold-grad text-white px-10 py-4 rounded-full text-base font-bold text-center shadow-lg hover:opacity-90 active:scale-95 transition-all">
-                        無料で試してみる
-                    </a>
-                    <a href="#demo" class="text-center px-10 py-4 rounded-full text-base font-bold hover:bg-white/80 active:scale-95 transition-all" style="background:rgba(255,255,255,0.6);color:#2C2C2C;border:1.5px solid #C8BDB8;">
-                        デモを見る
-                    </a>
+                <h1 class="hero-title">美容室の口コミは、<br>もっと自然に<br>増やせる。</h1>
+                <p class="hero-sub">グレージュ・縮毛矯正・インナーカラー——美容室ならではの言葉でAIが書く。QRコード1枚で、お客様が自分から書いてくれる仕組みを。</p>
+                <div class="hero-btns">
+                    <a href="/register" class="btn-primary">無料で始める</a>
+                    <a href="#demo" class="btn-outline">デモを見る</a>
                 </div>
-                <p class="text-xs text-muted">✓ 初月無料・クレジットカード不要</p>
+                <p class="hero-note">✓ 初月無料・クレジットカード不要</p>
             </div>
 
-            <!-- Right: image -->
-            <div class="relative">
-                <div class="absolute -top-6 -right-6 w-28 h-28 rounded-full -z-10" style="background:#F0E4BB;"></div>
-                <div class="rounded-2xl overflow-hidden shadow-2xl transition-shadow duration-700">
-                    <img src="{{ url_for('static', filename='img/hero.png') }}" alt="美容室サロン" class="w-full object-cover" style="height:460px;">
-                </div>
-                <!-- Floating review -->
-                <div class="absolute bottom-5 left-5 right-5 p-5 rounded-xl shadow-lg border border-white/50" style="background:rgba(255,255,255,0.92);backdrop-filter:blur(12px);">
-                    <div class="flex items-center gap-2 mb-2">
-                        <span class="text-sm font-bold" style="color:#C9A84C;">★★★★★</span>
-                        <span class="font-bold text-sm text-ink">最新のクチコミ</span>
+            <!-- Right: CSS phone mockup -->
+            <div>
+                <div class="mockup-phone">
+                    <div class="mockup-bar"><div class="mockup-notch"></div></div>
+                    <div class="mockup-body">
+                        <div class="mockup-badge">✨ AIがクチコミを生成しました</div>
+                        <div class="mockup-question">今回の施術はいかがでしたか？</div>
+                        <div class="mockup-stars">★★★★★</div>
+                        <div style="font-size:12px;color:#999;margin-bottom:8px;">気に入った点を教えてください</div>
+                        <div class="mockup-tags">
+                            <span class="mockup-tag sel">カラーの仕上がり</span>
+                            <span class="mockup-tag sel">透明感</span>
+                            <span class="mockup-tag">スタイリング</span>
+                            <span class="mockup-tag">接客</span>
+                        </div>
+                        <div class="mockup-review">「カラーをお願いしました。グレージュを希望していたのですが、透明感のある絶妙な色味に仕上げていただきました。担当の方も丁寧で、また来ようと思います。」</div>
+                        <div class="mockup-btn">このままGoogleに投稿する</div>
                     </div>
-                    <p class="text-xs text-muted italic leading-relaxed">「カラーをお願いしました。曖昧なリクエストを汲み取っていただき、透明感のあるグレージュに。また必ず来ます」</p>
                 </div>
             </div>
 
         </div>
-    </section>
+    </div>
+</section>
 
-    <!-- ========== STATS ========== -->
-    <section style="background:rgba(255,255,255,0.55);border-top:1px solid #EDE0D8;border-bottom:1px solid #EDE0D8;" class="py-10">
-        <div class="max-w-4xl mx-auto px-6 grid grid-cols-3 gap-0 divide-x text-center" style="--tw-divide-opacity:1;border-color:#EDE0D8;">
-            <div style="border-right:1px solid #EDE0D8;" class="px-6">
-                <div class="font-serif text-4xl font-bold" style="color:#C9A84C;">3.2<span class="text-xl">倍</span></div>
-                <div class="text-xs text-muted mt-1">口コミ獲得数<br>平均増加率</div>
+<!-- ========== STATS ========== -->
+<div style="background:var(--bg-alt);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+    <div class="wrap">
+        <div class="stats-row">
+            <div class="stat">
+                <div class="stat-num">3.2<span class="stat-unit">倍</span></div>
+                <div class="stat-label">口コミ獲得数・平均増加率</div>
             </div>
-            <div style="border-right:1px solid #EDE0D8;" class="px-6">
-                <div class="font-serif text-4xl font-bold" style="color:#C9A84C;">5<span class="text-xl">分</span></div>
-                <div class="text-xs text-muted mt-1">最短導入時間</div>
+            <div class="stat">
+                <div class="stat-num">5<span class="stat-unit">分</span></div>
+                <div class="stat-label">最短導入時間</div>
             </div>
-            <div class="px-6">
-                <div class="font-serif text-2xl font-bold mt-1 leading-snug" style="color:#C9A84C;">初月<br>無料</div>
-                <div class="text-xs text-muted mt-1">カード不要で<br>すぐに始められる</div>
-            </div>
-        </div>
-    </section>
-
-    <!-- ========== PROBLEMS ========== -->
-    <section class="py-24 px-6" style="background:#FBF6F3;">
-        <div class="max-w-5xl mx-auto">
-            <div class="text-center mb-14">
-                <p class="text-xs font-label font-bold tracking-widest uppercase mb-3" style="color:#C9A84C;">Pain Points</p>
-                <h2 class="font-serif text-3xl md:text-4xl text-ink">こんなお悩みはありませんか？</h2>
-                <p class="text-muted mt-4 text-sm">美容師・サロンオーナーからよく聞く声です</p>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-
-                <div class="bg-white p-8 rounded-2xl card-lift">
-                    <div class="w-12 h-12 rounded-full flex items-center justify-center mb-5" style="background:#F0E4BB;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/>
-                        </svg>
-                    </div>
-                    <h3 class="font-bold text-base mb-3 text-ink">施術中は手が離せない</h3>
-                    <p class="text-muted text-sm leading-relaxed">接客・施術に全力を注ぎたい。集客の手間を減らしたいのに、口コミ管理に時間をとられてしまう。</p>
-                </div>
-
-                <div class="bg-white p-8 rounded-2xl card-lift md:mt-8">
-                    <div class="w-12 h-12 rounded-full flex items-center justify-center mb-5" style="background:#F0E4BB;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                        </svg>
-                    </div>
-                    <h3 class="font-bold text-base mb-3 text-ink">口コミをお願いしにくい</h3>
-                    <p class="text-muted text-sm leading-relaxed">「口コミ書いてください」と直接言うのは気まずい。お客様に負担をかけずに、自然な流れでお願いしたい。</p>
-                </div>
-
-                <div class="bg-white p-8 rounded-2xl card-lift">
-                    <div class="w-12 h-12 rounded-full flex items-center justify-center mb-5" style="background:#F0E4BB;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
-                        </svg>
-                    </div>
-                    <h3 class="font-bold text-base mb-3 text-ink">文章を考える時間がない</h3>
-                    <p class="text-muted text-sm leading-relaxed">お客様も何を書けばいいか迷う。「透明感のあるグレージュ」「収まりのいいボブ」など美容室らしい文章を自動で作りたい。</p>
-                </div>
-
+            <div class="stat">
+                <div class="stat-num" style="font-size:28px;line-height:1.4;">初月<br>無料</div>
+                <div class="stat-label">カード不要ですぐ始められる</div>
             </div>
         </div>
-    </section>
+    </div>
+</div>
 
-    <!-- ========== DEMO ========== -->
-    <section id="demo" class="py-24 px-6" style="background:#F5EDE8;">
-        <div class="max-w-5xl mx-auto">
-            <div class="text-center mb-12">
-                <p class="text-xs font-label font-bold tracking-widest uppercase mb-3" style="color:#C9A84C;">Live Demo</p>
-                <h2 class="font-serif text-3xl md:text-4xl text-ink">30秒で体験できます</h2>
-                <p class="text-muted mt-4 text-sm max-w-xl mx-auto">お客様はこの画面を見ます。業種を選んで実際に操作してみてください。</p>
+<!-- ========== PROBLEMS ========== -->
+<section class="sec">
+    <div class="wrap">
+        <div class="sec-header">
+            <span class="label">Pain Points</span>
+            <h2>こんなお悩みはありませんか？</h2>
+        </div>
+        <div class="grid3">
+            <div class="card">
+                <div class="card-num">01</div>
+                <h3>施術中は手が離せない</h3>
+                <p style="margin-top:8px;">接客・施術に集中したい。口コミ管理の手間を最小限にしたいのに、時間が取られてしまう。</p>
             </div>
-
-            <div class="flex justify-center flex-wrap gap-2 mb-10">
-                <button class="demo-tab active" onclick="switchDemoTab(this,'美容院')">美容院</button>
-                <button class="demo-tab" onclick="switchDemoTab(this,'マッサージ')">マッサージ</button>
-                <button class="demo-tab" onclick="switchDemoTab(this,'整体')">整体</button>
-                <button class="demo-tab" onclick="switchDemoTab(this,'歯科医院')">歯科医院</button>
-                <button class="demo-tab" onclick="switchDemoTab(this,'エステ')">エステ</button>
+            <div class="card">
+                <div class="card-num">02</div>
+                <h3>お願いしにくい</h3>
+                <p style="margin-top:8px;">「口コミ書いてください」と直接伝えるのは気まずい。お客様に負担をかけたくない。</p>
             </div>
-
-            <div class="flex justify-center">
-                <div style="border:8px solid #222;border-radius:36px;overflow:hidden;width:375px;height:667px;box-shadow:0 24px 64px rgba(44,44,44,0.2);">
-                    <iframe id="demo-iframe" src="/shop/demo?demo=1&business_type=美容院" style="width:100%;height:100%;border:none;"></iframe>
-                </div>
+            <div class="card">
+                <div class="card-num">03</div>
+                <h3>文章が難しい</h3>
+                <p style="margin-top:8px;">お客様も何を書けばいいか迷う。「グレージュ」「縮毛矯正」など美容室らしい文章を自動で作りたい。</p>
             </div>
         </div>
-    </section>
+    </div>
+</section>
 
-    <!-- ========== HOW REVIEWS WORK ========== -->
-    <section id="features" class="py-24 px-6 bg-white">
-        <div class="max-w-5xl mx-auto">
-            <div class="text-center mb-16">
-                <p class="text-xs font-label font-bold tracking-widest uppercase mb-3" style="color:#C9A84C;">How To Get Reviews</p>
-                <h2 class="font-serif text-3xl md:text-4xl text-ink">口コミが集まる仕組み</h2>
-                <p class="text-muted mt-4 text-sm max-w-xl mx-auto">お客様は直感的なアンケートに答えるだけ。AIが文章を自動生成し、ワンタップでGoogleマップへ投稿できます。</p>
+<!-- ========== DEMO ========== -->
+<section class="sec-alt" id="demo">
+    <div class="wrap">
+        <div class="sec-header center">
+            <span class="label">Live Demo</span>
+            <h2>30秒で体験できます</h2>
+            <p>お客様はこの画面を見ます。業種を選んで実際に操作してみてください。</p>
+        </div>
+        <div class="demo-tabs" style="justify-content:center;">
+            <button class="demo-tab active" onclick="switchDemoTab(this,'美容院')">美容院</button>
+            <button class="demo-tab" onclick="switchDemoTab(this,'マッサージ')">マッサージ</button>
+            <button class="demo-tab" onclick="switchDemoTab(this,'整体')">整体</button>
+            <button class="demo-tab" onclick="switchDemoTab(this,'歯科医院')">歯科医院</button>
+            <button class="demo-tab" onclick="switchDemoTab(this,'エステ')">エステ</button>
+        </div>
+        <div class="demo-frame">
+            <iframe id="demo-iframe" src="/shop/demo?demo=1&business_type=美容院"></iframe>
+        </div>
+    </div>
+</section>
+
+<!-- ========== HOW REVIEWS WORK ========== -->
+<section class="sec" id="features">
+    <div class="wrap">
+        <div class="sec-header center">
+            <span class="label">How It Works</span>
+            <h2>口コミが集まる仕組み</h2>
+            <p>お客様は直感的なアンケートに答えるだけ。あとはAIが自動でやります。</p>
+        </div>
+        <div class="grid3">
+            <div class="step-card">
+                <div class="step-num">STEP 01</div>
+                <h3>直感的なアンケート</h3>
+                <p style="margin-top:8px;">5項目を星で評価するだけ。テキスト入力なし、所要時間30秒。</p>
             </div>
+            <div class="step-card">
+                <div class="step-num">STEP 02</div>
+                <h3>AIがクチコミを自動生成</h3>
+                <p style="margin-top:8px;">美容室専用の語彙（グレージュ・インナーカラー等）を使った自然な文章を即座に作成。</p>
+            </div>
+            <div class="step-card">
+                <div class="step-num">STEP 03</div>
+                <h3>コピーして投稿するだけ</h3>
+                <p style="margin-top:8px;">生成された文章をそのままGoogleマップに貼り付けて投稿完了。</p>
+            </div>
+        </div>
+    </div>
+</section>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-10 text-center">
-                <div>
-                    <div class="w-10 h-10 gold-grad text-white rounded-full flex items-center justify-center font-bold mx-auto mb-5">1</div>
-                    <img src="/static/img/user_step1.png?ts=20260309" alt="アンケート画面" class="w-full rounded-xl shadow-md mb-5 object-cover" style="max-height:260px;">
-                    <h3 class="font-bold text-base mb-2 text-ink">直感的なアンケート</h3>
-                    <p class="text-muted text-sm leading-relaxed">5項目を星で評価するだけ。テキスト入力なしでも手軽に回答できます。</p>
-                </div>
-                <div>
-                    <div class="w-10 h-10 gold-grad text-white rounded-full flex items-center justify-center font-bold mx-auto mb-5">2</div>
-                    <img src="/static/img/user_step2.png?ts=20260309" alt="AI生成画面" class="w-full rounded-xl shadow-md mb-5 object-cover" style="max-height:260px;">
-                    <h3 class="font-bold text-base mb-2 text-ink">AIがクチコミを自動生成</h3>
-                    <p class="text-muted text-sm leading-relaxed">評価をもとに、美容室専用AIが自然で説得力のある文章を瞬時に作成します。</p>
+<!-- ========== FEATURES ========== -->
+<section class="sec-alt" id="what-we-do">
+    <div class="wrap">
+        <div class="sec-header">
+            <span class="label">Features</span>
+            <h2>গগラボができること</h2>
+            <p>QRコードを1枚置くだけで、これらをすべて自動化します。</p>
+        </div>
+        <div class="grid2">
+
+            <div class="feat-card">
+                <div class="feat-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                        <line x1="8" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="13" y2="14"/>
+                    </svg>
                 </div>
                 <div>
-                    <div class="w-10 h-10 gold-grad text-white rounded-full flex items-center justify-center font-bold mx-auto mb-5">3</div>
-                    <img src="/static/img/user_step3.png?ts=20260309" alt="Google投稿画面" class="w-full rounded-xl shadow-md mb-5 object-cover" style="max-height:260px;">
-                    <h3 class="font-bold text-base mb-2 text-ink">コピーして投稿するだけ</h3>
-                    <p class="text-muted text-sm leading-relaxed">生成された文章をコピーし、そのままGoogleマップに貼り付けて投稿完了。</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- ========== FEATURES GRID ========== -->
-    <section id="what-we-do" class="py-24 px-6" style="background:#FBF6F3;">
-        <div class="max-w-5xl mx-auto">
-            <div class="text-center mb-16">
-                <p class="text-xs font-label font-bold tracking-widest uppercase mb-3" style="color:#C9A84C;">Features</p>
-                <h2 class="font-serif text-3xl md:text-4xl text-ink">গগラボができること</h2>
-                <p class="text-muted mt-4 text-sm">QRコードを1枚置くだけで、これらをすべて自動化します。</p>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-
-                <div class="bg-white p-8 rounded-2xl flex gap-5 card-lift">
-                    <div class="w-12 h-12 rounded-full flex-shrink-0 flex items-center justify-center" style="background:#F0E4BB;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="13" y2="14"/>
-                        </svg>
-                    </div>
-                    <div>
-                        <h3 class="font-bold text-base mb-2 text-ink">口コミAI自動生成</h3>
-                        <p class="text-muted text-sm leading-relaxed">グレージュ・インナーカラー・縮毛矯正など美容室専用の語彙を使った自然な口コミをAIが生成。投稿のハードルを大幅に下げます。</p>
-                    </div>
-                </div>
-
-                <div class="bg-white p-8 rounded-2xl flex gap-5 card-lift">
-                    <div class="w-12 h-12 rounded-full flex-shrink-0 flex items-center justify-center" style="background:#F0E4BB;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M20 12v10H4V12"/><path d="M22 7H2v5h20V7z"/><path d="M12 22V7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/>
-                        </svg>
-                    </div>
-                    <div>
-                        <h3 class="font-bold text-base mb-2 text-ink">クーポン自動配信</h3>
-                        <p class="text-muted text-sm leading-relaxed">アンケート回答後にクーポンを自動発行。お客様への感謝を形にしながら、次回来店のきっかけを作ります。</p>
-                    </div>
-                </div>
-
-                <div class="bg-white p-8 rounded-2xl flex gap-5 card-lift">
-                    <div class="w-12 h-12 rounded-full flex-shrink-0 flex items-center justify-center" style="background:#F0E4BB;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/>
-                            <rect x="14" y="14" width="3" height="3"/><rect x="18" y="14" width="3" height="3"/><rect x="14" y="18" width="3" height="3"/><rect x="18" y="18" width="3" height="3"/>
-                        </svg>
-                    </div>
-                    <div>
-                        <h3 class="font-bold text-base mb-2 text-ink">QRコード自動生成</h3>
-                        <p class="text-muted text-sm leading-relaxed">GoogleレビューURLを入力するだけでオリジナルQRコードを生成。カラーやスタイルもカスタマイズして高解像度で印刷できます。</p>
-                    </div>
-                </div>
-
-                <div class="bg-white p-8 rounded-2xl flex gap-5 card-lift">
-                    <div class="w-12 h-12 rounded-full flex-shrink-0 flex items-center justify-center" style="background:#F0E4BB;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                            <line x1="8" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="13" y2="14"/>
-                        </svg>
-                    </div>
-                    <div>
-                        <h3 class="font-bold text-base mb-2 text-ink">AI返答生成で返信が簡単</h3>
-                        <p class="text-muted text-sm leading-relaxed">Googleに届いたレビューへの返信文をAIが自動生成。丁寧な返答を数秒で作成し、オーナーとしての誠実な印象を与えます。</p>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-    </section>
-
-    <!-- ========== LINE REPORT ========== -->
-    <section id="line-report" class="py-24 px-6" style="background:#F5EDE8;">
-        <div class="max-w-5xl mx-auto">
-            <div class="text-center mb-14">
-                <p class="text-xs font-label font-bold tracking-widest uppercase mb-3" style="color:#C9A84C;">LINE Report</p>
-                <h2 class="font-serif text-3xl md:text-4xl text-ink">📱 LINEで届く、週次レビューレポート</h2>
-                <p class="text-muted mt-4 text-sm max-w-xl mx-auto">毎週月曜日の朝9時に、新着レビューの返答案とMEOアドバイスをLINEでお届けします。</p>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-14">
-                <div class="bg-white p-8 rounded-2xl text-center card-lift">
-                    <div class="text-3xl mb-4">📅</div>
-                    <h3 class="font-bold mb-2 text-ink text-base">毎週月曜朝9時に通知</h3>
-                    <p class="text-muted text-sm leading-relaxed">新着レビューをまとめて週1回LINEで通知。忙しいオーナーでも手軽に確認できます。</p>
-                </div>
-                <div class="bg-white p-8 rounded-2xl text-center card-lift">
-                    <div class="text-3xl mb-4">🤖</div>
-                    <h3 class="font-bold mb-2 text-ink text-base">AI返答案をそのまま使える</h3>
-                    <p class="text-muted text-sm leading-relaxed">各レビューへのAI返答案をLINEで受信。コピペするだけで返信完了です。</p>
-                </div>
-                <div class="bg-white p-8 rounded-2xl text-center card-lift">
-                    <div class="text-3xl mb-4">📊</div>
-                    <h3 class="font-bold mb-2 text-ink text-base">毎週変わるMEOアドバイス</h3>
-                    <p class="text-muted text-sm leading-relaxed">季節トレンド・MEO施策・口コミ返答のコツをローテーションでお届け。集客力が継続的に向上します。</p>
+                    <h3>口コミAI自動生成</h3>
+                    <p style="margin-top:4px;font-size:14px;">グレージュ・インナーカラー・縮毛矯正など美容室専用語彙で自然な口コミを生成。投稿ハードルを大幅に下げます。</p>
                 </div>
             </div>
 
-            <!-- LINE screenshots -->
-            <div class="flex justify-center gap-6 flex-wrap">
-                <img src="/static/images/line-sample-1.jpg" alt="LINEレポートサンプル1" style="width:100%;max-width:200px;border-radius:24px;box-shadow:0 12px 40px rgba(44,44,44,0.18);border:3px solid #222;">
-                <img src="/static/images/line-sample-2.jpg" alt="LINEレポートサンプル2" style="width:100%;max-width:200px;border-radius:24px;box-shadow:0 12px 40px rgba(44,44,44,0.18);border:3px solid #222;">
-            </div>
-        </div>
-    </section>
-
-    <!-- ========== SOCIAL PROOF ========== -->
-    <section class="py-20 px-6 bg-white">
-        <div class="max-w-3xl mx-auto text-center">
-            <h2 class="font-serif text-3xl md:text-4xl text-ink mb-12">圧倒的な実績</h2>
-            <div class="p-12 rounded-3xl" style="background:#FBF6F3;">
-                <div class="flex flex-col md:flex-row items-center justify-around gap-10">
-                    <div class="text-center">
-                        <p class="text-xs font-label font-bold uppercase tracking-widest text-muted mb-3">Before</p>
-                        <div class="font-serif text-5xl" style="color:#7A6E6A;">2<span class="text-xl">件</span></div>
-                        <div class="text-subtle mt-2 text-sm">★★☆☆☆</div>
-                    </div>
-                    <div class="text-3xl font-serif opacity-30" style="color:#C9A84C;">→</div>
-                    <div class="text-center relative">
-                        <span class="absolute -top-8 -right-4 text-white text-[10px] px-2 py-1 rounded-full font-bold" style="background:#C9A84C;">GROWTH</span>
-                        <p class="text-xs font-label font-bold uppercase tracking-widest mb-3" style="color:#C9A84C;">After</p>
-                        <div class="font-serif text-7xl font-bold" style="color:#C9A84C;">50<span class="text-2xl">件!</span></div>
-                        <div class="text-sm mt-2" style="color:#C9A84C;">★★★★★</div>
-                    </div>
-                </div>
-                <p class="mt-10 text-muted text-sm italic">「導入初月で、今まで全く増えなかった口コミが毎日届くようになりました」（東京都・Aサロン様）</p>
-            </div>
-        </div>
-    </section>
-
-    <!-- ========== HOW TO START ========== -->
-    <section id="howto" class="py-24 px-6" style="background:#FBF6F3;">
-        <div class="max-w-5xl mx-auto">
-            <div class="text-center mb-16">
-                <p class="text-xs font-label font-bold tracking-widest uppercase mb-3" style="color:#C9A84C;">How to Start</p>
-                <h2 class="font-serif text-3xl md:text-4xl text-ink">たった3ステップで導入完了</h2>
-                <p class="text-muted mt-4 text-sm">複雑な設定は一切不要。最短5分で始められます。</p>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
-                <div class="bg-white p-10 rounded-2xl card-lift">
-                    <p class="text-xs font-label font-bold tracking-widest uppercase mb-4" style="color:#C9A84C;">STEP 1</p>
-                    <div class="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-5" style="background:#F0E4BB;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
-                        </svg>
-                    </div>
-                    <h3 class="font-bold text-base mb-3 text-ink">アカウント登録</h3>
-                    <p class="text-muted text-sm leading-relaxed">メールアドレスとパスワードだけで今すぐ登録。クレジットカード不要で初月無料からお試しいただけます。</p>
-                </div>
-                <div class="bg-white p-10 rounded-2xl card-lift">
-                    <p class="text-xs font-label font-bold tracking-widest uppercase mb-4" style="color:#C9A84C;">STEP 2</p>
-                    <div class="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-5" style="background:#F0E4BB;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><polyline points="14 17 17 20 22 14"/>
-                        </svg>
-                    </div>
-                    <h3 class="font-bold text-base mb-3 text-ink">QRコード生成・印刷</h3>
-                    <p class="text-muted text-sm leading-relaxed">店舗のGoogleレビューURLを入力するだけでQRコードを自動生成。デザインもカスタマイズできます。</p>
-                </div>
-                <div class="bg-white p-10 rounded-2xl card-lift">
-                    <p class="text-xs font-label font-bold tracking-widest uppercase mb-4" style="color:#C9A84C;">STEP 3</p>
-                    <div class="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-5" style="background:#F0E4BB;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
-                        </svg>
-                    </div>
-                    <h3 class="font-bold text-base mb-3 text-ink">ミラー前に設置するだけ</h3>
-                    <p class="text-muted text-sm leading-relaxed">印刷したQRコードをミラー前やレジ横に置けば完了。あとは自然と高評価が集まり始めます。</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- ========== PRICING ========== -->
-    <section id="pricing" class="py-24 px-6" style="background:#F5EDE8;">
-        <div class="max-w-4xl mx-auto">
-            <div class="text-center mb-12">
-                <p class="text-xs font-label font-bold tracking-widest uppercase mb-3" style="color:#C9A84C;">Pricing</p>
-                <h2 class="font-serif text-3xl md:text-4xl text-ink">シンプルな料金プラン</h2>
-            </div>
-
-            <div class="rounded-2xl p-4 text-center mb-10 max-w-lg mx-auto text-sm font-medium" style="background:rgba(201,168,76,0.1);border:1.5px solid rgba(201,168,76,0.3);color:#A8873A;">
-                🎉 初月無料キャンペーン実施中 — クレジットカード不要
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
-
-                <!-- 月額 -->
-                <div class="bg-white p-10 rounded-2xl" style="border:1.5px solid #EDE0D8;">
-                    <p class="font-bold text-muted text-sm mb-5">月額プラン</p>
-                    <div class="mb-6">
-                        <span class="font-serif text-5xl text-ink">¥2,500</span>
-                        <span class="text-muted text-sm">/月（税込）</span>
-                    </div>
-                    <ul class="space-y-3 mb-8 text-sm">
-                        <li class="flex items-center gap-2 text-muted"><span class="font-bold" style="color:#C9A84C;">✓</span> AI口コミ自動生成</li>
-                        <li class="flex items-center gap-2 text-muted"><span class="font-bold" style="color:#C9A84C;">✓</span> QRコード生成・カスタマイズ</li>
-                        <li class="flex items-center gap-2 text-muted"><span class="font-bold" style="color:#C9A84C;">✓</span> AI返答文生成</li>
-                        <li class="flex items-center gap-2 text-muted"><span class="font-bold" style="color:#C9A84C;">✓</span> クーポン配信機能</li>
-                    </ul>
-                    <a href="/register" class="block text-center font-bold py-3.5 rounded-full transition-colors" style="border:1.5px solid #C9A84C;color:#C9A84C;" onmouseover="this.style.background='#C9A84C';this.style.color='#fff'" onmouseout="this.style.background='transparent';this.style.color='#C9A84C'">無料で始める</a>
-                </div>
-
-                <!-- 年払い -->
-                <div class="p-10 rounded-2xl relative overflow-hidden" style="background:#2C2C2C;">
-                    <div class="absolute top-4 right-4 text-white text-xs font-bold px-3 py-1 rounded-full" style="background:#C9A84C;">2ヶ月分お得</div>
-                    <p class="font-bold text-sm mb-5" style="color:#EDE0D8;">年払いプラン</p>
-                    <div class="mb-1">
-                        <span class="font-serif text-5xl text-white">¥25,000</span>
-                        <span class="text-sm" style="color:#EDE0D8;">/年（税込）</span>
-                    </div>
-                    <p class="text-sm mb-6" style="color:#C9A84C;">月あたり約2,083円</p>
-                    <ul class="space-y-3 mb-8 text-sm">
-                        <li class="flex items-center gap-2" style="color:#EDE0D8;"><span class="font-bold" style="color:#C9A84C;">✓</span> AI口コミ自動生成</li>
-                        <li class="flex items-center gap-2" style="color:#EDE0D8;"><span class="font-bold" style="color:#C9A84C;">✓</span> QRコード生成・カスタマイズ</li>
-                        <li class="flex items-center gap-2" style="color:#EDE0D8;"><span class="font-bold" style="color:#C9A84C;">✓</span> AI返答文生成</li>
-                        <li class="flex items-center gap-2" style="color:#EDE0D8;"><span class="font-bold" style="color:#C9A84C;">✓</span> クーポン配信機能</li>
-                    </ul>
-                    <a href="/register" class="block text-center gold-grad text-white font-bold py-3.5 rounded-full hover:opacity-90 transition-opacity">無料で始める</a>
-                </div>
-
-            </div>
-
-            <div class="text-center mt-12">
-                <a href="/register" class="gold-grad text-white px-12 py-4 rounded-full text-lg font-bold shadow-lg hover:opacity-90 active:scale-95 transition-all inline-block">今すぐ無料で始める</a>
-                <p class="text-muted text-sm mt-4">初月無料 / クレジットカード不要 / いつでも解約可能</p>
-            </div>
-        </div>
-    </section>
-
-    <!-- ========== FAQ ========== -->
-    <section id="faq" class="py-24 px-6 bg-white">
-        <div class="max-w-3xl mx-auto">
-            <div class="text-center mb-14">
-                <p class="text-xs font-label font-bold tracking-widest uppercase mb-3" style="color:#C9A84C;">FAQ</p>
-                <h2 class="font-serif text-3xl md:text-4xl text-ink">よくあるご質問</h2>
-            </div>
-            <div class="space-y-4">
-
-                <div class="p-8 rounded-2xl" style="background:#FBF6F3;">
-                    <h4 class="font-bold text-base mb-3 flex gap-3">
-                        <span style="color:#C9A84C;">Q.</span>美容室の専門用語に対応していますか？
-                    </h4>
-                    <div class="flex gap-3">
-                        <span class="font-bold text-muted">A.</span>
-                        <p class="text-muted text-sm leading-relaxed">はい、美容室専用AIなので、グレージュ・インナーカラー・縮毛矯正・ハイライトなど専門用語も自然に扱えます。「透明感のあるカラー」「収まりの良いボブ」など美容師様が大切にされているニュアンスをしっかり文章に反映します。</p>
-                    </div>
-                </div>
-
-                <div class="p-8 rounded-2xl" style="background:#FBF6F3;">
-                    <h4 class="font-bold text-base mb-3 flex gap-3">
-                        <span style="color:#C9A84C;">Q.</span>Googleマイビジネスのアカウントは必要ですか？
-                    </h4>
-                    <div class="flex gap-3">
-                        <span class="font-bold text-muted">A.</span>
-                        <p class="text-muted text-sm leading-relaxed">はい、Googleの口コミを増やすためのツールですので、アカウントのご用意をお願いしております。設定方法がわからない場合はサポートいたしますのでご安心ください。</p>
-                    </div>
-                </div>
-
-                <div class="p-8 rounded-2xl" style="background:#FBF6F3;">
-                    <h4 class="font-bold text-base mb-3 flex gap-3">
-                        <span style="color:#C9A84C;">Q.</span>お客様に操作は難しくないですか？
-                    </h4>
-                    <div class="flex gap-3">
-                        <span class="font-bold text-muted">A.</span>
-                        <p class="text-muted text-sm leading-relaxed">スマホでQRコードを読み取り、5つの項目を星で評価するだけです。テキスト入力は一切不要で、わずか30秒で完了します。60〜70代のお客様にもお使いいただいています。</p>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-    </section>
-
-    <!-- ========== CONTACT ========== -->
-    <section id="contact" class="py-24 px-6" style="background:#FBF6F3;">
-        <div class="max-w-lg mx-auto">
-            <div class="text-center mb-12">
-                <p class="text-xs font-label font-bold tracking-widest uppercase mb-3" style="color:#C9A84C;">Contact</p>
-                <h2 class="font-serif text-3xl text-ink">お問い合わせ</h2>
-                <p class="text-muted mt-4 text-sm">ご不明な点はお気軽にご連絡ください。</p>
-            </div>
-
-            <form id="contactForm" novalidate class="space-y-8">
-                <div>
-                    <label class="block text-sm font-medium text-ink mb-2" for="cName">お名前</label>
-                    <input type="text" id="cName" class="input-line" placeholder="山田 太郎" required>
+            <div class="feat-card">
+                <div class="feat-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 12v10H4V12"/><path d="M22 7H2v5h20V7z"/><path d="M12 22V7"/>
+                        <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/>
+                    </svg>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-ink mb-2" for="cEmail">メールアドレス</label>
-                    <input type="email" id="cEmail" class="input-line" placeholder="example@mail.com" required>
+                    <h3>クーポン自動配信</h3>
+                    <p style="margin-top:4px;font-size:14px;">アンケート回答後にクーポンを自動発行。感謝を形にしながら次回来店を促します。</p>
+                </div>
+            </div>
+
+            <div class="feat-card">
+                <div class="feat-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+                        <rect x="3" y="14" width="7" height="7" rx="1"/>
+                        <rect x="14" y="14" width="3" height="3"/><rect x="18" y="14" width="3" height="3"/>
+                        <rect x="14" y="18" width="3" height="3"/><rect x="18" y="18" width="3" height="3"/>
+                    </svg>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-ink mb-2" for="cMessage">お問い合わせ内容</label>
-                    <textarea id="cMessage" class="input-line" rows="5" placeholder="ご質問・ご要望をお書きください" required></textarea>
+                    <h3>QRコード自動生成</h3>
+                    <p style="margin-top:4px;font-size:14px;">GoogleレビューURLを入力するだけでオリジナルQRコードを生成。カラーもカスタマイズして印刷できます。</p>
                 </div>
-                <p id="contactError" class="text-sm" style="display:none;color:#c0392b;">すべての項目を入力してください。</p>
-                <button type="submit" id="contactSubmitBtn" class="gold-grad text-white w-full py-4 rounded-full font-bold hover:opacity-90 transition-opacity">
-                    送信する
-                </button>
+            </div>
+
+            <div class="feat-card">
+                <div class="feat-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h3>AI返答生成で返信が簡単</h3>
+                    <p style="margin-top:4px;font-size:14px;">Googleの口コミへの返信文をAIが自動生成。丁寧な返答を数秒で作成できます。</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<!-- ========== LINE REPORT ========== -->
+<section class="sec" id="line-report">
+    <div class="wrap">
+        <div class="sec-header">
+            <span class="label">LINE Report</span>
+            <h2>📱 LINEで届く、週次レビューレポート</h2>
+            <p>毎週月曜日の朝9時に、新着レビューの返答案とMEOアドバイスをLINEでお届けします。</p>
+        </div>
+        <div class="grid3">
+            <div class="card-alt">
+                <div class="card-icon">📅</div>
+                <h3>毎週月曜朝9時に通知</h3>
+                <p style="margin-top:8px;">新着レビューをまとめて週1回LINEで通知。忙しいオーナーでも確認しやすい。</p>
+            </div>
+            <div class="card-alt">
+                <div class="card-icon">🤖</div>
+                <h3>AI返答案をそのまま使える</h3>
+                <p style="margin-top:8px;">各レビューへのAI返答案をLINEで受信。コピペするだけで返信完了。</p>
+            </div>
+            <div class="card-alt">
+                <div class="card-icon">📊</div>
+                <h3>毎週変わるMEOアドバイス</h3>
+                <p style="margin-top:8px;">季節トレンド・MEO施策・口コミ返答のコツをローテーションでお届け。</p>
+            </div>
+        </div>
+
+        <div class="line-screens">
+            <div class="line-phone">
+                <img src="/static/images/line-sample-1.jpg" alt="LINEレポートサンプル1">
+            </div>
+            <div class="line-phone">
+                <img src="/static/images/line-sample-2.jpg" alt="LINEレポートサンプル2">
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ========== SOCIAL PROOF ========== -->
+<section class="sec-alt">
+    <div class="wrap">
+        <div class="sec-header center">
+            <span class="label">Results</span>
+            <h2>圧倒的な実績</h2>
+        </div>
+        <div class="ba-box">
+            <div class="ba-item">
+                <div class="ba-label">Before</div>
+                <div class="ba-num before">2<span style="font-size:28px;">件</span></div>
+                <div class="ba-stars" style="color:#CCC;">★★☆☆☆</div>
+            </div>
+            <div class="ba-arrow">→</div>
+            <div class="ba-item">
+                <div class="ba-label" style="color:var(--accent);">After</div>
+                <div class="ba-num after">50<span style="font-size:32px;">件!</span></div>
+                <div class="ba-stars" style="color:var(--accent);">★★★★★</div>
+            </div>
+        </div>
+        <p class="ba-quote">「導入初月で、今まで全く増えなかった口コミが毎日届くようになりました」（東京都・Aサロン様）</p>
+    </div>
+</section>
+
+<!-- ========== HOW TO START ========== -->
+<section class="sec" id="howto">
+    <div class="wrap">
+        <div class="sec-header center">
+            <span class="label">How to Start</span>
+            <h2>たった3ステップで導入完了</h2>
+            <p>複雑な設定は一切不要。最短5分で始められます。</p>
+        </div>
+        <div class="grid3">
+            <div class="step-card">
+                <div class="step-num">STEP 01</div>
+                <h3>アカウント登録</h3>
+                <p style="margin-top:8px;">メールとパスワードだけで登録完了。クレジットカード不要で初月無料。</p>
+            </div>
+            <div class="step-card">
+                <div class="step-num">STEP 02</div>
+                <h3>QRコード生成・印刷</h3>
+                <p style="margin-top:8px;">GoogleレビューURLを入力してQRコードを自動生成。A4印刷してそのまま使えます。</p>
+            </div>
+            <div class="step-card">
+                <div class="step-num">STEP 03</div>
+                <h3>ミラー前に設置するだけ</h3>
+                <p style="margin-top:8px;">QRコードを置けば完了。あとは自然と高評価クチコミが集まり始めます。</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ========== PRICING ========== -->
+<section class="sec-alt" id="pricing">
+    <div class="wrap">
+        <div class="sec-header center">
+            <span class="label">Pricing</span>
+            <h2>シンプルな料金プラン</h2>
+        </div>
+
+        <div class="free-banner">
+            🎉 初月無料キャンペーン実施中 — クレジットカード不要ですぐにお試しいただけます
+        </div>
+
+        <div class="pricing-grid">
+
+            <div class="plan">
+                <div class="plan-name">月額プラン</div>
+                <div class="plan-price">¥2,500</div>
+                <div class="plan-period">/月（税込）</div>
+                <ul class="plan-features" style="margin-top:20px;">
+                    <li>AI口コミ自動生成</li>
+                    <li>QRコード生成・カスタマイズ</li>
+                    <li>AI返答文生成</li>
+                    <li>クーポン配信機能</li>
+                </ul>
+                <a href="/register" class="btn-plan-outline">無料で始める</a>
+            </div>
+
+            <div class="plan featured">
+                <div class="plan-badge">2ヶ月分お得</div>
+                <div class="plan-name">年払いプラン</div>
+                <div class="plan-price" style="color:#fff;">¥25,000</div>
+                <div class="plan-period">/年（税込）</div>
+                <div class="plan-note">月あたり約2,083円</div>
+                <ul class="plan-features">
+                    <li>AI口コミ自動生成</li>
+                    <li>QRコード生成・カスタマイズ</li>
+                    <li>AI返答文生成</li>
+                    <li>クーポン配信機能</li>
+                </ul>
+                <a href="/register" class="btn-plan-white">無料で始める</a>
+            </div>
+
+        </div>
+
+        <div class="pricing-cta">
+            <a href="/register" class="btn-primary" style="font-size:17px;padding:16px 40px;">今すぐ無料で始める</a>
+            <p>初月無料 / クレジットカード不要 / いつでも解約可能</p>
+        </div>
+    </div>
+</section>
+
+<!-- ========== FAQ ========== -->
+<section class="sec" id="faq">
+    <div class="wrap">
+        <div class="sec-header center">
+            <span class="label">FAQ</span>
+            <h2>よくあるご質問</h2>
+        </div>
+        <div class="faq-list">
+
+            <div class="faq-item">
+                <div class="faq-q"><span>Q.</span>美容室の専門用語に対応していますか？</div>
+                <div class="faq-a">はい、美容室専用AIなので、グレージュ・インナーカラー・縮毛矯正・ハイライトなど専門用語も自然に扱えます。「透明感のあるカラー」「収まりの良いボブ」など美容師様が大切にされているニュアンスを反映します。</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-q"><span>Q.</span>Googleマイビジネスのアカウントは必要ですか？</div>
+                <div class="faq-a">はい、Googleの口コミを増やすためのツールですので、アカウントのご用意をお願いしております。設定方法がわからない場合はサポートいたします。</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-q"><span>Q.</span>お客様に操作は難しくないですか？</div>
+                <div class="faq-a">QRコードを読み取り、5項目を星で評価するだけです。テキスト入力は一切不要で、わずか30秒で完了します。60〜70代のお客様にもお使いいただいています。</div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<!-- ========== CONTACT ========== -->
+<section class="sec-alt" id="contact">
+    <div class="wrap">
+        <div class="sec-header center">
+            <span class="label">Contact</span>
+            <h2>お問い合わせ</h2>
+            <p>ご不明な点はお気軽にご連絡ください。</p>
+        </div>
+
+        <div class="contact-wrap">
+            <form id="contactForm" novalidate>
+                <div class="form-group">
+                    <label class="form-label" for="cName">お名前</label>
+                    <input type="text" id="cName" class="form-input" placeholder="山田 太郎" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="cEmail">メールアドレス</label>
+                    <input type="email" id="cEmail" class="form-input" placeholder="example@mail.com" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="cMessage">お問い合わせ内容</label>
+                    <textarea id="cMessage" class="form-input" rows="5" placeholder="ご質問・ご要望をお書きください" required></textarea>
+                </div>
+                <p id="contactError" class="form-error">すべての項目を入力してください。</p>
+                <button type="submit" id="contactSubmitBtn" class="btn-primary" style="width:100%;padding:16px;font-size:16px;">送信する</button>
             </form>
 
-            <div id="contactSuccess" class="text-center py-12" style="display:none;">
-                <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style="background:#F0E4BB;">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <div id="contactSuccess" class="contact-success">
+                <div class="success-check">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#B5936A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <polyline points="20 6 9 17 4 12"/>
                     </svg>
                 </div>
-                <h3 class="font-bold text-xl mb-2 text-ink">お問い合わせを受け付けました</h3>
-                <p class="text-muted text-sm">内容を確認のうえ、担当者よりご連絡いたします。<br>しばらくお待ちください。</p>
+                <h3>お問い合わせを受け付けました</h3>
+                <p style="margin-top:8px;">内容を確認のうえ、担当者よりご連絡いたします。<br>しばらくお待ちください。</p>
             </div>
         </div>
-    </section>
+    </div>
+</section>
 
-    <!-- ========== FINAL CTA ========== -->
-    <section class="py-24 px-6 text-center" style="background:#F5EDE8;">
-        <div class="max-w-3xl mx-auto p-16 rounded-3xl relative overflow-hidden" style="background:#2C2C2C;">
-            <div class="absolute top-0 right-0 w-64 h-64 rounded-full blur-3xl pointer-events-none" style="background:rgba(201,168,76,0.12);transform:translate(40%,-40%);"></div>
-            <h2 class="font-serif text-3xl md:text-4xl text-white mb-8 leading-tight">
-                接客の質はそのままに、<br>選ばれるサロンへ。
-            </h2>
-            <a href="/register" class="gold-grad text-white px-12 py-5 rounded-full text-xl font-bold shadow-2xl hover:opacity-90 active:scale-95 transition-all inline-block">
-                今すぐ無料で始める
-            </a>
-            <p class="mt-6 text-sm" style="color:rgba(237,224,216,0.6);">登録はわずか1分で完了します</p>
+<!-- ========== FINAL CTA ========== -->
+<section class="sec">
+    <div class="wrap">
+        <div class="cta-box">
+            <h2>接客の質はそのままに、<br>選ばれるサロンへ。</h2>
+            <a href="/register" class="btn-primary" style="font-size:18px;padding:18px 48px;background:#B5936A;">今すぐ無料で始める</a>
+            <p>登録はわずか1分で完了します</p>
         </div>
-    </section>
-
-</main>
+    </div>
+</section>
 
 <!-- ========== FOOTER ========== -->
-<footer class="py-12 px-6" style="background:#2C2C2C;">
-    <div class="max-w-4xl mx-auto text-center">
-        <p class="font-serif text-xl mb-2" style="color:#C9A84C;">গগラボ</p>
-        <p class="text-sm mb-8" style="color:rgba(237,224,216,0.45);">全ての店舗にお客様の声を</p>
-        <div class="flex flex-wrap justify-center gap-6 mb-8">
-            <a href="/meo"     class="text-xs hover:text-gold transition-colors" style="color:rgba(237,224,216,0.55);">MEO対策完全ガイド</a>
-            <a href="/privacy" class="text-xs hover:text-gold transition-colors" style="color:rgba(237,224,216,0.55);">プライバシーポリシー</a>
-            <a href="/terms"   class="text-xs hover:text-gold transition-colors" style="color:rgba(237,224,216,0.55);">利用規約</a>
-            <a href="/legal"   class="text-xs hover:text-gold transition-colors" style="color:rgba(237,224,216,0.55);">特定商取引法に基づく表記</a>
+<footer>
+    <div class="footer-inner">
+        <div class="footer-logo">গগラボ</div>
+        <div class="footer-tagline">全ての店舗にお客様の声を</div>
+        <div class="footer-links">
+            <a href="/meo">MEO対策完全ガイド</a>
+            <a href="/privacy">プライバシーポリシー</a>
+            <a href="/terms">利用規約</a>
+            <a href="/legal">特定商取引法に基づく表記</a>
         </div>
-        <p class="text-xs" style="color:rgba(237,224,216,0.3);">&copy; 2024 গগラボ All rights reserved.</p>
+        <div class="footer-copy">&copy; 2024 গগラボ All rights reserved.</div>
     </div>
 </footer>
 
@@ -628,7 +770,6 @@
             const name    = document.getElementById('cName').value.trim();
             const email   = document.getElementById('cEmail').value.trim();
             const message = document.getElementById('cMessage').value.trim();
-
             if (!name || !email || !message) {
                 errorEl.style.display = 'block';
                 return;
@@ -636,7 +777,6 @@
             errorEl.style.display = 'none';
             submitBtn.disabled = true;
             submitBtn.textContent = '送信中...';
-
             try {
                 await fetch('/contact', {
                     method: 'POST',
@@ -644,7 +784,6 @@
                     body: JSON.stringify({ name, email, message }),
                 });
             } catch (_) {}
-
             form.style.display = 'none';
             successEl.style.display = 'block';
         });
