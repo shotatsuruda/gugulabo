@@ -1274,9 +1274,9 @@ def submit_feedback(slug):
 
     submitted_at = datetime.now().strftime("%Y年%m月%d日 %H:%M")
 
-    # 業種に応じてアンケート項目を取得
+    # 業種に応じてアンケート項目を取得（DBにない場合は送信値を使用）
     shop_dict = dict(shop)
-    b_type = shop_dict.get("business_type") or "default"
+    b_type = shop_dict.get("business_type") or data.get("business_type") or "default"
     opts = SURVEY_OPTIONS.get(b_type, SURVEY_OPTIONS["default"])
 
     # 美容院：選択式アンケートのデータ読み取り

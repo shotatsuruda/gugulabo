@@ -741,6 +741,7 @@
             let body;
             if (BUSINESS_TYPE === '美容院') {
                 body = {
+                    business_type: BUSINESS_TYPE,
                     menu:         document.getElementById('hidden-menu').value,
                     satisfaction: document.getElementById('hidden-satisfaction').value,
                     good_points:  document.getElementById('hidden-good-points').value,
@@ -749,6 +750,7 @@
                 };
             } else {
                 body = {
+                    business_type: BUSINESS_TYPE,
                     rating:  ratings[1],
                     rating2: ratings[2],
                     rating3: ratings[3],
