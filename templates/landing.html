@@ -14,14 +14,16 @@
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
         :root {
-            --ink:     #1A1A1A;
-            --accent:  #B5936A;
-            --bg:      #FFFFFF;
-            --bg-alt:  #F8F8F8;
-            --muted:   #666666;
-            --border:  #E5E5E5;
-            --serif:   'Noto Serif JP', serif;
-            --sans:    'Noto Sans JP', sans-serif;
+            --ink:      #1A1A1A;
+            --accent:   #B5936A;
+            --bg:       #FFFFFF;
+            --bg-dark:  #1A1A1A;
+            --bg-alt:   #F8F8F8;
+            --muted:    #666666;
+            --border:   #E5E5E5;
+            --border-dark: #2E2E2E;
+            --serif:    'Noto Serif JP', serif;
+            --sans:     'Noto Sans JP', sans-serif;
         }
 
         html { scroll-behavior: smooth; }
@@ -29,8 +31,9 @@
 
         /* ---- Layout ---- */
         .wrap { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
-        .sec       { padding: 60px 0; }
-        .sec-alt   { padding: 60px 0; background: var(--bg-alt); }
+        .sec        { padding: 80px 0; background: var(--bg); }
+        .sec-alt    { padding: 80px 0; background: var(--bg-alt); }
+        .sec-dark   { padding: 80px 0; background: var(--bg-dark); }
 
         /* ---- Type ---- */
         .label { font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); }
@@ -58,76 +61,83 @@
         /* ---- Nav ---- */
         nav {
             position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-            background: rgba(255,255,255,0.95); backdrop-filter: blur(8px);
-            border-bottom: 1px solid var(--border);
+            background: #1A1A1A;
+            border-bottom: 1px solid #2E2E2E;
         }
         .nav-inner {
             max-width: 1100px; margin: 0 auto; padding: 0 24px;
             height: 60px; display: flex; align-items: center; justify-content: space-between; gap: 24px;
         }
-        .nav-logo { font-family: var(--serif); font-size: 20px; color: var(--ink); text-decoration: none; font-weight: 700; }
+        .nav-logo { font-family: var(--serif); font-size: 20px; color: #fff; text-decoration: none; font-weight: 700; }
         .nav-links { display: flex; align-items: center; gap: 28px; }
-        .nav-links a { font-size: 14px; color: var(--muted); text-decoration: none; }
-        .nav-links a:hover { color: var(--ink); }
+        .nav-links a { font-size: 14px; color: #AAAAAA; text-decoration: none; }
+        .nav-links a:hover { color: #fff; }
         .nav-right { display: flex; align-items: center; gap: 16px; }
-        .nav-right a { font-size: 14px; color: var(--muted); text-decoration: none; }
-        .nav-right a:hover { color: var(--ink); }
+        .nav-right > a:first-child { font-size: 14px; color: #AAAAAA; text-decoration: none; }
+        .nav-right > a:first-child:hover { color: #fff; }
+        .btn-nav { display: inline-block; background: var(--accent); color: #fff; font-size: 14px; font-weight: 700; font-family: var(--sans); padding: 9px 20px; border-radius: 4px; text-decoration: none; }
+        .btn-nav:hover { background: #c9a478; }
         .hamburger { display: none; background: none; border: none; cursor: pointer; }
-        #mobile-nav { display: none; background: var(--bg); border-top: 1px solid var(--border); padding: 16px 24px; flex-direction: column; gap: 16px; }
-        #mobile-nav a { font-size: 15px; color: var(--muted); text-decoration: none; }
+        #mobile-nav { display: none; background: #1A1A1A; border-top: 1px solid #2E2E2E; padding: 16px 24px; flex-direction: column; gap: 16px; }
+        #mobile-nav a { font-size: 15px; color: #AAAAAA; text-decoration: none; }
+        #mobile-nav a:hover { color: #fff; }
         #mobile-nav.open { display: flex; }
 
         /* ---- Hero ---- */
-        .hero { padding: 80px 0 60px; }
+        .hero { padding: 100px 0 80px; background: var(--bg-dark); }
         .hero-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; }
         .hero-eyebrow { margin-bottom: 20px; }
-        .hero-title { margin-bottom: 20px; }
-        .hero-sub { font-size: 17px; color: var(--muted); margin-bottom: 32px; max-width: 440px; }
-        .hero-note { font-size: 13px; color: #999; margin-top: 14px; }
+        .hero-title { margin-bottom: 20px; color: #fff; }
+        .hero-sub { font-size: 17px; color: #AAAAAA; margin-bottom: 32px; max-width: 440px; }
+        .hero-note { font-size: 13px; color: #666; margin-top: 14px; }
         .hero-btns { display: flex; gap: 12px; flex-wrap: wrap; }
+        .btn-hero-primary { display: inline-block; background: var(--accent); color: #fff; font-size: 15px; font-weight: 700; font-family: var(--sans); padding: 14px 32px; border-radius: 4px; text-decoration: none; border: none; cursor: pointer; }
+        .btn-hero-primary:hover { background: #c9a478; }
+        .btn-hero-outline { display: inline-block; border: 1.5px solid #444; color: #AAAAAA; font-size: 15px; font-weight: 700; font-family: var(--sans); padding: 13px 32px; border-radius: 4px; text-decoration: none; background: transparent; cursor: pointer; }
+        .btn-hero-outline:hover { border-color: #fff; color: #fff; }
 
         /* Phone mockup */
         .mockup-phone {
             width: 100%; max-width: 320px; margin: 0 auto;
-            border: 8px solid #1A1A1A; border-radius: 36px;
-            background: #fff; overflow: hidden;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.12);
+            border: 8px solid #333; border-radius: 36px;
+            background: #2A2A2A; overflow: hidden;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.5);
         }
         .mockup-bar {
-            background: #1A1A1A; height: 28px; display: flex; align-items: center; justify-content: center;
+            background: #111; height: 28px; display: flex; align-items: center; justify-content: center;
         }
-        .mockup-notch { width: 60px; height: 10px; background: #333; border-radius: 8px; }
+        .mockup-notch { width: 60px; height: 10px; background: #2A2A2A; border-radius: 8px; }
         .mockup-body { padding: 20px 16px; }
         .mockup-badge {
-            display: inline-block; background: #FFF3E8; color: var(--accent);
+            display: inline-block; background: rgba(181,147,106,0.15); color: var(--accent);
             font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; margin-bottom: 14px;
         }
-        .mockup-question { font-weight: 700; font-size: 14px; color: var(--ink); margin-bottom: 12px; }
+        .mockup-question { font-weight: 700; font-size: 14px; color: #fff; margin-bottom: 12px; }
         .mockup-stars { color: var(--accent); font-size: 22px; letter-spacing: 2px; margin-bottom: 14px; }
         .mockup-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
         .mockup-tag {
-            border: 1px solid var(--border); border-radius: 20px;
-            font-size: 12px; color: var(--muted); padding: 4px 12px;
+            border: 1px solid #3A3A3A; border-radius: 20px;
+            font-size: 12px; color: #888; padding: 4px 12px;
         }
-        .mockup-tag.sel { background: var(--ink); color: #fff; border-color: var(--ink); }
+        .mockup-tag.sel { background: var(--accent); color: #fff; border-color: var(--accent); }
         .mockup-review {
-            background: var(--bg-alt); border-radius: 8px; padding: 12px;
-            font-size: 12px; color: var(--muted); line-height: 1.7; margin-bottom: 14px;
+            background: #222; border-radius: 8px; padding: 12px;
+            font-size: 12px; color: #AAAAAA; line-height: 1.7; margin-bottom: 14px;
             border-left: 3px solid var(--accent);
         }
         .mockup-btn {
-            display: block; width: 100%; background: var(--ink); color: #fff;
+            display: block; width: 100%; background: var(--accent); color: #fff;
             text-align: center; padding: 11px; border-radius: 6px;
             font-size: 13px; font-weight: 700;
         }
 
         /* ---- Stats ---- */
         .stats-row { display: flex; }
-        .stat { flex: 1; padding: 28px 20px; text-align: center; border-right: 1px solid var(--border); }
+        .stat { flex: 1; padding: 28px 20px; text-align: center; border-right: 1px solid #2E2E2E; }
         .stat:last-child { border-right: none; }
         .stat-num { font-family: var(--serif); font-size: 40px; font-weight: 700; color: var(--accent); line-height: 1; }
         .stat-unit { font-size: 16px; }
-        .stat-label { font-size: 13px; color: var(--muted); margin-top: 6px; }
+        .stat-label { font-size: 13px; color: #666; margin-top: 6px; }
 
         /* ---- Section header ---- */
         .sec-header { margin-bottom: 44px; }
@@ -136,6 +146,49 @@
         .sec-header p { max-width: 560px; }
         .sec-header.center { text-align: center; }
         .sec-header.center p { margin: 0 auto; }
+        /* dark section overrides */
+        .sec-dark .sec-header h2,
+        .sec-dark h2,
+        .sec-dark h3 { color: #fff; }
+        .sec-dark p,
+        .sec-dark .sec-header p { color: #AAAAAA; }
+        .sec-dark .card-alt { background: #242424; }
+        .sec-dark .card-alt h3 { color: #fff; }
+        .sec-dark .card-alt p { color: #AAAAAA; }
+        .sec-dark .step-card { background: #242424; border-color: #2E2E2E; }
+        .sec-dark .step-card h3 { color: #fff; }
+        .sec-dark .step-card p { color: #AAAAAA; }
+        .sec-dark .feat-card { background: #242424; border-color: #2E2E2E; }
+        .sec-dark .feat-card h3 { color: #fff; }
+        .sec-dark .feat-card p { color: #AAAAAA; }
+        .sec-dark .feat-icon { background: rgba(181,147,106,0.12); }
+        .sec-dark .demo-tab { background: #242424; border-color: #3A3A3A; color: #888; }
+        .sec-dark .demo-tab:hover { border-color: var(--accent); color: #fff; }
+        .sec-dark .demo-tab.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+        .sec-dark .form-label { color: #AAAAAA; }
+        .sec-dark .form-input { background: #242424; border-color: #3A3A3A; color: #fff; }
+        .sec-dark .form-input:focus { border-color: var(--accent); }
+        .sec-dark .form-input::placeholder { color: #555; }
+        .sec-dark .free-banner { background: rgba(181,147,106,0.1); border-color: rgba(181,147,106,0.3); color: #C9A87A; }
+        .sec-dark .plan { background: #242424; border-color: #2E2E2E; }
+        .sec-dark .plan.featured { background: var(--accent); border-color: var(--accent); }
+        .sec-dark .plan-name { color: #888; }
+        .sec-dark .plan.featured .plan-name { color: rgba(255,255,255,0.7); }
+        .sec-dark .plan-price { color: #fff; }
+        .sec-dark .plan-features li { color: #AAAAAA; border-color: #2E2E2E; }
+        .sec-dark .plan.featured .plan-features li { color: rgba(255,255,255,0.85); border-color: rgba(255,255,255,0.15); }
+        .sec-dark .plan-period { color: #666; }
+        .sec-dark .plan.featured .plan-period { color: rgba(255,255,255,0.7); }
+        .sec-dark .btn-plan-outline { border-color: #3A3A3A; color: #AAAAAA; }
+        .sec-dark .btn-plan-outline:hover { background: #fff; color: var(--ink); border-color: #fff; }
+        .sec-dark .btn-plan-white { background: var(--ink); color: #fff; }
+        .sec-dark .pricing-cta p { color: #666; }
+        .sec-dark .contact-success h3 { color: #fff; }
+        .sec-dark .contact-success p { color: #AAAAAA; }
+        /* dark section before/after */
+        .sec-dark .ba-label { color: #666; }
+        .sec-dark .ba-quote { color: #666; }
+        .sec-dark .ba-arrow { color: #333; }
 
         /* ---- 3-col grid ---- */
         .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
@@ -243,9 +296,9 @@
         }
 
         /* ---- Final CTA ---- */
-        .cta-box { background: var(--ink); border-radius: 8px; padding: 60px 40px; text-align: center; }
+        .cta-box { background: #111; border: 1px solid #2E2E2E; border-radius: 8px; padding: 80px 40px; text-align: center; }
         .cta-box h2 { color: #fff; margin-bottom: 24px; }
-        .cta-box p  { color: #888; font-size: 14px; margin-top: 14px; }
+        .cta-box p  { color: #666; font-size: 14px; margin-top: 14px; }
 
         /* ---- Footer ---- */
         footer { background: var(--ink); padding: 40px 0; }
@@ -292,9 +345,9 @@
 
         <div class="nav-right">
             <a href="/login">ログイン</a>
-            <a href="/register" class="btn-primary" style="padding:10px 20px;font-size:14px;">無料で始める</a>
+            <a href="/register" class="btn-nav">無料で始める</a>
             <button class="hamburger" onclick="document.getElementById('mobile-nav').classList.toggle('open')" aria-label="メニュー">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1A1A1A" stroke-width="2">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2">
                     <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
                 </svg>
             </button>
@@ -324,8 +377,8 @@
                 <h1 class="hero-title">美容室の口コミは、<br>もっと自然に増やせる。</h1>
                 <p class="hero-sub">グレージュ・縮毛矯正・インナーカラー——美容室ならではの言葉でAIが書く。QRコード1枚で、お客様が自分から書いてくれる仕組みを。</p>
                 <div class="hero-btns">
-                    <a href="/register" class="btn-primary">無料で始める</a>
-                    <a href="#demo" class="btn-outline">デモを見る</a>
+                    <a href="/register" class="btn-hero-primary">無料で始める</a>
+                    <a href="#demo" class="btn-hero-outline">デモを見る</a>
                 </div>
                 <p class="hero-note">✓ 初月無料・クレジットカード不要</p>
             </div>
@@ -356,7 +409,7 @@
 </section>
 
 <!-- ========== STATS ========== -->
-<div style="background:var(--bg-alt);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+<div style="background:#111;border-top:1px solid #2E2E2E;border-bottom:1px solid #2E2E2E;">
     <div class="wrap">
         <div class="stats-row">
             <div class="stat">
@@ -376,7 +429,7 @@
 </div>
 
 <!-- ========== PROBLEMS ========== -->
-<section class="sec">
+<section class="sec" style="background:#fff;">
     <div class="wrap">
         <div class="sec-header">
             <span class="label">Pain Points</span>
@@ -403,7 +456,7 @@
 </section>
 
 <!-- ========== DEMO ========== -->
-<section class="sec-alt" id="demo">
+<section class="sec-dark" id="demo">
     <div class="wrap">
         <div class="sec-header center">
             <span class="label">Live Demo</span>
@@ -424,7 +477,7 @@
 </section>
 
 <!-- ========== HOW REVIEWS WORK ========== -->
-<section class="sec" id="features">
+<section class="sec" id="features" style="background:#fff;">
     <div class="wrap">
         <div class="sec-header center">
             <span class="label">How It Works</span>
@@ -452,7 +505,7 @@
 </section>
 
 <!-- ========== FEATURES ========== -->
-<section class="sec-alt" id="what-we-do">
+<section class="sec-dark" id="what-we-do">
     <div class="wrap">
         <div class="sec-header">
             <span class="label">Features</span>
@@ -519,7 +572,7 @@
 </section>
 
 <!-- ========== LINE REPORT ========== -->
-<section class="sec" id="line-report">
+<section class="sec" id="line-report" style="background:#fff;">
     <div class="wrap">
         <div class="sec-header">
             <span class="label">LINE Report</span>
@@ -556,7 +609,7 @@
 </section>
 
 <!-- ========== SOCIAL PROOF ========== -->
-<section class="sec-alt">
+<section class="sec-dark">
     <div class="wrap">
         <div class="sec-header center">
             <span class="label">Results</span>
@@ -580,7 +633,7 @@
 </section>
 
 <!-- ========== HOW TO START ========== -->
-<section class="sec" id="howto">
+<section class="sec" id="howto" style="background:#fff;">
     <div class="wrap">
         <div class="sec-header center">
             <span class="label">How to Start</span>
@@ -608,7 +661,7 @@
 </section>
 
 <!-- ========== PRICING ========== -->
-<section class="sec-alt" id="pricing">
+<section class="sec-dark" id="pricing">
     <div class="wrap">
         <div class="sec-header center">
             <span class="label">Pricing</span>
@@ -652,14 +705,14 @@
         </div>
 
         <div class="pricing-cta">
-            <a href="/register" class="btn-primary" style="font-size:17px;padding:16px 40px;">今すぐ無料で始める</a>
+            <a href="/register" class="btn-hero-primary" style="font-size:17px;padding:16px 40px;">今すぐ無料で始める</a>
             <p>初月無料 / クレジットカード不要 / いつでも解約可能</p>
         </div>
     </div>
 </section>
 
 <!-- ========== FAQ ========== -->
-<section class="sec" id="faq">
+<section class="sec" id="faq" style="background:#fff;">
     <div class="wrap">
         <div class="sec-header center">
             <span class="label">FAQ</span>
@@ -687,7 +740,7 @@
 </section>
 
 <!-- ========== CONTACT ========== -->
-<section class="sec-alt" id="contact">
+<section class="sec-dark" id="contact">
     <div class="wrap">
         <div class="sec-header center">
             <span class="label">Contact</span>
@@ -710,7 +763,7 @@
                     <textarea id="cMessage" class="form-input" rows="5" placeholder="ご質問・ご要望をお書きください" required></textarea>
                 </div>
                 <p id="contactError" class="form-error">すべての項目を入力してください。</p>
-                <button type="submit" id="contactSubmitBtn" class="btn-primary" style="width:100%;padding:16px;font-size:16px;">送信する</button>
+                <button type="submit" id="contactSubmitBtn" class="btn-hero-primary" style="width:100%;padding:16px;font-size:16px;">送信する</button>
             </form>
 
             <div id="contactSuccess" class="contact-success">
