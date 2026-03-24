@@ -360,15 +360,12 @@
             /* ---- ③ ヒーロー ---- */
             .hero { padding: 32px 0 16px; }
             .hero-grid { display: flex; flex-direction: column; gap: 0; }
-            .hero-left { display: contents; }
-            .hero-tag { order: 1; }
-            .hero-img { order: 2; margin: 16px 0 20px; }
-            .hero-title { order: 3; font-size: 32px; margin-bottom: 0; }
+            .hero-img { order: -1; margin: 0 0 20px; }
             .hero-img img { width: 100%; border-radius: 12px; }
-            .hero-sub { order: 4; font-size: 15px; margin-bottom: 20px; }
-            .hero-btns { order: 5; flex-direction: row; gap: 12px; }
+            .hero-title { font-size: 32px; }
+            .hero-sub { font-size: 15px; margin-bottom: 20px; }
+            .hero-btns { flex-direction: row; gap: 12px; }
             .btn-hero-primary, .btn-hero-outline { flex: 1; text-align: center; padding: 14px 0; font-size: 14px; }
-            .hero-note { order: 6; }
 
             /* ---- ④ 実績バナー ---- */
             .stats-banner { padding: 24px 0; }
