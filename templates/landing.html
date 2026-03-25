@@ -291,6 +291,28 @@
         }
         .btn-plan-outline:hover { background: #1C1C1C; color: #fff; }
 
+        /* ---- Menu Grid ---- */
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+            max-width: 600px;
+            margin: 0 auto 32px;
+        }
+        .menu-item {
+            background: #FFFFFF;
+            border: 1px solid #EDE8E0;
+            border-radius: 12px;
+            padding: 14px 8px;
+            text-align: center;
+            font-size: 13px;
+            color: #555;
+            font-family: 'Noto Sans JP', sans-serif;
+        }
+        @media (max-width: 768px) {
+            .menu-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+
         /* ---- Business Type Tag Strip ---- */
         .biz-tag-strip {
             background: #fff;
@@ -590,14 +612,14 @@
 <!-- ========== BUSINESS TYPE TAGS ========== -->
 <div class="biz-tag-strip">
     <span class="biz-tag-label">こんなサロンに選ばれています</span>
-    <span class="biz-tag">✂ カット専門店</span>
-    <span class="biz-tag">💇 カラーサロン</span>
-    <span class="biz-tag">〜 縮毛矯正専門</span>
-    <span class="biz-tag">💆 ヘッドスパ専門</span>
-    <span class="biz-tag">✨ ハイライト・ブリーチ</span>
-    <span class="biz-tag">🧴 トリートメント専門</span>
-    <span class="biz-tag">💼 フリーランス美容師</span>
-    <span class="biz-tag">👤 シェアサロン利用者</span>
+    <span class="biz-tag">カット専門店</span>
+    <span class="biz-tag">カラーサロン</span>
+    <span class="biz-tag">縮毛矯正専門</span>
+    <span class="biz-tag">ヘッドスパ専門</span>
+    <span class="biz-tag">ハイライト・ブリーチ</span>
+    <span class="biz-tag">トリートメント専門</span>
+    <span class="biz-tag">フリーランス美容師</span>
+    <span class="biz-tag">シェアサロン利用者</span>
 </div>
 
 <!-- ========== STATS BANNER ========== -->
@@ -738,6 +760,20 @@
                 <h3>Googleに投稿</h3>
                 <img src="/static/images/lp/step04.png" alt="Google口コミ投稿画面サンプル" style="width:100%;max-width:160px;margin-top:12px;border-radius:8px;">
             </div>
+        </div>
+
+        <p style="text-align:center;font-size:14px;color:#888;margin-bottom:20px;">以下のメニューに対応した口コミ文を生成できます</p>
+        <div class="menu-grid">
+            <div class="menu-item">カット</div>
+            <div class="menu-item">カラー</div>
+            <div class="menu-item">グレージュ</div>
+            <div class="menu-item">ブリーチ</div>
+            <div class="menu-item">ハイライト</div>
+            <div class="menu-item">縮毛矯正</div>
+            <div class="menu-item">ヘッドスパ</div>
+            <div class="menu-item">トリートメント</div>
+            <div class="menu-item">パーマ</div>
+            <div class="menu-item">インナーカラー</div>
         </div>
 
         <p class="solution-note">
