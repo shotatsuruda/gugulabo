@@ -8,24 +8,19 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;600;700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700&family=Noto+Sans+JP:wght@400;500;600;700&display=swap"
         rel="stylesheet">
     <style>
         :root {
-            --bg-color: #F4F6F8;
-            /* Light blue-grey tint */
+            --bg-color: #FBF8F5;
             --card-bg: #ffffff;
-            --text-main: #2C363F;
-            /* Dark blue-grey text */
-            --text-muted: #8C9BA8;
-            /* Muted blue-grey */
-            --border-color: #E2E8ED;
-            --accent-color: #7A90A4;
-            /* Pale blue-grey accent */
-            --star-inactive: #E2E8ED;
+            --text-main: #1C1C1C;
+            --text-muted: #888888;
+            --border-color: #EDE8E0;
+            --accent-color: #C9A96E;
+            --star-inactive: #EDE8E0;
             --star-active: #fbbf24;
-            --btn-bg: #7A90A4;
-            /* Pale blue-grey button */
+            --btn-bg: #C9A96E;
             --btn-text: #ffffff;
             --radius-md: 12px;
             --radius-lg: 20px;
@@ -40,7 +35,7 @@
         body {
             background-color: var(--bg-color);
             color: var(--text-main);
-            font-family: 'Plus Jakarta Sans', 'Noto Sans JP', sans-serif;
+            font-family: 'Noto Sans JP', sans-serif;
             min-height: 100vh;
             -webkit-font-smoothing: antialiased;
         }
@@ -73,7 +68,8 @@
             font-size: 1.4rem;
             font-weight: 700;
             letter-spacing: 0.05em;
-            color: var(--accent-color);
+            color: var(--text-main);
+            font-family: 'Noto Serif JP', serif;
         }
 
         .subtitle {
@@ -105,9 +101,9 @@
 
         .card {
             background: var(--card-bg);
-            border-radius: var(--radius-lg);
+            border-radius: 16px;
             padding: 2.5rem 1.5rem;
-            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
             margin-bottom: 1.5rem;
             border: 1px solid var(--border-color);
         }
@@ -122,9 +118,10 @@
 
         .q-title {
             font-size: 0.95rem;
-            font-weight: 600;
+            font-weight: 700;
             margin-bottom: 0.75rem;
             text-align: center;
+            font-family: 'Noto Serif JP', serif;
         }
 
         .stars-row {
@@ -177,8 +174,8 @@
         .btn-main {
             width: 100%;
             padding: 1rem;
-            background-color: var(--btn-bg);
-            color: var(--btn-text);
+            background-color: #1C1C1C;
+            color: #ffffff;
             border: none;
             border-radius: var(--radius-md);
             font-size: 1rem;
@@ -190,7 +187,7 @@
         }
 
         .btn-main:hover {
-            background-color: #333;
+            background-color: #333333;
             transform: translateY(-1px);
         }
 
@@ -199,6 +196,14 @@
             color: var(--text-muted);
             cursor: not-allowed;
             transform: none;
+        }
+
+        .btn-main.btn-gold {
+            background-color: var(--accent-color);
+        }
+
+        .btn-main.btn-gold:hover {
+            background-color: #B8944F;
         }
 
         .loader {
@@ -360,17 +365,20 @@
         }
         .pill-btn {
             padding: 10px 20px; border-radius: 20px;
-            border: 1px solid #ddd; background: white;
-            font-size: 14px; cursor: pointer;
+            border: 1px solid #EDE8E0; background: #FFFFFF;
+            font-size: 14px; cursor: pointer; color: #1C1C1C;
             transition: all 0.2s; font-family: inherit;
             -webkit-tap-highlight-color: transparent;
         }
+        .pill-btn:hover {
+            border-color: #C9A96E;
+        }
         .pill-btn.selected {
-            background: #C9A96E; color: white; border-color: #C9A96E;
+            background: #C9A96E; color: #ffffff; border-color: #C9A96E;
         }
         .question-block { margin-bottom: 32px; text-align: center; }
-        .question-label { font-size: 16px; font-weight: bold; color: #1C1C1C; margin-bottom: 4px; }
-        .question-sub { font-size: 12px; color: #888; margin-bottom: 12px; }
+        .question-label { font-size: 16px; font-weight: 700; color: #1C1C1C; margin-bottom: 4px; font-family: 'Noto Serif JP', serif; }
+        .question-sub { font-size: 12px; color: #888888; margin-bottom: 12px; }
     </style>
     <style>
         /* ===== デモ解説オーバーレイ ===== */
@@ -380,15 +388,15 @@
         }
         .demo-bubble {
             display: none;
-            background: #FFB400;
-            color: #1a1a1a;
+            background: #C9A96E;
+            color: #ffffff;
             font-size: 0.85rem;
             font-weight: 700;
             padding: 0.5rem 0.9rem;
             border-radius: 20px;
             width: fit-content;
             max-width: 90%;
-            box-shadow: 0 4px 14px rgba(255,180,0,0.35);
+            box-shadow: 0 4px 14px rgba(201,169,110,0.4);
             animation: demofloat 2s ease-in-out infinite;
             position: relative;
             line-height: 1.4;
@@ -401,7 +409,7 @@
             left: 50%;
             transform: translateX(-50%);
             border: 9px solid transparent;
-            border-top-color: #FFB400;
+            border-top-color: #C9A96E;
             border-bottom: none;
         }
         /* 上向き矢印 */
@@ -412,7 +420,7 @@
             left: 50%;
             transform: translateX(-50%);
             border: 9px solid transparent;
-            border-bottom-color: #FFB400;
+            border-bottom-color: #C9A96E;
             border-top: none;
         }
         body.demo-mode .demo-bubble { display: block; }
@@ -618,8 +626,8 @@
                     placeholder="ここにクチコミの案が生成されます。自由に編集や加筆をしてからコピーできます"></textarea>
 
                 <div class="demo-bubble arrow-down" style="margin-bottom:10px;">📝 AIが書いた口コミをそのままコピーして投稿！</div>
-                <button class="btn-main" id="copy-btn" onclick="copyAndGotoGoogle()"
-                    style="margin-bottom: 1rem; background-color: var(--accent-color);">
+                <button class="btn-main btn-gold" id="copy-btn" onclick="copyAndGotoGoogle()"
+                    style="margin-bottom: 1rem;">
                     📝 コピーしてGoogleを開く
                 </button>
                 <p id="ios-chrome-hint" style="display:none; font-size:0.8rem; color:var(--text-muted); margin-bottom:1.5rem; line-height:1.5;">

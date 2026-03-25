@@ -1,17 +1,17 @@
 /* ===== CSS 変数（デザイントークン）===== */
 :root {
-    --dark:         #2C363F;
-    --copper:       #7A90A4; /* Changed from copper to pale blue-grey */
-    --copper-hover: #5F7486; /* Darker blue-grey for hover */
-    --bg:           #F4F6F8; /* Light blue-grey tint instead of beige */
-    --border:       #E2E8ED;
+    --dark:         #1C1C1C;
+    --copper:       #C9A96E;
+    --copper-hover: #B8944F;
+    --bg:           #FBF8F5;
+    --border:       #EDE8E0;
     --white:        #FFFFFF;
-    --muted:        #8C9BA8;
-    --radius:       8px;
-    --radius-sm:    6px;
-    --shadow:       0 2px 8px rgba(44, 54, 63, 0.04);
-    --shadow-md:    0 6px 16px rgba(44, 54, 63, 0.08);
-    --font-heading: 'Montserrat', 'Zen Kaku Gothic New', sans-serif;
+    --muted:        #888888;
+    --radius:       12px;
+    --radius-sm:    8px;
+    --shadow:       0 2px 12px rgba(0, 0, 0, 0.06);
+    --shadow-md:    0 6px 20px rgba(0, 0, 0, 0.10);
+    --font-heading: 'Noto Serif JP', 'Montserrat', serif;
 }
 
 /* ===== ベーススタイル ===== */
@@ -26,23 +26,23 @@ body {
 
 /* ===== ナビゲーション ===== */
 .navbar {
-    background-color: var(--white) !important;
-    border-bottom: 1px solid var(--border);
+    background-color: #1C1C1C !important;
+    border-bottom: none;
     padding-top: 0.875rem;
     padding-bottom: 0.875rem;
-    box-shadow: none;
+    box-shadow: 0 1px 8px rgba(0,0,0,0.18);
 }
 
 .navbar-brand {
     font-family: var(--font-heading);
     font-size: 1.15rem;
     font-weight: 700;
-    color: var(--dark) !important;
+    color: #ffffff !important;
     letter-spacing: 0.03em;
 }
 
 .nav-link {
-    color: var(--muted) !important;
+    color: rgba(255,255,255,0.6) !important;
     font-size: 0.875rem;
     font-weight: 500;
     padding: 0.375rem 0.75rem !important;
@@ -52,12 +52,16 @@ body {
 
 .nav-link:hover,
 .nav-link.active {
-    color: var(--dark) !important;
+    color: #ffffff !important;
+}
+
+.navbar-text {
+    color: rgba(255,255,255,0.5) !important;
 }
 
 .navbar-toggler {
     border: none !important;
-    color: var(--dark) !important;
+    color: #ffffff !important;
     padding: 0.4rem;
     border-radius: var(--radius-sm);
     transition: background-color 0.2s;
@@ -65,11 +69,11 @@ body {
 
 .navbar-toggler:focus, .navbar-toggler:active {
     box-shadow: none;
-    background-color: var(--bg);
+    background-color: rgba(255,255,255,0.1);
 }
 
 .navbar-toggler-icon {
-    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232C363F' stroke-width='1.5' stroke-linecap='square' stroke-linejoin='miter'%3e%3cline x1='3' y1='12' x2='21' y2='12'%3e%3c/line%3e%3cline x1='3' y1='6' x2='21' y2='6'%3e%3c/line%3e%3cline x1='3' y1='18' x2='21' y2='18'%3e%3c/line%3e%3c/svg%3e") !important;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='1.5' stroke-linecap='square' stroke-linejoin='miter'%3e%3cline x1='3' y1='12' x2='21' y2='12'%3e%3c/line%3e%3cline x1='3' y1='6' x2='21' y2='6'%3e%3c/line%3e%3cline x1='3' y1='18' x2='21' y2='18'%3e%3c/line%3e%3c/svg%3e") !important;
     width: 1.5em;
     height: 1.5em;
     display: inline-block;
@@ -524,7 +528,7 @@ footer {
 
 .template-card.active {
     border-color: var(--copper);
-    background-color: rgba(140, 123, 107, 0.07);
+    background-color: rgba(201, 169, 110, 0.08);
 }
 
 .template-thumb {
@@ -877,7 +881,7 @@ footer {
     flex-shrink: 0;
     width: 48px;
     height: 48px;
-    background-color: rgba(140, 123, 107, 0.1);
+    background-color: rgba(201, 169, 110, 0.1);
     border-radius: var(--radius);
     display: flex;
     align-items: center;
