@@ -3,6 +3,40 @@
 {% block title %}QRコード生成 | ググラボ{% endblock %}
 
 {% block content %}
+<style>
+.line-connect-banner {
+    background: #F0FFF4;
+    border: 1px solid #86EFAC;
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-top: 10px;
+}
+.line-connect-banner-inner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.line-connect-icon { font-size: 24px; flex-shrink: 0; }
+.line-connect-title { font-weight: 700; font-size: 13px; color: #166534; }
+.line-connect-desc { font-size: 11px; color: #16a34a; margin-top: 2px; }
+.line-connect-btn {
+    margin-left: auto;
+    background: #22C55E;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+.line-connect-btn:hover { background: #16a34a; color: white; }
+@media (max-width: 768px) {
+    .line-connect-banner-inner { flex-wrap: wrap; }
+    .line-connect-btn { margin-left: 0; width: 100%; text-align: center; margin-top: 8px; }
+}
+</style>
 
 <div class="d-flex align-items-center gap-2 mb-4">
     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8C7B6B"
@@ -675,35 +709,46 @@
         el.innerHTML = shops.map(s => {
             const surveyUrl = window.location.origin + '/shop/' + s.slug;
             return `
-        <div class="shop-item d-flex justify-content-between align-items-start mb-2 p-2">
-            <div class="flex-grow-1 me-2 overflow-hidden">
-                <div class="fw-semibold small text-truncate">${esc(s.name)}${s.business_type ? ` <span style="font-size:0.7rem;background:#F5F3F0;border:1px solid #E8E4DF;border-radius:4px;padding:1px 5px;color:#8C7B6B;">${esc(s.business_type)}</span>` : ''}</div>
-                <div class="url-text text-truncate">${esc(s.review_url)}</div>
-                <div class="url-text text-truncate"><a href="${surveyUrl}" target="_blank" style="color:#8C7B6B;">${surveyUrl}</a></div>
-                ${s.line_user_id || s.place_id ? `
+        <div class="shop-item mb-2 p-2">
+            <div class="d-flex justify-content-between align-items-start">
+                <div class="flex-grow-1 me-2 overflow-hidden">
+                    <div class="fw-semibold small text-truncate">${esc(s.name)}${s.business_type ? ` <span style="font-size:0.7rem;background:#F5F3F0;border:1px solid #E8E4DF;border-radius:4px;padding:1px 5px;color:#8C7B6B;">${esc(s.business_type)}</span>` : ''}</div>
+                    <div class="url-text text-truncate">${esc(s.review_url)}</div>
+                    <div class="url-text text-truncate"><a href="${surveyUrl}" target="_blank" style="color:#8C7B6B;">${surveyUrl}</a></div>
                     <div class="mt-1 d-flex align-items-center gap-2 flex-wrap">
                         ${s.line_user_id
                             ? '<span style="font-size:0.72rem;color:#00B900;">✅ LINE連携済み</span>'
-                            : '<a href="/shop/' + s.id + '/line-connect" style="font-size:0.72rem;color:#00B900;">📱 LINE連携する</a>'
+                            : ''
                         }
                         ${s.place_id
                             ? '<span style="font-size:0.72rem;color:#4285F4;">✅ Googleマップ連携済み</span><button onclick="fetchPlaceId(' + s.id + ', this)" style="background:none;border:none;color:#999;cursor:pointer;font-size:0.72rem;padding:0;">再連携</button>'
                             : '<button onclick="fetchPlaceId(' + s.id + ', this)" style="background:#4285F4;color:white;border:none;border-radius:6px;padding:2px 8px;cursor:pointer;font-size:0.72rem;">🗺️ Googleマップと自動連携</button>'
                         }
-                    </div>` : ''
-                }
-                <div id="place-result-${s.id}" style="font-size:0.72rem;margin-top:2px;"></div>
+                    </div>
+                    <div id="place-result-${s.id}" style="font-size:0.72rem;margin-top:2px;"></div>
+                </div>
+                <div class="d-flex gap-1 flex-shrink-0">
+                    <button class="btn btn-outline-secondary btn-sm py-0 px-1"
+                            onclick="openEditShopModal(${s.id})" title="編集">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                    </button>
+                    <button class="btn btn-outline-danger btn-sm py-0 px-1"
+                            onclick="deleteShop(${s.id})" title="削除">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                    </button>
+                </div>
             </div>
-            <div class="d-flex gap-1 flex-shrink-0">
-                <button class="btn btn-outline-secondary btn-sm py-0 px-1"
-                        onclick="openEditShopModal(${s.id})" title="編集">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                </button>
-                <button class="btn btn-outline-danger btn-sm py-0 px-1"
-                        onclick="deleteShop(${s.id})" title="削除">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
-                </button>
-            </div>
+            ${!s.line_user_id ? `
+            <div class="line-connect-banner">
+                <div class="line-connect-banner-inner">
+                    <div class="line-connect-icon">💬</div>
+                    <div class="line-connect-text">
+                        <div class="line-connect-title">LINE連携が未設定です</div>
+                        <div class="line-connect-desc">連携するとWeeklyレポートがLINEで届きます</div>
+                    </div>
+                    <a href="/shop/${s.id}/line-connect" class="line-connect-btn">LINEを連携する</a>
+                </div>
+            </div>` : ''}
         </div>`;
         }).join('');
     }
