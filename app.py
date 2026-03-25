@@ -533,6 +533,20 @@ def init_db():
         """
     )
 
+    # アンケート送信テンプレートテーブル
+    conn.execute(
+        f"""
+        CREATE TABLE IF NOT EXISTS review_templates (
+            id         {pk},
+            store_id   INTEGER NOT NULL,
+            channel    TEXT NOT NULL,
+            content    TEXT NOT NULL,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(store_id, channel)
+        )
+        """
+    )
+
     # デモ用店舗を作成（なければ）
     conn.execute("""
         INSERT INTO shops (user_id, name, slug, review_url)
@@ -1943,6 +1957,98 @@ def survey_settings():
         gp_options=gp_options,
         placeholder=placeholder,
         subtitle=subtitle,
+    )
+
+
+_TEMPLATE_DEFAULTS = {
+    "line": "本日はご来院ありがとうございました！\nよろしければアンケートにご回答ください🙏\n{url}",
+    "sms": "本日のご来院ありがとうございました。アンケートにご回答ください→ {url}",
+    "email_subject": "アンケートのお願い",
+    "email_body": "本日はご来院ありがとうございました。\nよろしければ以下のアンケートにご回答ください。\n\n{url}\n\n引き続きよろしくお願いいたします。",
+}
+
+
+@app.route("/dashboard/template", methods=["GET", "POST"])
+@login_required
+def survey_template():
+    """アンケート送信用テンプレートページ"""
+    conn = get_db()
+    shops = conn.execute(
+        "SELECT id, name, slug FROM shops WHERE user_id = ? ORDER BY id",
+        (current_user.id,),
+    ).fetchall()
+
+    if not shops:
+        conn.close()
+        flash("店舗が登録されていません。先に店舗を登録してください。", "warning")
+        return redirect(url_for("qr_page"))
+
+    # POST: AJAX保存
+    if request.method == "POST":
+        data = request.get_json(silent=True) or {}
+        shop_id_post = data.get("shop_id", type(0)) if False else data.get("shop_id")
+        channel = data.get("channel", "")
+        content = data.get("content", "")
+
+        # 対象店舗が自分のものか確認
+        shop_ids = [s["id"] for s in shops]
+        if not shop_id_post or int(shop_id_post) not in shop_ids or channel not in _TEMPLATE_DEFAULTS:
+            conn.close()
+            return {"ok": False, "error": "invalid"}, 400
+
+        if DB_TYPE == "postgresql":
+            conn.execute(
+                """INSERT INTO review_templates (store_id, channel, content, updated_at)
+                   VALUES (%s, %s, %s, NOW())
+                   ON CONFLICT (store_id, channel) DO UPDATE SET content = EXCLUDED.content, updated_at = NOW()""",
+                (int(shop_id_post), channel, content),
+            )
+        else:
+            conn.execute(
+                """INSERT INTO review_templates (store_id, channel, content, updated_at)
+                   VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+                   ON CONFLICT (store_id, channel) DO UPDATE SET content = excluded.content, updated_at = CURRENT_TIMESTAMP""",
+                (int(shop_id_post), channel, content),
+            )
+        conn.commit()
+        conn.close()
+        return {"ok": True}
+
+    # GET
+    shop_id = request.args.get("shop_id", type=int) or shops[0]["id"]
+    shop = next((s for s in shops if s["id"] == shop_id), shops[0])
+    shop_dict = dict(shop)
+    survey_url = f"https://gugulabo.com/shop/{shop_dict['slug']}"
+
+    # DBからテンプレート取得。なければデフォルトをINSERT
+    rows = conn.execute(
+        "SELECT channel, content FROM review_templates WHERE store_id = ?",
+        (shop_dict["id"],),
+    ).fetchall()
+    templates = {r["channel"]: r["content"] for r in rows}
+
+    for channel, default_content in _TEMPLATE_DEFAULTS.items():
+        if channel not in templates:
+            templates[channel] = default_content
+            if DB_TYPE == "postgresql":
+                conn.execute(
+                    "INSERT INTO review_templates (store_id, channel, content) VALUES (%s, %s, %s) ON CONFLICT DO NOTHING",
+                    (shop_dict["id"], channel, default_content),
+                )
+            else:
+                conn.execute(
+                    "INSERT OR IGNORE INTO review_templates (store_id, channel, content) VALUES (?, ?, ?)",
+                    (shop_dict["id"], channel, default_content),
+                )
+    conn.commit()
+    conn.close()
+
+    return render_template(
+        "survey_template.html",
+        shops=[dict(s) for s in shops],
+        shop=shop_dict,
+        survey_url=survey_url,
+        templates=templates,
     )
 
 
