@@ -710,18 +710,44 @@
             /* ---- 固定CTAバー表示 ---- */
             #fixed-cta { display: none; }
 
-            /* ---- アンケートカスタマイズ・集計セクション ---- */
+            /* ---- アンケートカスタマイズ・集計セクション（共通） ---- */
             .feature-sec { padding: 48px 0 !important; }
             .feature-2col { grid-template-columns: 1fr; gap: 32px; }
             .feature-2col .mock-col { order: -1; }
             .feature-2col .text-col { order: 1; }
-            .mock-card { padding: 16px; }
-            .tag-group { gap: 4px; }
+            .feature-2col h2 { font-size: 24px !important; }
             .stats-grid { gap: 8px; }
             .stat-number { font-size: 20px; }
             .stat-card { padding: 10px 8px; }
-            .feature-2col h2 { font-size: 24px !important; }
             .response-comment { display: none; }
+
+            /* ---- #customize-survey スマホ専用 ---- */
+            #customize-survey { padding: 48px 16px !important; }
+            #customize-survey .mock-col { width: 100%; }
+            #customize-survey .mock-card {
+                width: 100%;
+                padding: 20px 16px;
+                border-radius: 12px !important;
+                overflow: hidden;
+                box-sizing: border-box;
+            }
+            #customize-survey .tag-group {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 6px;
+                margin: 8px 0;
+            }
+            #customize-survey .tag-pill,
+            #customize-survey .tag-add {
+                font-size: 12px;
+                padding: 6px 10px;
+                margin: 3px;
+                white-space: nowrap;
+            }
+            #customize-survey .mock-save-btn {
+                width: 100%;
+                padding: 14px;
+            }
         }
     </style>
 </head>
