@@ -567,7 +567,160 @@
 
             /* ---- 固定CTAバー表示 ---- */
             #fixed-cta { display: none; }
+
+            /* ---- カスタマイズ・アナリティクスセクション ---- */
+            .feature-2col { grid-template-columns: 1fr; gap: 40px; }
+            .feature-2col.reverse .mock-col { order: -1; }
+            .feature-2col.reverse .text-col { order: 1; }
+            .mock-card { padding: 16px; }
+            .stats-grid { gap: 8px; }
+            .stat-number { font-size: 22px; }
+            .feature-2col h2 { font-size: 24px; }
         }
+    </style>
+
+    <style>
+        /* ===== アンケートカスタマイズ・集計セクション 共通 ===== */
+        .feature-tag {
+            display: inline-block;
+            color: #C9A96E;
+            font-size: 13px;
+            letter-spacing: 0.1em;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+        .feature-list {
+            list-style: none;
+            padding: 0;
+            margin: 24px 0;
+        }
+        .feature-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid #F0EBE3;
+            font-size: 15px;
+            color: #444;
+        }
+        .feature-list li::before {
+            content: "✓ ";
+            color: #C9A96E;
+            font-weight: bold;
+        }
+        .feature-2col {
+            display: grid;
+            grid-template-columns: 3fr 2fr;
+            gap: 60px;
+            align-items: center;
+        }
+        .feature-2col.reverse {
+            grid-template-columns: 2fr 3fr;
+        }
+        .mock-card {
+            background: #FFFFFF;
+            border: 1px solid #EDE8E0;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+        }
+        .mock-card-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #1C1C1C;
+            margin-bottom: 16px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #EDE8E0;
+        }
+        .tag-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 6px;
+            margin-bottom: 10px;
+        }
+        .tag-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: #FBF8F5;
+            border: 1px solid #EDE8E0;
+            border-radius: 20px;
+            padding: 3px 10px;
+            font-size: 12px;
+            color: #444;
+        }
+        .tag-pill .tag-x { color: #aaa; font-size: 10px; }
+        .tag-add {
+            display: inline-block;
+            border: 1px dashed #C9A96E;
+            border-radius: 20px;
+            padding: 3px 10px;
+            font-size: 12px;
+            color: #C9A96E;
+        }
+        .mock-field-label {
+            font-size: 11px;
+            color: #888;
+            margin-bottom: 4px;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+        }
+        .mock-field { margin-bottom: 16px; }
+        .mock-save-btn {
+            width: 100%;
+            background: #1C1C1C;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-top: 4px;
+            cursor: default;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin: 12px 0 16px;
+        }
+        .stat-card {
+            background: #FBF8F5;
+            border-radius: 10px;
+            padding: 14px 12px;
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 26px;
+            font-weight: bold;
+            color: #C9A96E;
+            font-family: 'Noto Serif JP', serif;
+            line-height: 1.1;
+        }
+        .stat-unit { font-size: 13px; font-weight: 700; color: #C9A96E; }
+        .stat-label { font-size: 11px; color: #888; margin-top: 4px; }
+        .response-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 0;
+            border-bottom: 1px solid #F0EBE3;
+            font-size: 12px;
+            color: #444;
+            flex-wrap: wrap;
+        }
+        .response-row:last-child { border-bottom: none; }
+        .response-date { color: #aaa; flex-shrink: 0; }
+        .response-menu { color: #555; flex-shrink: 0; }
+        .satisfaction-badge {
+            background: #C9A96E;
+            color: white;
+            border-radius: 4px;
+            padding: 2px 7px;
+            font-size: 10px;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .satisfaction-badge.good { background: #e8e0d5; color: #888; }
+        .response-comment { color: #666; font-size: 11px; }
     </style>
 </head>
 <body>
@@ -883,6 +1036,129 @@
         </div>
         <div class="demo-frame">
             <iframe id="demo-iframe" src="/shop/demo?demo=1&business_type=総合サロン"></iframe>
+        </div>
+    </div>
+</section>
+
+<!-- ========== CUSTOMIZE SURVEY ========== -->
+<section id="customize-survey" style="background:#FBF8F5;padding:80px 0;">
+    <div class="wrap">
+        <div class="feature-2col">
+            <!-- テキスト -->
+            <div class="text-col">
+                <span class="feature-tag">オーナー向けカスタマイズ機能</span>
+                <h2 style="font-family:var(--serif);font-size:32px;line-height:1.45;color:#1C1C1C;margin-bottom:16px;">
+                    アンケートを、あなたの<br>サロン専用にカスタマイズ
+                </h2>
+                <p style="color:#555;line-height:1.8;font-size:15px;">
+                    デフォルトのアンケートをそのまま使うこともできますが、サロンの個性に合わせてカスタマイズすることも可能です。メニューの選択肢・よかった点・自由記述の案内文など、すべてオーナー自身が編集できます。
+                </p>
+                <ul class="feature-list">
+                    <li>メニュー選択肢を自由に追加・削除</li>
+                    <li>「よかった点」の選択肢をサロンに合わせて変更</li>
+                    <li>自由記述欄のガイドテキストを編集</li>
+                    <li>アンケートのサブタイトルを変更可能</li>
+                    <li>変更はリアルタイムで反映</li>
+                </ul>
+            </div>
+            <!-- ビジュアル -->
+            <div class="mock-col">
+                <div class="mock-card" style="border-radius:20px;border:2px solid #EDE8E0;">
+                    <div class="mock-card-title">アンケート設定</div>
+
+                    <div class="mock-field">
+                        <div class="mock-field-label">メニュー選択肢</div>
+                        <div class="tag-group">
+                            <span class="tag-pill">カット <span class="tag-x">×</span></span>
+                            <span class="tag-pill">カラー <span class="tag-x">×</span></span>
+                            <span class="tag-pill">縮毛矯正 <span class="tag-x">×</span></span>
+                            <span class="tag-add">＋ 追加する</span>
+                        </div>
+                    </div>
+
+                    <div class="mock-field">
+                        <div class="mock-field-label">よかった点の選択肢</div>
+                        <div class="tag-group">
+                            <span class="tag-pill">カラーの発色 <span class="tag-x">×</span></span>
+                            <span class="tag-pill">スタイルの提案力 <span class="tag-x">×</span></span>
+                            <span class="tag-add">＋ 追加する</span>
+                        </div>
+                    </div>
+
+                    <button class="mock-save-btn">保存する</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ========== SURVEY ANALYTICS ========== -->
+<section id="survey-analytics" style="background:#FFFFFF;padding:80px 0;">
+    <div class="wrap">
+        <div class="feature-2col reverse">
+            <!-- ビジュアル -->
+            <div class="mock-col">
+                <div class="mock-card">
+                    <div class="mock-card-title" style="color:#888;font-weight:500;">今月のサマリー</div>
+
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-number">28<span class="stat-unit">件</span></div>
+                            <div class="stat-label">回答数（今月）</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">82<span class="stat-unit">%</span></div>
+                            <div class="stat-label">とても満足（満足度）</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">89<span class="stat-unit">%</span></div>
+                            <div class="stat-label">また来たい（再来店率）</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" style="font-size:18px;">カラー</div>
+                            <div class="stat-label">人気メニュー（今月1位）</div>
+                        </div>
+                    </div>
+
+                    <div style="border-top:1px solid #EDE8E0;padding-top:12px;">
+                        <div class="response-row">
+                            <span class="response-date">3/24</span>
+                            <span class="response-menu">カラー</span>
+                            <span class="satisfaction-badge">とても満足</span>
+                            <span class="response-comment">「透明感が出てとても嬉しい」</span>
+                        </div>
+                        <div class="response-row">
+                            <span class="response-date">3/23</span>
+                            <span class="response-menu">カット</span>
+                            <span class="satisfaction-badge good">満足</span>
+                            <span class="response-comment">「また来ます」</span>
+                        </div>
+                        <div class="response-row">
+                            <span class="response-date">3/22</span>
+                            <span class="response-menu">縮毛矯正</span>
+                            <span class="satisfaction-badge">とても満足</span>
+                            <span class="response-comment">「自然な仕上がりで感動しました」</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- テキスト -->
+            <div class="text-col">
+                <span class="feature-tag">データで経営判断</span>
+                <h2 style="font-family:var(--serif);font-size:32px;line-height:1.45;color:#1C1C1C;margin-bottom:16px;">
+                    お客様の声を、<br>数字で把握できる
+                </h2>
+                <p style="color:#555;line-height:1.8;font-size:15px;">
+                    アンケートの回答はすべてダッシュボードに蓄積されます。満足度の傾向・人気メニュー・再来店意向など、お客様の声をデータとして確認できます。勘ではなく数字に基づいたサービス改善が可能になります。
+                </p>
+                <ul class="feature-list">
+                    <li>今月の回答数・満足度・再来店率を一覧表示</li>
+                    <li>アンケート回答の全履歴を確認</li>
+                    <li>お客様のメッセージ（自由記述）も記録</li>
+                    <li>AIが生成した口コミ文も一緒に保存</li>
+                    <li>期間・満足度でフィルタリング可能</li>
+                </ul>
+            </div>
         </div>
     </div>
 </section>
