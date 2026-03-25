@@ -291,6 +291,36 @@
         }
         .btn-plan-outline:hover { background: #1C1C1C; color: #fff; }
 
+        /* ---- Business Type Tag Strip ---- */
+        .biz-tag-strip {
+            background: #fff;
+            border-top: 1px solid #F0EBE3;
+            border-bottom: 1px solid #F0EBE3;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            padding: 16px 40px;
+            scrollbar-width: none;
+        }
+        .biz-tag-strip::-webkit-scrollbar { display: none; }
+        .biz-tag-label {
+            color: #888;
+            font-size: 12px;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .biz-tag {
+            background: #F5EDE8;
+            color: #C9A96E;
+            border-radius: 20px;
+            padding: 6px 14px;
+            font-size: 13px;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
         /* ---- Review Samples ---- */
         .review-sample-grid {
             display: grid;
@@ -556,6 +586,19 @@
         </div>
     </div>
 </section>
+
+<!-- ========== BUSINESS TYPE TAGS ========== -->
+<div class="biz-tag-strip">
+    <span class="biz-tag-label">こんなサロンに選ばれています</span>
+    <span class="biz-tag">✂ カット専門店</span>
+    <span class="biz-tag">💇 カラーサロン</span>
+    <span class="biz-tag">〜 縮毛矯正専門</span>
+    <span class="biz-tag">💆 ヘッドスパ専門</span>
+    <span class="biz-tag">✨ ハイライト・ブリーチ</span>
+    <span class="biz-tag">🧴 トリートメント専門</span>
+    <span class="biz-tag">💼 フリーランス美容師</span>
+    <span class="biz-tag">👤 シェアサロン利用者</span>
+</div>
 
 <!-- ========== STATS BANNER ========== -->
 <div class="stats-banner">
