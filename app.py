@@ -1888,7 +1888,7 @@ def survey_settings():
     conn.close()
     if not shops:
         flash("店舗が登録されていません。先に店舗を登録してください。", "warning")
-        return redirect(url_for("qr_page"))
+        return redirect(url_for("qr_form"))
 
     # 対象ショップ（GETパラメータ or 最初の店舗）
     shop_id = request.args.get("shop_id", type=int) or shops[0]["id"]
@@ -1981,7 +1981,7 @@ def survey_template():
     if not shops:
         conn.close()
         flash("店舗が登録されていません。先に店舗を登録してください。", "warning")
-        return redirect(url_for("qr_page"))
+        return redirect(url_for("qr_form"))
 
     # POST: AJAX保存
     if request.method == "POST":
