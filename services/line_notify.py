@@ -1,13 +1,12 @@
 import os
 import requests
 
-LINE_CHANNEL_ACCESS_TOKEN = os.environ.get("LINE_CHANNEL_ACCESS_TOKEN")
-
 
 def send_line_message(line_user_id: str, message: str):
     """
     LINE Messaging APIで個別ユーザーにメッセージを送信する。
     """
+    LINE_CHANNEL_ACCESS_TOKEN = os.environ.get("LINE_CHANNEL_ACCESS_TOKEN")
     url = "https://api.line.me/v2/bot/message/push"
     headers = {
         "Authorization": f"Bearer {LINE_CHANNEL_ACCESS_TOKEN}",
@@ -21,11 +20,11 @@ def send_line_message(line_user_id: str, message: str):
     response.raise_for_status()
 
 
-def build_message(shop_name: str, reviews: list, replies: list,
+def build_message(shop_name: str, reviews: list,
                   avg_rating: float, prev_avg_rating: float,
-                  total_month: int, advice: str) -> str:
+                  total_month: int, advice: str, meo_advice: str = None) -> str:
     """
-    LINEに送るメッセージ本文を組み立てる。
+    週次サマリーメッセージを組み立てる（返答案は含まない）。
     """
     lines = []
 
@@ -38,21 +37,8 @@ def build_message(shop_name: str, reviews: list, replies: list,
         f"{abs(rating_diff):.1f}）"
         if prev_avg_rating else ""
     )
-    lines.append(f"⭐ 今週の平均評価：{avg_rating:.1f} {diff_str}")
     lines.append(f"📝 今週の口コミ数：{len(reviews)}件")
     lines.append(f"📅 今月の累計：{total_month}件")
-    lines.append("")
-
-    if reviews:
-        lines.append("【今週の返答案】")
-        for i, (review, reply) in enumerate(zip(reviews, replies), 1):
-            stars = "⭐" * review["rating"]
-            lines.append(f"\n{i}. {stars}")
-            if review["text"]:
-                preview = review["text"][:30] + "..." if len(review["text"]) > 30 else review["text"]
-                lines.append(f"「{preview}」")
-            lines.append(f"\n返答案：\n{reply}")
-            lines.append("──────────────")
 
     if advice:
         lines.append("")
@@ -62,4 +48,29 @@ def build_message(shop_name: str, reviews: list, replies: list,
     lines.append("▶ Googleマップで返答する")
     lines.append("https://business.google.com")
 
+    if meo_advice:
+        lines.append("")
+        lines.append("━━━━━━━━━━━━━━━")
+        lines.append("📌 今週のMEOアドバイス")
+        lines.append("")
+        lines.append(meo_advice)
+
+    return "\n".join(lines)
+
+
+def build_reply_message(review: dict, reply: str, index: int) -> str:
+    """
+    口コミ1件分の返答案メッセージを組み立てる。
+    """
+    lines = []
+    stars = "⭐" * review["rating"] + "☆" * (5 - review["rating"])
+    lines.append("────────────")
+    lines.append(f"【返答案 {index}】")
+    lines.append(stars)
+    if review["text"]:
+        preview = review["text"][:30] + "..." if len(review["text"]) > 30 else review["text"]
+        lines.append(f"「{preview}」")
+    lines.append("")
+    lines.append(reply)
+    lines.append("────────────")
     return "\n".join(lines)

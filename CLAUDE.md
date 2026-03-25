@@ -15,9 +15,10 @@ python app.py
 # デプロイ（必ずこの手順）
 git add . && git commit -m "メッセージ"
 git push origin main
-ssh root@162.43.76.18 "cd /var/www/gugulabo && git pull && systemctl stop gugulabo && sleep 2 && systemctl start gugulabo"
+ssh root@162.43.76.18 "cd /var/www/gugulabo && git pull && systemctl restart gunicorn"
 
-# ※ restart は古いワーカーが残存するので stop→start を使うこと
+# ※ 正規サービス名は gunicorn.service（gugulabo.service は廃止・disabled）
+# ※ 2つのサービスが同じポート5000を取り合っていた問題を解消済み（2026-03-24）
 
 # ※ Mac再起動後は必ず先に実行
 ssh-add ~/.ssh/id_ed25519

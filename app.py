@@ -302,6 +302,7 @@ def init_db():
         conn.execute("ALTER TABLE shops ADD COLUMN IF NOT EXISTS address TEXT")
         conn.execute("ALTER TABLE shops ADD COLUMN IF NOT EXISTS line_user_id TEXT")
         conn.execute("ALTER TABLE shops ADD COLUMN IF NOT EXISTS zero_review_weeks INTEGER DEFAULT 0")
+        conn.execute("ALTER TABLE shops ADD COLUMN IF NOT EXISTS custom_questions TEXT")
     else:
         try:
             conn.execute("ALTER TABLE shops ADD COLUMN slug TEXT")
@@ -345,6 +346,10 @@ def init_db():
             pass
         try:
             conn.execute("ALTER TABLE shops ADD COLUMN zero_review_weeks INTEGER DEFAULT 0")
+        except Exception:
+            pass
+        try:
+            conn.execute("ALTER TABLE shops ADD COLUMN custom_questions TEXT")
         except Exception:
             pass
 
@@ -1382,6 +1387,26 @@ def survey(slug):
     b_type = shop_dict.get("business_type") or "default"
     opts = SURVEY_OPTIONS.get(b_type, SURVEY_OPTIONS["default"])
 
+    # カスタム設定があれば questions の menu / good_points / placeholder を上書き
+    import json as _json
+    custom_q = shop_dict.get("custom_questions")
+    if custom_q:
+        try:
+            cq = _json.loads(custom_q)
+            if "questions" in opts:
+                opts = _json.loads(_json.dumps(opts))  # deep copy
+                for q in opts["questions"]:
+                    if q["id"] == "menu" and cq.get("menu_options"):
+                        q["options"] = cq["menu_options"]
+                    elif q["id"] == "good_points" and cq.get("good_points_options"):
+                        q["options"] = cq["good_points_options"]
+                    elif q["id"] == "comment" and cq.get("comment_placeholder"):
+                        q["placeholder"] = cq["comment_placeholder"]
+            if cq.get("survey_subtitle"):
+                shop_dict["survey_subtitle"] = cq["survey_subtitle"]
+        except Exception:
+            pass
+
     return render_template(
         "survey.html",
         shop=shop_dict,
@@ -1775,6 +1800,91 @@ def request_coupon(slug):
 @payment_required
 def manual():
     return render_template("manual.html")
+
+
+@app.route("/shop/survey-settings", methods=["GET", "POST"])
+@login_required
+def survey_settings():
+    """アンケートカスタマイズ設定ページ"""
+    import json as _json
+    conn = get_db()
+    shops = conn.execute(
+        "SELECT id, name, business_type, custom_questions FROM shops WHERE user_id = ? ORDER BY id",
+        (current_user.id,),
+    ).fetchall()
+    conn.close()
+    if not shops:
+        flash("店舗が登録されていません。先に店舗を登録してください。", "warning")
+        return redirect(url_for("qr_page"))
+
+    # 対象ショップ（GETパラメータ or 最初の店舗）
+    shop_id = request.args.get("shop_id", type=int) or shops[0]["id"]
+    shop = next((s for s in shops if s["id"] == shop_id), shops[0])
+    shop_dict = dict(shop)
+
+    if request.method == "POST":
+        shop_id_post = request.form.get("shop_id", type=int) or shop_dict["id"]
+        menu_raw = request.form.get("menu_options", "")
+        gp_raw   = request.form.get("good_points_options", "")
+        placeholder = request.form.get("comment_placeholder", "").strip()
+        subtitle    = request.form.get("survey_subtitle", "").strip()
+        menu_options = [m.strip() for m in menu_raw.split(",") if m.strip()]
+        gp_options   = [g.strip() for g in gp_raw.split(",") if g.strip()]
+        cq = {
+            "menu_options": menu_options,
+            "good_points_options": gp_options,
+            "comment_placeholder": placeholder,
+            "survey_subtitle": subtitle,
+        }
+        conn2 = get_db()
+        conn2.execute(
+            "UPDATE shops SET custom_questions = ? WHERE id = ? AND user_id = ?",
+            (_json.dumps(cq, ensure_ascii=False), shop_id_post, current_user.id),
+        )
+        conn2.commit()
+        conn2.close()
+        flash("アンケート設定を保存しました", "success")
+        return redirect(url_for("survey_settings", shop_id=shop_id_post))
+
+    # 現在のカスタム設定を読み込み
+    b_type = shop_dict.get("business_type") or "default"
+    base_opts = SURVEY_OPTIONS.get(b_type, SURVEY_OPTIONS["default"])
+    menu_options = []
+    gp_options   = []
+    placeholder  = ""
+    subtitle     = ""
+    if "questions" in base_opts:
+        for q in base_opts["questions"]:
+            if q["id"] == "menu":
+                menu_options = q.get("options", [])
+            elif q["id"] == "good_points":
+                gp_options = q.get("options", [])
+            elif q["id"] == "comment":
+                placeholder = q.get("placeholder", "")
+    cq_json = shop_dict.get("custom_questions")
+    if cq_json:
+        try:
+            cq = _json.loads(cq_json)
+            if cq.get("menu_options"):
+                menu_options = cq["menu_options"]
+            if cq.get("good_points_options"):
+                gp_options = cq["good_points_options"]
+            if cq.get("comment_placeholder"):
+                placeholder = cq["comment_placeholder"]
+            if cq.get("survey_subtitle"):
+                subtitle = cq["survey_subtitle"]
+        except Exception:
+            pass
+
+    return render_template(
+        "survey_settings.html",
+        shops=[dict(s) for s in shops],
+        shop=shop_dict,
+        menu_options=menu_options,
+        gp_options=gp_options,
+        placeholder=placeholder,
+        subtitle=subtitle,
+    )
 
 
 @app.route("/settings", methods=["GET", "POST"])

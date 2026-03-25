@@ -54,6 +54,7 @@
                 result.className = 'success';
                 result.textContent = '✅ ' + data.message;
                 btn.textContent = '連携完了！';
+                setTimeout(() => { window.location.href = '/qr'; }, 1500);
             } else {
                 result.className = 'error';
                 result.textContent = '❌ ' + data.message;

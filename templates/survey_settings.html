@@ -1,0 +1,184 @@
+{% extends 'base.html' %}
+{% block title %}アンケート設定 | গগラボ{% endblock %}
+
+{% block content %}
+<div class="home-hero">
+    <h1 style="font-family:var(--font-heading);font-weight:700;">アンケート設定</h1>
+    <hr class="home-divider">
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+  {% for cat, msg in messages %}
+  <div class="alert alert-{{ 'success' if cat == 'success' else 'warning' }} alert-dismissible fade show" role="alert">
+    {{ msg }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+  {% endfor %}
+{% endif %}
+{% endwith %}
+
+{% if shops|length > 1 %}
+<div class="mb-4">
+    <label class="form-label fw-bold" style="font-size:0.875rem;">対象店舗</label>
+    <div class="d-flex flex-wrap gap-2">
+        {% for s in shops %}
+        <a href="?shop_id={{ s.id }}"
+           class="btn btn-sm {% if s.id == shop.id %}btn-dark{% else %}btn-outline-secondary{% endif %}">
+            {{ s.name }}
+        </a>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<div class="card mb-4">
+    <div class="card-body p-4">
+        <h2 class="fw-bold mb-1" style="font-size:1rem;">{{ shop.name }}</h2>
+        <p class="text-muted mb-0" style="font-size:0.8rem;">サロンタイプ: {{ shop.business_type or '未設定' }}</p>
+    </div>
+</div>
+
+<form method="POST" action="/shop/survey-settings?shop_id={{ shop.id }}">
+    <input type="hidden" name="shop_id" value="{{ shop.id }}">
+
+    <!-- サブタイトル -->
+    <div class="card mb-3">
+        <div class="card-body p-4">
+            <h3 class="fw-bold mb-1" style="font-size:0.95rem;">アンケートのサブタイトル</h3>
+            <p class="text-muted mb-3" style="font-size:0.8rem;">店舗名の下に表示される説明文です</p>
+            <input type="text" class="form-control" name="survey_subtitle"
+                   value="{{ subtitle }}"
+                   placeholder="サービス向上のため、アンケートにご協力ください">
+        </div>
+    </div>
+
+    <!-- Q1 メニュー選択肢 -->
+    <div class="card mb-3">
+        <div class="card-body p-4">
+            <h3 class="fw-bold mb-1" style="font-size:0.95rem;">Q1 メニュー選択肢</h3>
+            <p class="text-muted mb-3" style="font-size:0.8rem;">×で削除、入力欄から追加できます</p>
+            <div class="tag-area d-flex flex-wrap gap-2 mb-3" id="menu-tags">
+                {% for opt in menu_options %}
+                <span class="tag-item badge d-flex align-items-center gap-1"
+                      style="background:#F5EDE8;color:#C9A96E;font-size:13px;padding:6px 10px;font-weight:500;">
+                    {{ opt }}
+                    <button type="button" class="btn-close btn-close-sm"
+                            style="font-size:0.6rem;" onclick="removeTag(this,'menu-tags','menu_options')"></button>
+                </span>
+                {% endfor %}
+            </div>
+            <div class="d-flex gap-2">
+                <input type="text" class="form-control form-control-sm" id="menu-input"
+                       placeholder="例: ヘアセット" style="max-width:200px;"
+                       onkeydown="if(event.key==='Enter'){event.preventDefault();addTag('menu-input','menu-tags','menu_options');}">
+                <button type="button" class="btn btn-sm btn-outline-secondary"
+                        onclick="addTag('menu-input','menu-tags','menu_options')">追加</button>
+            </div>
+            <input type="hidden" name="menu_options" id="menu_options"
+                   value="{{ menu_options | join(',') }}">
+        </div>
+    </div>
+
+    <!-- Q2 満足度（固定） -->
+    <div class="card mb-3" style="opacity:0.6;">
+        <div class="card-body p-4">
+            <h3 class="fw-bold mb-1" style="font-size:0.95rem;">Q2 満足度 <span class="badge bg-secondary ms-1" style="font-size:0.7rem;">変更不可</span></h3>
+            <p class="text-muted mb-2" style="font-size:0.8rem;">Googleの星評価と対応させるため固定です</p>
+            <div class="d-flex flex-wrap gap-2">
+                {% for opt in ['とても満足','満足','普通','少し不満','不満'] %}
+                <span class="badge" style="background:#F5EDE8;color:#C9A96E;font-size:13px;padding:6px 10px;font-weight:500;">{{ opt }}</span>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Q3 よかった点 -->
+    <div class="card mb-3">
+        <div class="card-body p-4">
+            <h3 class="fw-bold mb-1" style="font-size:0.95rem;">Q3 よかった点の選択肢</h3>
+            <p class="text-muted mb-3" style="font-size:0.8rem;">×で削除、入力欄から追加できます</p>
+            <div class="tag-area d-flex flex-wrap gap-2 mb-3" id="gp-tags">
+                {% for opt in gp_options %}
+                <span class="tag-item badge d-flex align-items-center gap-1"
+                      style="background:#F5EDE8;color:#C9A96E;font-size:13px;padding:6px 10px;font-weight:500;">
+                    {{ opt }}
+                    <button type="button" class="btn-close btn-close-sm"
+                            style="font-size:0.6rem;" onclick="removeTag(this,'gp-tags','good_points_options')"></button>
+                </span>
+                {% endfor %}
+            </div>
+            <div class="d-flex gap-2">
+                <input type="text" class="form-control form-control-sm" id="gp-input"
+                       placeholder="例: 担当者の丁寧さ" style="max-width:200px;"
+                       onkeydown="if(event.key==='Enter'){event.preventDefault();addTag('gp-input','gp-tags','good_points_options');}">
+                <button type="button" class="btn btn-sm btn-outline-secondary"
+                        onclick="addTag('gp-input','gp-tags','good_points_options')">追加</button>
+            </div>
+            <input type="hidden" name="good_points_options" id="good_points_options"
+                   value="{{ gp_options | join(',') }}">
+        </div>
+    </div>
+
+    <!-- Q4 再来店（固定） -->
+    <div class="card mb-3" style="opacity:0.6;">
+        <div class="card-body p-4">
+            <h3 class="fw-bold mb-1" style="font-size:0.95rem;">Q4 再来店意向 <span class="badge bg-secondary ms-1" style="font-size:0.7rem;">変更不可</span></h3>
+            <p class="text-muted mb-2" style="font-size:0.8rem;">AIの口コミ生成精度を保つため固定です</p>
+            <div class="d-flex flex-wrap gap-2">
+                {% for opt in ['ぜひまた来たい','たぶん来ると思う','まだわからない'] %}
+                <span class="badge" style="background:#F5EDE8;color:#C9A96E;font-size:13px;padding:6px 10px;font-weight:500;">{{ opt }}</span>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Q5 自由記述プレースホルダー -->
+    <div class="card mb-4">
+        <div class="card-body p-4">
+            <h3 class="fw-bold mb-1" style="font-size:0.95rem;">Q5 自由記述のガイドテキスト</h3>
+            <p class="text-muted mb-3" style="font-size:0.8rem;">テキスト入力欄内に表示されるヒントです</p>
+            <input type="text" class="form-control" name="comment_placeholder"
+                   value="{{ placeholder }}"
+                   placeholder="担当スタイリストへのメッセージやご要望があればご記入ください">
+        </div>
+    </div>
+
+    <div class="d-flex gap-3 align-items-center">
+        <button type="submit" class="btn btn-dark px-4">設定を保存する</button>
+        <a href="/" class="text-muted" style="font-size:0.85rem;">← ダッシュボードへ戻る</a>
+    </div>
+</form>
+
+<script>
+function getTagValues(areaId) {
+    const area = document.getElementById(areaId);
+    return Array.from(area.querySelectorAll('.tag-item'))
+        .map(el => el.childNodes[0].textContent.trim())
+        .filter(t => t);
+}
+
+function syncHidden(areaId, hiddenId) {
+    document.getElementById(hiddenId).value = getTagValues(areaId).join(',');
+}
+
+function removeTag(btn, areaId, hiddenId) {
+    btn.closest('.tag-item').remove();
+    syncHidden(areaId, hiddenId);
+}
+
+function addTag(inputId, areaId, hiddenId) {
+    const input = document.getElementById(inputId);
+    const val = input.value.trim();
+    if (!val) return;
+    const area = document.getElementById(areaId);
+    const span = document.createElement('span');
+    span.className = 'tag-item badge d-flex align-items-center gap-1';
+    span.style.cssText = 'background:#F5EDE8;color:#C9A96E;font-size:13px;padding:6px 10px;font-weight:500;';
+    span.innerHTML = val + ' <button type="button" class="btn-close btn-close-sm" style="font-size:0.6rem;" onclick="removeTag(this,\'' + areaId + '\',\'' + hiddenId + '\')"></button>';
+    area.appendChild(span);
+    input.value = '';
+    syncHidden(areaId, hiddenId);
+}
+</script>
+{% endblock %}

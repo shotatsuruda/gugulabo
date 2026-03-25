@@ -630,9 +630,17 @@ footer {
 .lp-nav-links {
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 20px;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     white-space: nowrap;
+}
+
+@media (max-width: 767px) {
+    .lp-nav-links {
+        gap: 12px;
+        justify-content: center;
+    }
 }
 
 .lp-nav-login {

@@ -1,29 +1,62 @@
 import os
 import requests
 
+
+def _translate_to_japanese(text: str) -> str:
+    """OpenRouterを使ってテキストを日本語に翻訳する。"""
+    OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY")
+    response = requests.post(
+        "https://openrouter.ai/api/v1/chat/completions",
+        headers={
+            "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+            "Content-Type": "application/json",
+        },
+        json={
+            "model": "anthropic/claude-haiku-4-5",
+            "messages": [{"role": "user", "content": f"次のテキストを日本語に翻訳してください。翻訳文のみ返してください。\n\n{text}"}],
+            "max_tokens": 500,
+        },
+    )
+    response.raise_for_status()
+    return response.json()["choices"][0]["message"]["content"].strip()
+
+
 def get_reviews(place_id: str) -> dict:
     """
-    Places API（New）でplace_idの口コミを取得する。
+    Places API（Legacy）でplace_idの口コミを取得する。
     返り値：{ rating: float, reviews: [ {id, author, rating, text, time}, ... ] }
     """
     PLACES_API_KEY = os.environ.get("PLACES_API_KEY")
-    url = f"https://places.googleapis.com/v1/places/{place_id}"
-    headers = {
-        "X-Goog-Api-Key": PLACES_API_KEY,
-        "X-Goog-FieldMask": "rating,reviews"
+    url = "https://maps.googleapis.com/maps/api/place/details/json"
+    params = {
+        "place_id": place_id,
+        "fields": "rating,reviews",
+        "reviews_sort": "newest",
+        "reviews_no_translations": "true",
+        "language": "ja",
+        "key": PLACES_API_KEY
     }
-    response = requests.get(url, headers=headers)
+    response = requests.get(url, params=params)
     response.raise_for_status()
-    data = response.json()
+    data = response.json().get("result", {})
 
     reviews = []
     for r in data.get("reviews", []):
+        author = r.get("author_name", "匿名")
+        time = r.get("time", "")
+        text = r.get("text", "")
+        lang = r.get("original_language") or r.get("language", "ja")
+        if text and lang != "ja":
+            try:
+                text = f"(翻訳){_translate_to_japanese(text)}"
+            except Exception:
+                pass
         reviews.append({
-            "id": r.get("name", ""),
-            "author": r.get("authorAttribution", {}).get("displayName", "匿名"),
+            "id": f"{author}_{time}",
+            "author": author,
             "rating": r.get("rating", 0),
-            "text": r.get("text", {}).get("text", ""),
-            "time": r.get("publishTime", "")
+            "text": text,
+            "time": time
         })
 
     return {

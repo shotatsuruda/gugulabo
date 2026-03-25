@@ -4,7 +4,8 @@ from datetime import datetime, date, timedelta
 from dotenv import load_dotenv
 from services.places_api import get_new_reviews
 from services.ai_reply import generate_reply, generate_advice
-from services.line_notify import send_line_message, build_message
+from services.meo_advice import generate_meo_advice
+from services.line_notify import send_line_message, build_message, build_reply_message
 
 load_dotenv()
 
@@ -80,7 +81,7 @@ def run():
                 zero_weeks = 0
 
             db.execute(
-                """INSERT INTO weekly_summaries (shop_id, week_start, review_count, avg_rating)
+                """INSERT OR IGNORE INTO weekly_summaries (shop_id, week_start, review_count, avg_rating)
                    VALUES (?, ?, ?, ?)""",
                 (shop_id, week_start.isoformat(), len(new_reviews), current_avg)
             )
@@ -88,12 +89,17 @@ def run():
             prev_avg = get_prev_avg_rating(db, shop_id)
             total_month = get_this_month_count(db, shop_id)
             advice = generate_advice(zero_weeks, current_avg, len(new_reviews))
+            meo_advice = generate_meo_advice(business_type)
 
             message = build_message(
-                shop_name, new_reviews, replies,
-                current_avg, prev_avg, total_month, advice
+                shop_name, new_reviews,
+                current_avg, prev_avg, total_month, advice, meo_advice
             )
             send_line_message(line_user_id, message)
+
+            for i, (review, reply) in enumerate(zip(new_reviews, replies), 1):
+                reply_message = build_reply_message(review, reply, i)
+                send_line_message(line_user_id, reply_message)
 
             print(f"✅ {shop_name}：送信完了（新着{len(new_reviews)}件）")
 

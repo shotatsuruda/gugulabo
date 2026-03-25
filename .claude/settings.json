@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Read:*",
+      "Write:*:*.py",
+      "Write:*:*.html",
+      "Write:*:*.css",
+      "Write:*:*.js",
+      "Write:*:*.md",
+      "Write:*:*.json",
+      "Write:*:*.txt",
+      "Bash:git:*",
+      "Bash:python:*",
+      "Bash:pip:*",
+      "Bash:systemctl:status:*"
+    ],
+    "deny": [
+      "Read:.env",
+      "Bash:sudo:*",
+      "Bash:rm:-rf:*",
+      "Bash:systemctl:restart:*",
+      "Bash:systemctl:stop:*"
+    ]
+  }
+}
