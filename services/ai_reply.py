@@ -1,45 +1,127 @@
 import os
 import requests
 
+# サロンタイプ別ペルソナ定義
+_SALON_PERSONA = {
+    "美容院": {
+        "role": "美容室のオーナースタイリスト",
+        "style": "丁寧で温かみがあり、スタイリストとしての専門性をさりげなく伝える",
+        "closing_examples": [
+            "またのご来店をスタッフ一同お待ちしております。",
+            "次回もご希望のスタイルを一緒に作り上げましょう。",
+            "またいつでもお気軽にご来店ください。",
+        ],
+        "keywords": ["スタイル", "仕上がり", "スタイリスト", "ヘアケア"],
+    },
+    "メンズサロン": {
+        "role": "メンズ美容室のオーナー",
+        "style": "すっきりとしたテンポで、男性客に寄り添う誠実な口調",
+        "closing_examples": [
+            "またのご来店をお待ちしています。",
+            "次回もベストな仕上がりをご提供できるよう努めます。",
+            "またぜひお立ち寄りください。",
+        ],
+        "keywords": ["カット", "フェード", "清潔感", "スタイル"],
+    },
+    "女性専用サロン": {
+        "role": "女性専用美容室のオーナー",
+        "style": "安心感とプライベート感を大切にした、やさしく丁寧な口調",
+        "closing_examples": [
+            "またリラックスしてご来店いただければ幸いです。",
+            "次回もゆったりとした時間をご提供できるよう努めます。",
+            "またのご来店を心よりお待ちしております。",
+        ],
+        "keywords": ["プライベート感", "安心", "丁寧なカウンセリング", "リラックス"],
+    },
+    "ヘッドスパ専門": {
+        "role": "ヘッドスパ専門サロンのオーナー",
+        "style": "癒しと頭皮ケアの専門家としての温かみのある口調",
+        "closing_examples": [
+            "またリフレッシュしにお越しください。",
+            "次回も心地よい時間をご提供できるよう努めます。",
+            "頭皮ケアのことはいつでもご相談ください。",
+        ],
+        "keywords": ["頭皮ケア", "リラクゼーション", "ヘッドスパ", "癒し"],
+    },
+    "縮毛矯正専門": {
+        "role": "縮毛矯正専門サロンのオーナー",
+        "style": "技術への自信と誠実さを持ち、髪の悩みに寄り添う専門家らしい口調",
+        "closing_examples": [
+            "またお髪のことはお気軽にご相談ください。",
+            "次回も自然でキレイな仕上がりを目指します。",
+            "縮毛矯正のご相談はいつでもお待ちしております。",
+        ],
+        "keywords": ["縮毛矯正", "自然な仕上がり", "ダメージケア", "くせ毛"],
+    },
+    "総合サロン": {
+        "role": "総合美容サロンのオーナー",
+        "style": "幅広いお客様に対応する親しみやすく丁寧な口調",
+        "closing_examples": [
+            "またのご来店をスタッフ一同心よりお待ちしております。",
+            "次回もご満足いただけるよう精一杯努めます。",
+            "またいつでもお気軽にご来店ください。",
+        ],
+        "keywords": ["トータルビューティー", "スタイル", "ヘアケア", "サービス"],
+    },
+}
+
+_DEFAULT_PERSONA = {
+    "role": "美容室のオーナースタイリスト",
+    "style": "丁寧で温かみがあり、スタイリストとしての専門性をさりげなく伝える",
+    "closing_examples": ["またのご来店をスタッフ一同お待ちしております。"],
+    "keywords": ["スタイル", "仕上がり", "ヘアケア"],
+}
+
+
 def generate_reply(review: dict, business_type: str) -> str:
     """
-    口コミ1件に対してAI返答文を生成する。
+    口コミ1件に対して、サロンタイプ別のAI返答文を生成する。
     """
     OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY")
     rating = review["rating"]
     text = review["text"]
     author = review["author"]
 
+    persona = _SALON_PERSONA.get(business_type, _DEFAULT_PERSONA)
+
     if rating >= 4:
-        tone_instruction = "感謝の気持ちを丁寧に伝え、また来店を促す返答"
+        tone = "感謝の気持ちを丁寧に伝え、再来店を自然に促す"
     elif rating == 3:
-        tone_instruction = "感謝しつつ、改善に努める姿勢を示す返答"
+        tone = "感謝しつつ、より良いサービスを提供できるよう改善に努める姿勢を示す"
     else:
-        tone_instruction = "誠実にお詫びし、改善の意思を示す丁寧な返答"
+        tone = "誠実にお詫びし、具体的な改善意思を示す。防御的にならず真摯に受け止める"
 
-    prompt = f"""あなたは{business_type}の店舗オーナーです。
-以下のGoogleレビューに対して、{tone_instruction}を80〜120文字で作成してください。
+    closing = "／".join(persona["closing_examples"])
 
-投稿者：{author}
-評価：★{rating}
-内容：{text if text else "（テキストなし）"}
+    prompt = f"""あなたは{persona["role"]}です。
+以下のGoogleレビューに対して返答文を80〜120文字で作成してください。
+
+【投稿者】{author}
+【評価】★{rating}
+【内容】{text if text else "（テキストなし・星のみの投稿）"}
+
+【返答の方向性】{tone}
+【文体・トーン】{persona["style"]}
+【クロージングの参考例】{closing}
 
 条件：
 - 丁寧な敬語を使う
-- 書き出しは毎回変える（「ありがとうございます」「嬉しいお言葉」「貴重なご意見」「ご来店いただき」など自然なバリエーションで）
-- 店名は含めない
+- 書き出しのバリエーションを意識する（「ありがとうございます」「嬉しいお言葉」「貴重なご意見」「ご来店いただき」「{persona["keywords"][0]}についてお褒めの言葉」など）
+- 口コミの内容に具体的に触れる（テキストなしの場合はスターへの感謝を）
+- 店名・個人名は含めない
 - 定型文にならないよう自然に
 - 文字数：80〜120文字
+- 返答文のみを出力すること（前置き・説明・注釈は不要）
 """
 
     response = requests.post(
         "https://openrouter.ai/api/v1/chat/completions",
         headers={"Authorization": f"Bearer {OPENROUTER_API_KEY}"},
         json={
-            "model": "anthropic/claude-sonnet-4-5",
+            "model": "anthropic/claude-haiku-4-5",
             "messages": [{"role": "user", "content": prompt}],
-            "max_tokens": 300
-        }
+            "max_tokens": 300,
+        },
     )
     response.raise_for_status()
     return response.json()["choices"][0]["message"]["content"].strip()
