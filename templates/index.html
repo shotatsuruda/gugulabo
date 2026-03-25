@@ -195,15 +195,16 @@
     <!-- 回答一覧テーブル -->
     {% if survey_responses %}
     <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
-        <table class="table table-hover align-middle" style="font-size:0.82rem;min-width:700px;">
+        <table class="table table-hover align-middle" style="font-size:0.82rem;min-width:900px;">
             <thead style="background:#f8f5f0;">
                 <tr>
                     <th style="white-space:nowrap;">受付日時</th>
-                    <th>メニュー</th>
-                    <th style="white-space:nowrap;">満足度</th>
-                    <th>よかった点</th>
-                    <th style="white-space:nowrap;">再来店</th>
-                    <th>AI生成口コミ</th>
+                    <th style="white-space:nowrap;">メニュー（Q1）</th>
+                    <th style="white-space:nowrap;">満足度（Q2）</th>
+                    <th style="white-space:nowrap;">よかった点（Q3）</th>
+                    <th style="white-space:nowrap;">再来店意向（Q4）</th>
+                    <th style="white-space:nowrap;">お客様のメッセージ（Q5）</th>
+                    <th style="white-space:nowrap;">AI生成口コミ</th>
                 </tr>
             </thead>
             <tbody>
@@ -220,13 +221,19 @@
                         <span class="badge bg-light text-dark border">{{ r.satisfaction }}</span>
                         {% else %}―{% endif %}
                     </td>
-                    <td style="max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                    <td style="max-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
                         {{ r.good_points or '―' }}
                     </td>
                     <td style="white-space:nowrap;">{{ r.revisit or '―' }}</td>
-                    <td style="max-width:200px;color:#555;">
+                    <td style="max-width:160px;color:#555;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                        {{ r.comment or '―' }}
+                    </td>
+                    <td style="white-space:nowrap;">
                         {% if r.ai_draft %}
-                        <span title="{{ r.ai_draft }}">{{ r.ai_draft[:50] }}…</span>
+                        <span style="color:#555;">{{ r.ai_draft[:50] }}…</span>
+                        <button type="button" class="btn btn-sm ms-1"
+                                style="font-size:0.7rem;padding:1px 7px;background:#F5EDE8;color:#C9A96E;border:1px solid #E8D8C8;border-radius:4px;"
+                                onclick="showAiDraft(this)" data-draft="{{ r.ai_draft | e }}">全文を見る</button>
                         {% else %}―{% endif %}
                     </td>
                 </tr>
@@ -234,6 +241,36 @@
             </tbody>
         </table>
     </div>
+
+    <!-- AI生成口コミ全文モーダル -->
+    <div class="modal fade" id="aiDraftModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header" style="border-bottom:1px solid #f0ebe4;">
+                    <h5 class="modal-title fw-bold" style="font-size:0.95rem;">AI生成口コミ 全文</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" style="font-size:0.88rem;line-height:1.8;white-space:pre-wrap;" id="aiDraftModalBody"></div>
+                <div class="modal-footer" style="border-top:1px solid #f0ebe4;">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" id="aiDraftCopyBtn">コピー</button>
+                    <button type="button" class="btn btn-sm btn-dark" data-bs-dismiss="modal">閉じる</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+    function showAiDraft(btn) {
+        const draft = btn.getAttribute('data-draft');
+        document.getElementById('aiDraftModalBody').textContent = draft;
+        document.getElementById('aiDraftCopyBtn').onclick = function() {
+            navigator.clipboard.writeText(draft).then(() => {
+                this.textContent = 'コピーしました！';
+                setTimeout(() => { this.textContent = 'コピー'; }, 2000);
+            });
+        };
+        new bootstrap.Modal(document.getElementById('aiDraftModal')).show();
+    }
+    </script>
     {% else %}
     <div class="text-center py-5 text-muted" style="background:#faf9f7;border-radius:8px;">
         <p style="font-size:0.9rem;">この期間のアンケート回答はありません</p>

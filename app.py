@@ -1088,7 +1088,7 @@ def index():
         # フィルター付き回答一覧
         base_query = """
             SELECT f.id, f.submitted_at, f.salon_type, f.menu, f.satisfaction,
-                   f.good_points, f.revisit, f.ai_draft, s.name AS shop_name
+                   f.good_points, f.revisit, f.comment, f.ai_draft, s.name AS shop_name
             FROM feedbacks f
             JOIN shops s ON s.id = f.shop_id
             WHERE s.user_id = ? AND salon_type IS NOT NULL
