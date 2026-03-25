@@ -1882,8 +1882,7 @@ def survey_settings():
     import json as _json
     conn = get_db()
     shops = conn.execute(
-        "SELECT id, name, business_type, custom_questions FROM shops WHERE user_id = ? ORDER BY id",
-        (current_user.id,),
+        "SELECT id, name, business_type, custom_questions FROM shops ORDER BY id"
     ).fetchall()
     conn.close()
     if not shops:
@@ -1974,8 +1973,7 @@ def survey_template():
     """アンケート送信用テンプレートページ"""
     conn = get_db()
     shops = conn.execute(
-        "SELECT id, name, slug FROM shops WHERE user_id = ? ORDER BY id",
-        (current_user.id,),
+        "SELECT id, name, slug FROM shops ORDER BY id"
     ).fetchall()
 
     if not shops:
