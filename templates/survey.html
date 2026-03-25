@@ -447,15 +447,9 @@
                     <div class="question-sub">複数選択できます</div>
                     <div class="demo-bubble arrow-down" style="margin:0 auto 12px;">📋 受けたメニューを選んでね！</div>
                     <div class="pill-group" id="q-menu">
-                        <button type="button" class="pill-btn" data-q="menu" data-v="カット">カット</button>
-                        <button type="button" class="pill-btn" data-q="menu" data-v="カラー">カラー</button>
-                        <button type="button" class="pill-btn" data-q="menu" data-v="パーマ">パーマ</button>
-                        <button type="button" class="pill-btn" data-q="menu" data-v="縮毛矯正">縮毛矯正</button>
-                        <button type="button" class="pill-btn" data-q="menu" data-v="トリートメント">トリートメント</button>
-                        <button type="button" class="pill-btn" data-q="menu" data-v="ヘッドスパ">ヘッドスパ</button>
-                        <button type="button" class="pill-btn" data-q="menu" data-v="ブリーチ">ブリーチ</button>
-                        <button type="button" class="pill-btn" data-q="menu" data-v="インナーカラー">インナーカラー</button>
-                        <button type="button" class="pill-btn" data-q="menu" data-v="その他">その他</button>
+                        {% for option in menu_options %}
+                        <button type="button" class="pill-btn" data-q="menu" data-v="{{ option }}">{{ option }}</button>
+                        {% endfor %}
                     </div>
                 </div>
 
@@ -477,16 +471,9 @@
                     <div class="question-label">特によかった点を教えてください</div>
                     <div class="question-sub">任意・複数選択できます</div>
                     <div class="pill-group" id="q-good-points">
-                        <button type="button" class="pill-btn" data-q="good_points" data-v="カラーの発色">カラーの発色</button>
-                        <button type="button" class="pill-btn" data-q="good_points" data-v="スタイルの提案力">スタイルの提案力</button>
-                        <button type="button" class="pill-btn" data-q="good_points" data-v="カットの技術">カットの技術</button>
-                        <button type="button" class="pill-btn" data-q="good_points" data-v="グレージュ・透明感の仕上がり">グレージュ・透明感</button>
-                        <button type="button" class="pill-btn" data-q="good_points" data-v="縮毛矯正の自然さ">縮毛矯正の自然さ</button>
-                        <button type="button" class="pill-btn" data-q="good_points" data-v="ヘアダメージへの配慮">ダメージへの配慮</button>
-                        <button type="button" class="pill-btn" data-q="good_points" data-v="スタッフの対応">スタッフの対応</button>
-                        <button type="button" class="pill-btn" data-q="good_points" data-v="店内の雰囲気">店内の雰囲気</button>
-                        <button type="button" class="pill-btn" data-q="good_points" data-v="丁寧なカウンセリング">カウンセリング</button>
-                        <button type="button" class="pill-btn" data-q="good_points" data-v="施術時間">施術時間</button>
+                        {% for option in good_points_options %}
+                        <button type="button" class="pill-btn" data-q="good_points" data-v="{{ option }}">{{ option }}</button>
+                        {% endfor %}
                     </div>
                 </div>
 
@@ -504,7 +491,7 @@
                 <div class="question-block">
                     <div class="question-label">お気づきの点など（任意）</div>
                     <textarea class="survey-textarea" id="feedback-text" rows="3"
-                        placeholder="担当スタイリストへのメッセージやご要望があればご記入ください"></textarea>
+                        placeholder="{{ comment_placeholder or '担当スタイリストへのメッセージやご要望があればご記入ください' }}"></textarea>
                 </div>
 
                 <!-- hidden fields -->

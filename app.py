@@ -1288,8 +1288,8 @@ SURVEY_OPTIONS = {
              "options": ["とても満足", "満足", "普通", "少し不満", "不満"]},
             {"id": "good_points", "text": "特によかった点を教えてください", "type": "multi", "required": False,
              "options": ["カラーの発色", "スタイルの提案力", "カットの技術", "グレージュ・透明感の仕上がり",
-                         "縮毛矯正の自然さ", "ヘアダメージへの配慮", "スタッフの対応", "店内の雰囲気",
-                         "丁寧なカウンセリング", "施術時間"]},
+                         "縮毛矯正の自然さ", "ヘアダメージへの配慮", "スタッフの対応", "店内の落ち着いた雰囲気",
+                         "丁寧なカウンセリング", "プライベート感"]},
             {"id": "revisit", "text": "また来店したいと思いますか？", "type": "single", "required": True,
              "options": ["ぜひまた来たい", "たぶん来ると思う", "まだわからない"]},
             {"id": "comment", "text": "お気づきの点など（任意）", "type": "text", "required": False,
@@ -1299,12 +1299,12 @@ SURVEY_OPTIONS = {
     "メンズサロン": {
         "questions": [
             {"id": "menu", "text": "今回のメニューは何でしたか？", "type": "multi", "required": True,
-             "options": ["カット", "カラー", "パーマ", "縮毛矯正", "トリートメント", "ヘッドスパ", "ブリーチ", "インナーカラー", "その他"]},
+             "options": ["カット", "フェード", "パーマ", "カラー", "ヘッドスパ", "スキャルプケア", "その他"]},
             {"id": "satisfaction", "text": "仕上がりはいかがでしたか？", "type": "single", "required": True,
              "options": ["とても満足", "満足", "普通", "少し不満", "不満"]},
             {"id": "good_points", "text": "特によかった点を教えてください", "type": "multi", "required": False,
              "options": ["カットの技術", "フェードの仕上がり", "スタイルの提案力", "スッキリした仕上がり",
-                         "スタッフの対応", "店内の雰囲気", "施術時間", "価格のバランス"]},
+                         "スタッフの対応", "店内の雰囲気", "施術時間の短さ", "価格のバランス"]},
             {"id": "revisit", "text": "また来店したいと思いますか？", "type": "single", "required": True,
              "options": ["ぜひまた来たい", "たぶん来ると思う", "まだわからない"]},
             {"id": "comment", "text": "お気づきの点など（任意）", "type": "text", "required": False,
@@ -1315,10 +1315,11 @@ SURVEY_OPTIONS = {
         "questions": [
             {"id": "menu", "text": "今回のメニューは何でしたか？", "type": "multi", "required": True,
              "options": ["ヘッドスパ", "トリートメント", "頭皮ケア", "リラクゼーションコース", "カット+ヘッドスパ", "その他"]},
-            {"id": "satisfaction", "text": "仕上がりはいかがでしたか？", "type": "single", "required": True,
+            {"id": "satisfaction", "text": "いかがでしたか？", "type": "single", "required": True,
              "options": ["とても満足", "満足", "普通", "少し不満", "不満"]},
             {"id": "good_points", "text": "特によかった点を教えてください", "type": "multi", "required": False,
-             "options": ["リラックス効果", "頭皮の気持ちよさ", "スタッフの技術", "施術後の髪のツヤ", "店内の雰囲気・香り", "施術時間"]},
+             "options": ["リラックス効果", "頭皮の気持ちよさ", "スタッフの技術", "施術後の髪のツヤ",
+                         "店内の雰囲気・香り", "施術時間", "カウンセリングの丁寧さ", "清潔感"]},
             {"id": "revisit", "text": "また来店したいと思いますか？", "type": "single", "required": True,
              "options": ["ぜひまた来たい", "たぶん来ると思う", "まだわからない"]},
             {"id": "comment", "text": "お気づきの点など（任意）", "type": "text", "required": False,
@@ -1333,7 +1334,7 @@ SURVEY_OPTIONS = {
              "options": ["とても満足", "満足", "普通", "少し不満", "不満"]},
             {"id": "good_points", "text": "特によかった点を教えてください", "type": "multi", "required": False,
              "options": ["自然なストレート感", "ダメージの少なさ", "持ちの良さ", "カウンセリングの丁寧さ",
-                         "仕上がりの手触り", "スタッフの技術", "施術時間"]},
+                         "仕上がりの手触り", "スタッフの技術", "施術時間", "薬剤の種類・説明"]},
             {"id": "revisit", "text": "また来店したいと思いますか？", "type": "single", "required": True,
              "options": ["ぜひまた来たい", "たぶん来ると思う", "まだわからない"]},
             {"id": "comment", "text": "お気づきの点など（任意）", "type": "text", "required": False,
@@ -1407,11 +1408,27 @@ def survey(slug):
         except Exception:
             pass
 
+    # questions形式のサロンタイプから選択肢を抽出
+    menu_options = []
+    good_points_options = []
+    comment_placeholder = ""
+    if "questions" in opts:
+        for q in opts["questions"]:
+            if q["id"] == "menu":
+                menu_options = q.get("options", [])
+            elif q["id"] == "good_points":
+                good_points_options = q.get("options", [])
+            elif q["id"] == "comment":
+                comment_placeholder = q.get("placeholder", "")
+
     return render_template(
         "survey.html",
         shop=shop_dict,
         coupon=dict(coupon) if coupon else None,
         survey_options=opts,
+        menu_options=menu_options,
+        good_points_options=good_points_options,
+        comment_placeholder=comment_placeholder,
     )
 
 
@@ -1435,11 +1452,25 @@ def shop_demo():
         "business_type": b_type,
     }
     opts = SURVEY_OPTIONS.get(b_type, SURVEY_OPTIONS["default"])
+    menu_options = []
+    good_points_options = []
+    comment_placeholder = ""
+    if "questions" in opts:
+        for q in opts["questions"]:
+            if q["id"] == "menu":
+                menu_options = q.get("options", [])
+            elif q["id"] == "good_points":
+                good_points_options = q.get("options", [])
+            elif q["id"] == "comment":
+                comment_placeholder = q.get("placeholder", "")
     return render_template(
         "survey.html",
         shop=shop_dict,
         coupon=None,
-        survey_options=opts
+        survey_options=opts,
+        menu_options=menu_options,
+        good_points_options=good_points_options,
+        comment_placeholder=comment_placeholder,
     )
 
 
@@ -1630,8 +1661,29 @@ def submit_feedback(slug):
                     "- 冒頭に「サンプル」などのテスト感のある言葉は使わない\n\n"
                     "口コミ文章のみを出力してください。"
                 )
+            elif b_type == "女性専用サロン":
+                user_prompt = (
+                    "あなたは女性専用美容室のお客様（女性）です。以下のアンケート回答をもとに、"
+                    "Googleマップに投稿する自然な口コミ文章を日本語で書いてください。\n\n"
+                    f"【アンケート回答】\n"
+                    f"- 今回のメニュー: {menu}\n"
+                    f"- 仕上がりの満足度: {satisfaction}\n"
+                    f"- よかった点: {good_points}\n"
+                    f"- また来店したいか: {revisit}\n"
+                    f"- コメント: {comment}\n\n"
+                    "【口コミ作成のルール】\n"
+                    "- 200〜300文字程度\n"
+                    "- 女性専用ならではのプライベート感・落ち着いた雰囲気・丁寧さを強調する\n"
+                    "- 美容室らしい言葉を使う（グレージュ、インナーカラー、縮毛矯正など）\n"
+                    "- 「です・ます調」で丁寧な文体\n"
+                    "- 満足度が「普通」以下の場合は星4以下を示唆する表現にする\n"
+                    "- 「また来たい」場合は再来店の意思を含める\n"
+                    "- 箇条書きや記号は使わない\n"
+                    "- 冒頭に「サンプル」などのテスト感のある言葉は使わない\n\n"
+                    "口コミ文章のみを出力してください。"
+                )
             else:
-                # 美容院 / 総合サロン / 女性専用サロン 共通
+                # 美容院 / 総合サロン 共通
                 user_prompt = (
                     "あなたは美容室のお客様です。以下のアンケート回答をもとに、"
                     "Googleマップに投稿する自然な口コミ文章を日本語で書いてください。\n\n"
