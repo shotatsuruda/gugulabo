@@ -40,13 +40,16 @@
                 <ul class="mb-4 ps-3" style="color:#4b5563;">
                     <li class="mb-1"><strong>QRコード生成</strong>：店舗のGoogleレビューQRコードを作成できます</li>
                     <li class="mb-1"><strong>AI返答生成</strong>：お客様のレビューに対する返答文をAIが自動作成します</li>
-                    <li><strong>最近のフィードバック</strong>：★1〜3の低評価フィードバックを一覧で確認できます</li>
+                    <li class="mb-1"><strong>アンケート設定</strong>：お客様向けアンケートの内容（サロンタイプ・メニュー選択肢など）を設定できます</li>
+                    <li><strong>アンケート回答一覧</strong>：お客様が回答したアンケートを時系列で確認できます。AI生成口コミの全文表示にも対応しています</li>
                 </ul>
 
                 <h3 class="fw-bold mb-2" style="font-size:0.9rem;color:#6b6b8a;">店舗の登録方法</h3>
                 <ol class="mb-0 ps-3" style="color:#4b5563;">
                     <li class="mb-1">ナビゲーションの「QRコード生成」をクリック</li>
-                    <li class="mb-1">「店舗名」「GoogleレビューURL」を入力</li>
+                    <li class="mb-1">「店舗名」「スラッグ（URL用の英数字）」「GoogleレビューURL」「Place ID」を入力<br>
+                        <span style="color:#6b7280;font-size:0.82rem;">※ Place IDはLINE連携に必要な項目です（必須）。取得方法は<a href="/manual#place-id">⑥ Place IDの取得方法</a>を参照してください</span>
+                    </li>
                     <li class="mb-1">「店舗を追加」ボタンをクリックして登録完了</li>
                     <li>登録した店舗を選択してQRコードを生成できます</li>
                 </ol>
@@ -224,7 +227,158 @@
         </div>
 
 
-        <!-- ⑤ GoogleレビューURLの取得方法 -->
+        <!-- ⑥ アンケート設定の使い方 -->
+        <div class="card mb-4" style="border-radius:16px;overflow:hidden;">
+            <div class="card-header py-3 px-4" style="background:linear-gradient(135deg,#667eea,#764ba2);border:none;">
+                <h2 class="mb-0 fw-bold" style="font-size:1rem;color:#fff;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        style="vertical-align:-2px;margin-right:8px;">
+                        <path d="M9 11l3 3L22 4"/>
+                        <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                    </svg>
+                    ⑥ アンケート設定の使い方
+                </h2>
+            </div>
+            <div class="card-body px-4 py-4" style="font-size:0.875rem;color:#374151;line-height:1.8;">
+
+                <p class="mb-3" style="color:#4b5563;">
+                    アンケートはQRコードを読み取ったお客様が回答するページです。サロンの業態に合わせて内容を最適化できます。
+                </p>
+
+                <h3 class="fw-bold mb-2" style="font-size:0.9rem;color:#6b6b8a;">サロンタイプの選択</h3>
+                <p class="mb-3" style="color:#4b5563;">
+                    ナビゲーションの「アンケート設定」から店舗ごとにサロンタイプを選択してください。<br>
+                    選択したタイプに応じて、Q1（メニュー選択）・Q3（よかった点）の選択肢が自動で切り替わります。
+                </p>
+                <div class="row g-2 mb-4">
+                    <div class="col-6 col-sm-4">
+                        <div class="p-2 text-center" style="background:#f8f7ff;border-radius:10px;font-size:0.8rem;color:#4b5563;">💇 美容院（一般）</div>
+                    </div>
+                    <div class="col-6 col-sm-4">
+                        <div class="p-2 text-center" style="background:#f8f7ff;border-radius:10px;font-size:0.8rem;color:#4b5563;">💈 メンズサロン</div>
+                    </div>
+                    <div class="col-6 col-sm-4">
+                        <div class="p-2 text-center" style="background:#f8f7ff;border-radius:10px;font-size:0.8rem;color:#4b5563;">🌸 女性専用サロン</div>
+                    </div>
+                    <div class="col-6 col-sm-4">
+                        <div class="p-2 text-center" style="background:#f8f7ff;border-radius:10px;font-size:0.8rem;color:#4b5563;">💆 ヘッドスパ専門</div>
+                    </div>
+                    <div class="col-6 col-sm-4">
+                        <div class="p-2 text-center" style="background:#f8f7ff;border-radius:10px;font-size:0.8rem;color:#4b5563;">✨ 縮毛矯正専門</div>
+                    </div>
+                </div>
+
+                <h3 class="fw-bold mb-2" style="font-size:0.9rem;color:#6b6b8a;">アンケートの質問構成</h3>
+                <ul class="mb-4 ps-3" style="color:#4b5563;">
+                    <li class="mb-1"><strong>Q1 ご利用メニュー</strong>：ボタン選択（サロンタイプ別の選択肢）</li>
+                    <li class="mb-1"><strong>Q2 満足度</strong>：⭐〜⭐⭐⭐⭐⭐の5段階評価</li>
+                    <li class="mb-1"><strong>Q3 よかった点</strong>：複数選択可（サロンタイプ別の選択肢）</li>
+                    <li class="mb-1"><strong>Q4 また来たいですか？</strong>：はい／考え中／まだわからない</li>
+                    <li><strong>Q5 メッセージ</strong>：自由記述（任意）</li>
+                </ul>
+
+                <h3 class="fw-bold mb-2" style="font-size:0.9rem;color:#6b6b8a;">AI口コミ生成について</h3>
+                <p class="mb-0" style="color:#4b5563;">
+                    お客様がアンケートを送信すると、回答内容をもとにAIがGoogleレビュー用の口コミ文を自動生成します。<br>
+                    生成された口コミはアンケート画面でお客様に表示され、コピーしてそのままGoogleに貼り付けられます。<br>
+                    サロンタイプごとに文体・強調ポイントを最適化しています（例：女性専用サロンはプライベート感を重視）。
+                </p>
+
+            </div>
+        </div>
+
+        <!-- ⑦ アンケート回答ダッシュボードの見方 -->
+        <div class="card mb-4" style="border-radius:16px;overflow:hidden;">
+            <div class="card-header py-3 px-4" style="background:linear-gradient(135deg,#667eea,#764ba2);border:none;">
+                <h2 class="mb-0 fw-bold" style="font-size:1rem;color:#fff;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        style="vertical-align:-2px;margin-right:8px;">
+                        <rect x="3" y="3" width="18" height="18" rx="2"/>
+                        <line x1="3" y1="9" x2="21" y2="9"/>
+                        <line x1="3" y1="15" x2="21" y2="15"/>
+                        <line x1="9" y1="9" x2="9" y2="21"/>
+                    </svg>
+                    ⑦ アンケート回答ダッシュボードの見方
+                </h2>
+            </div>
+            <div class="card-body px-4 py-4" style="font-size:0.875rem;color:#374151;line-height:1.8;">
+
+                <p class="mb-3" style="color:#4b5563;">
+                    ダッシュボード下部の「アンケート回答一覧」でお客様の回答を確認できます。
+                </p>
+
+                <h3 class="fw-bold mb-2" style="font-size:0.9rem;color:#6b6b8a;">表示される項目</h3>
+                <ul class="mb-4 ps-3" style="color:#4b5563;">
+                    <li class="mb-1"><strong>受付日時</strong>：アンケート送信日時</li>
+                    <li class="mb-1"><strong>メニュー（Q1）</strong>：お客様が選んだメニュー</li>
+                    <li class="mb-1"><strong>満足度（Q2）</strong>：星の数（1〜5）</li>
+                    <li class="mb-1"><strong>よかった点（Q3）</strong>：選択されたポイント</li>
+                    <li class="mb-1"><strong>再来店意向（Q4）</strong>：はい／考え中／まだわからない</li>
+                    <li class="mb-1"><strong>お客様のメッセージ（Q5）</strong>：自由記述の内容</li>
+                    <li><strong>AI生成口コミ</strong>：「全文を見る」ボタンでモーダル表示。コピーボタンも利用可</li>
+                </ul>
+
+                <h3 class="fw-bold mb-2" style="font-size:0.9rem;color:#6b6b8a;">フィルター機能</h3>
+                <p class="mb-0" style="color:#4b5563;">
+                    複数店舗をお持ちの場合は、店舗名で絞り込むことができます。<br>
+                    フィードバックの傾向をつかみ、サービス改善にお役立てください。
+                </p>
+
+            </div>
+        </div>
+
+        <!-- ⑧ LINE連携の設定方法 -->
+        <div class="card mb-4" style="border-radius:16px;overflow:hidden;">
+            <div class="card-header py-3 px-4" style="background:linear-gradient(135deg,#667eea,#764ba2);border:none;">
+                <h2 class="mb-0 fw-bold" style="font-size:1rem;color:#fff;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        style="vertical-align:-2px;margin-right:8px;">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                    </svg>
+                    ⑧ LINE連携の設定方法
+                </h2>
+            </div>
+            <div class="card-body px-4 py-4" style="font-size:0.875rem;color:#374151;line-height:1.8;">
+
+                <p class="mb-3" style="color:#4b5563;">
+                    LINE連携を設定すると、週次のGoogleレビューレポートがLINEに届きます。
+                </p>
+
+                <div class="alert py-2 mb-4"
+                    style="background:#f0fff4;border:1px solid #86efac;color:#166534;border-radius:8px;font-size:0.82rem;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        style="vertical-align:-1px;margin-right:5px;">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="12" y1="8" x2="12" y2="12"/>
+                        <line x1="12" y1="16" x2="12.01" y2="16"/>
+                    </svg>
+                    LINE連携には店舗登録時に <strong>Place ID</strong> の入力が必要です
+                </div>
+
+                <h3 class="fw-bold mb-2" style="font-size:0.9rem;color:#6b6b8a;">連携手順</h3>
+                <ol class="mb-4 ps-3" style="color:#4b5563;">
+                    <li class="mb-1">「QRコード生成」ページで店舗カードを確認する</li>
+                    <li class="mb-1">「LINE連携が未設定です」のバナーが表示されている場合は「LINEを連携する」をクリック</li>
+                    <li class="mb-1">LINEの友だち追加画面が開くので、ugugulabo公式アカウントを友だち追加する</li>
+                    <li>連携完了後、毎週月曜日に先週のレビューサマリーがLINEで届きます</li>
+                </ol>
+
+                <h3 class="fw-bold mb-2" style="font-size:0.9rem;color:#6b6b8a;">Place IDの取得方法</h3>
+                <ol id="place-id" class="mb-0 ps-3" style="color:#4b5563;">
+                    <li class="mb-1">PCのブラウザで <code style="background:#e5e7eb;padding:1px 6px;border-radius:4px;font-size:0.82rem;">developers.google.com/maps/documentation/places/web-service/place-id</code> を開く</li>
+                    <li class="mb-1">ページ下部の「Place ID Finder」で自分の店舗名を検索する</li>
+                    <li class="mb-1">マップに表示されたマーカーをクリックすると Place ID が表示される</li>
+                    <li>表示された <code style="background:#e5e7eb;padding:1px 6px;border-radius:4px;font-size:0.82rem;">ChIJ...</code> から始まる文字列をコピーして店舗登録フォームに入力する</li>
+                </ol>
+
+            </div>
+        </div>
+
+        <!-- ⑨ GoogleレビューURLの取得方法 -->
         <div id="review-url" class="card mb-4" style="border-radius:16px;overflow:hidden;">
             <div class="card-header py-3 px-4" style="background:linear-gradient(135deg,#667eea,#764ba2);border:none;">
                 <h2 class="mb-0 fw-bold" style="font-size:1rem;color:#fff;">
@@ -234,7 +388,7 @@
                         <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
                         <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
                     </svg>
-                    ⑤ GoogleレビューURLの取得方法
+                    ⑨ GoogleレビューURLの取得方法
                 </h2>
             </div>
             <div class="card-body px-4 py-4" style="font-size:0.875rem;color:#374151;line-height:1.8;">
