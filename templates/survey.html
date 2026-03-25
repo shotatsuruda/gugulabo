@@ -430,8 +430,8 @@
         <div class="section active" id="step-survey">
             <div class="card">
 
-                {% if shop.business_type == '美容院' %}
-                {# ===== 美容院：選択式 ===== #}
+                {% if shop.business_type in ['美容院', '総合サロン', '女性専用サロン', 'メンズサロン', 'ヘッドスパ専門', '縮毛矯正専門'] %}
+                {# ===== サロンタイプ：選択式 ===== #}
 
                 <!-- Q1 メニュー（複数選択） -->
                 <div class="question-block">
@@ -719,7 +719,7 @@
 
         function checkReady() {
             const btn = document.getElementById('submit-btn');
-            if (BUSINESS_TYPE === '美容院') {
+            if (['美容院','総合サロン','女性専用サロン','メンズサロン','ヘッドスパ専門','縮毛矯正専門'].includes(BUSINESS_TYPE)) {
                 const menuOk = document.querySelector('.pill-btn[data-q="menu"].selected');
                 const satOk  = document.querySelector('.pill-btn[data-q="satisfaction"].selected');
                 const revOk  = document.querySelector('.pill-btn[data-q="revisit"].selected');
@@ -739,7 +739,7 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
 
             let body;
-            if (BUSINESS_TYPE === '美容院') {
+            if (['美容院','総合サロン','女性専用サロン','メンズサロン','ヘッドスパ専門','縮毛矯正専門'].includes(BUSINESS_TYPE)) {
                 body = {
                     business_type: BUSINESS_TYPE,
                     menu:         document.getElementById('hidden-menu').value,
