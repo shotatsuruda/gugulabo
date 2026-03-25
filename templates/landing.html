@@ -291,6 +291,33 @@
         }
         .btn-plan-outline:hover { background: #1C1C1C; color: #fff; }
 
+        /* ---- Policy Safety ---- */
+        .policy-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+        .policy-card {
+            background: #FBF8F5;
+            border-radius: 12px;
+            padding: 28px;
+            border-left: 4px solid #C9A96E;
+        }
+        .policy-card h3 {
+            font-size: 17px;
+            font-weight: bold;
+            color: #1C1C1C;
+            margin-bottom: 12px;
+        }
+        .policy-card p {
+            font-size: 14px;
+            color: #555;
+            line-height: 1.8;
+        }
+        @media (max-width: 768px) {
+            .policy-grid { grid-template-columns: 1fr; }
+        }
+
         /* ---- Menu Grid ---- */
         .menu-grid {
             display: grid;
@@ -947,6 +974,44 @@
             </div>
 
         </div>
+    </div>
+</section>
+
+<!-- ========== POLICY SAFETY ========== -->
+<section id="policy-safety" style="background:#FFFFFF;padding:80px 0;border-top:1px solid #F0EBE3;">
+    <div class="wrap">
+
+        <!-- 見出し -->
+        <div style="text-align:center;margin-bottom:48px;">
+            <span style="display:inline-block;font-size:13px;font-weight:700;color:#C9A96E;letter-spacing:0.1em;margin-bottom:12px;">安心してお使いいただけます</span>
+            <h2 style="font-family:var(--serif);font-size:32px;color:#1C1C1C;">Googleのガイドラインに沿った、安全な仕組みです</h2>
+        </div>
+
+        <!-- 3カラムカード -->
+        <div class="policy-grid">
+            <div class="policy-card">
+                <h3>お客様自身の言葉で投稿</h3>
+                <p>AIが生成するのはあくまで『文章の下書き』です。お客様がご自身の体験をもとに内容を確認・編集し、ご自分の意思で投稿します。Googleが求める『実体験に基づく投稿』の条件を満たしています。</p>
+            </div>
+            <div class="policy-card">
+                <h3>インセンティブによる誘導はしません</h3>
+                <p>『口コミを書いたらクーポンをプレゼント』という金銭的・物質的な見返りと引き換えに口コミを依頼することはGoogleのガイドライン違反です。গগラボのクーポン機能は、口コミ投稿の条件とは切り離した設計にしています。</p>
+            </div>
+            <div class="policy-card">
+                <h3>低評価も公平に扱います</h3>
+                <p>満足度が低いお客様の回答も、高評価のお客様と同様にGoogleへの投稿を案内します。良い口コミだけを選別して誘導する『レビューゲーティング』は行いません。</p>
+            </div>
+        </div>
+
+        <!-- 下部注記 -->
+        <div style="background:#FBF8F5;border-radius:8px;padding:20px 32px;max-width:640px;margin:40px auto 0;text-align:center;">
+            <p style="font-size:13px;color:#888;line-height:1.8;">
+                ※ Googleのレビューポリシーは随時更新されます。<br>
+                গগラボはポリシーの変更に合わせてサービスを継続的に見直しています。<br>
+                ご不明な点はお問い合わせください。
+            </p>
+        </div>
+
     </div>
 </section>
 
