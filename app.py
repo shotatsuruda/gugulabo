@@ -436,6 +436,11 @@ def init_db():
         conn.execute("ALTER TABLE feedbacks ADD COLUMN IF NOT EXISTS rating3 INTEGER")
         conn.execute("ALTER TABLE feedbacks ADD COLUMN IF NOT EXISTS rating4 INTEGER")
         conn.execute("ALTER TABLE feedbacks ADD COLUMN IF NOT EXISTS rating5 INTEGER")
+        conn.execute("ALTER TABLE feedbacks ADD COLUMN IF NOT EXISTS salon_type TEXT")
+        conn.execute("ALTER TABLE feedbacks ADD COLUMN IF NOT EXISTS menu TEXT")
+        conn.execute("ALTER TABLE feedbacks ADD COLUMN IF NOT EXISTS satisfaction TEXT")
+        conn.execute("ALTER TABLE feedbacks ADD COLUMN IF NOT EXISTS good_points TEXT")
+        conn.execute("ALTER TABLE feedbacks ADD COLUMN IF NOT EXISTS revisit TEXT")
     else:
         try:
             conn.execute("ALTER TABLE feedbacks ADD COLUMN is_featured INTEGER NOT NULL DEFAULT 0")
@@ -453,6 +458,14 @@ def init_db():
             conn.execute("ALTER TABLE feedbacks ADD COLUMN rating3 INTEGER")
             conn.execute("ALTER TABLE feedbacks ADD COLUMN rating4 INTEGER")
             conn.execute("ALTER TABLE feedbacks ADD COLUMN rating5 INTEGER")
+        except Exception:
+            pass
+        try:
+            conn.execute("ALTER TABLE feedbacks ADD COLUMN salon_type TEXT")
+            conn.execute("ALTER TABLE feedbacks ADD COLUMN menu TEXT")
+            conn.execute("ALTER TABLE feedbacks ADD COLUMN satisfaction TEXT")
+            conn.execute("ALTER TABLE feedbacks ADD COLUMN good_points TEXT")
+            conn.execute("ALTER TABLE feedbacks ADD COLUMN revisit TEXT")
         except Exception:
             pass
 
@@ -1023,6 +1036,74 @@ def index():
                 fb["submitted_at"] = sa.strftime("%Y-%m-%d %H:%M")
             elif sa and isinstance(sa, str):
                 fb["submitted_at"] = sa[:16]
+
+        # ===== アンケート回答一覧・統計 =====
+        import datetime
+        from collections import Counter
+        now_dt = datetime.datetime.now()
+        month_start = now_dt.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+
+        # フィルターパラメータ
+        period = request.args.get("period", "month")
+        satisfaction_filter = request.args.get("satisfaction_filter", "all")
+
+        if period == "today":
+            date_filter = now_dt.replace(hour=0, minute=0, second=0, microsecond=0)
+        elif period == "week":
+            date_filter = now_dt - datetime.timedelta(days=7)
+        elif period == "all":
+            date_filter = datetime.datetime(2000, 1, 1)
+        else:  # month
+            date_filter = month_start
+
+        conn2 = get_db()
+
+        # 今月の統計用（全件）
+        monthly_responses_raw = conn2.execute(
+            """
+            SELECT satisfaction, revisit, menu
+            FROM feedbacks f
+            JOIN shops s ON s.id = f.shop_id
+            WHERE s.user_id = ? AND salon_type IS NOT NULL
+            AND date(f.submitted_at) >= date('now', 'start of month')
+            """,
+            (current_user.id,),
+        ).fetchall()
+        total_count = len(monthly_responses_raw)
+        very_satisfied = sum(1 for r in monthly_responses_raw if r["satisfaction"] == "とても満足")
+        revisit_yes    = sum(1 for r in monthly_responses_raw if r["revisit"] == "ぜひまた来たい")
+        satisfaction_rate = round(very_satisfied / total_count * 100) if total_count > 0 else 0
+        revisit_rate      = round(revisit_yes    / total_count * 100) if total_count > 0 else 0
+        all_menus = []
+        for r in monthly_responses_raw:
+            if r["menu"]:
+                all_menus.extend([m.strip() for m in r["menu"].split(",")])
+        popular_menu = Counter(all_menus).most_common(1)[0][0] if all_menus else "データなし"
+
+        # フィルター付き回答一覧
+        base_query = """
+            SELECT f.id, f.submitted_at, f.salon_type, f.menu, f.satisfaction,
+                   f.good_points, f.revisit, f.ai_draft, s.name AS shop_name
+            FROM feedbacks f
+            JOIN shops s ON s.id = f.shop_id
+            WHERE s.user_id = ? AND salon_type IS NOT NULL
+            AND f.submitted_at >= ?
+        """
+        params = [current_user.id, date_filter.strftime("%Y-%m-%d %H:%M:%S")]
+        if satisfaction_filter != "all":
+            if satisfaction_filter == "普通以下":
+                base_query += " AND satisfaction IN ('普通', '少し不満', '不満')"
+            else:
+                base_query += " AND satisfaction = ?"
+                params.append(satisfaction_filter)
+        base_query += " ORDER BY f.submitted_at DESC LIMIT 30"
+        survey_responses = [dict(r) for r in conn2.execute(base_query, params).fetchall()]
+        for r in survey_responses:
+            sa = r.get("submitted_at")
+            if sa and isinstance(sa, str):
+                r["submitted_at"] = sa[:16]
+        conn2.close()
+
         return render_template(
             "index.html",
             feedbacks=feedbacks,
@@ -1031,6 +1112,13 @@ def index():
             daily_trend=daily_trend,
             coupon_total=coupon_total,
             monthly_count=monthly_count,
+            survey_responses=survey_responses,
+            total_count=total_count,
+            satisfaction_rate=satisfaction_rate,
+            revisit_rate=revisit_rate,
+            popular_menu=popular_menu,
+            period=period,
+            satisfaction_filter=satisfaction_filter,
         )
     resp = make_response(render_template("landing.html"))
     resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
@@ -1578,15 +1666,14 @@ def submit_feedback(slug):
 
     conn = get_db()
     if DB_TYPE == "postgresql":
-        # postgres syntax implies parameters
         conn.execute(
-            "INSERT INTO feedbacks (shop_id, rating, rating2, rating3, rating4, rating5, comment, ai_draft) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
-            (shop["id"], rating, rating2, rating3, rating4, rating5, comment, ai_draft),
+            "INSERT INTO feedbacks (shop_id, rating, rating2, rating3, rating4, rating5, comment, ai_draft, salon_type, menu, satisfaction, good_points, revisit) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+            (shop["id"], rating, rating2, rating3, rating4, rating5, comment, ai_draft, b_type, menu, satisfaction, good_points, revisit),
         )
     else:
         conn.execute(
-            "INSERT INTO feedbacks (shop_id, rating, rating2, rating3, rating4, rating5, comment, ai_draft) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-            (shop["id"], rating, rating2, rating3, rating4, rating5, comment, ai_draft),
+            "INSERT INTO feedbacks (shop_id, rating, rating2, rating3, rating4, rating5, comment, ai_draft, salon_type, menu, satisfaction, good_points, revisit) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (shop["id"], rating, rating2, rating3, rating4, rating5, comment, ai_draft, b_type, menu, satisfaction, good_points, revisit),
         )
     conn.commit()
     conn.close()
