@@ -568,14 +568,18 @@
             /* ---- 固定CTAバー表示 ---- */
             #fixed-cta { display: none; }
 
-            /* ---- カスタマイズ・アナリティクスセクション ---- */
-            .feature-2col { grid-template-columns: 1fr; gap: 40px; }
-            .feature-2col.reverse .mock-col { order: -1; }
-            .feature-2col.reverse .text-col { order: 1; }
+            /* ---- アンケートカスタマイズ・集計セクション ---- */
+            .feature-sec { padding: 48px 0 !important; }
+            .feature-2col { grid-template-columns: 1fr; gap: 32px; }
+            .feature-2col .mock-col { order: -1; }
+            .feature-2col .text-col { order: 1; }
             .mock-card { padding: 16px; }
+            .tag-group { gap: 4px; }
             .stats-grid { gap: 8px; }
-            .stat-number { font-size: 22px; }
+            .stat-number { font-size: 20px; }
+            .stat-card { padding: 10px 8px; }
             .feature-2col h2 { font-size: 24px; }
+            .response-comment { display: none; }
         }
     </style>
 
@@ -1041,7 +1045,7 @@
 </section>
 
 <!-- ========== CUSTOMIZE SURVEY ========== -->
-<section id="customize-survey" style="background:#FBF8F5;padding:80px 0;">
+<section id="customize-survey" style="background:#FBF8F5;padding:80px 0;" class="feature-sec">
     <div class="wrap">
         <div class="feature-2col">
             <!-- テキスト -->
@@ -1093,7 +1097,7 @@
 </section>
 
 <!-- ========== SURVEY ANALYTICS ========== -->
-<section id="survey-analytics" style="background:#FFFFFF;padding:80px 0;">
+<section id="survey-analytics" style="background:#FFFFFF;padding:80px 0;" class="feature-sec">
     <div class="wrap">
         <div class="feature-2col reverse">
             <!-- ビジュアル -->
