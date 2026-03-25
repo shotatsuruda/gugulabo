@@ -80,6 +80,7 @@
                                 <th style="padding:0.75rem 1rem;font-weight:600;color:var(--muted);font-size:0.75rem;">名前</th>
                                 <th style="padding:0.75rem 1rem;font-weight:600;color:var(--muted);font-size:0.75rem;">メールアドレス</th>
                                 <th style="padding:0.75rem 1rem;font-weight:600;color:var(--muted);font-size:0.75rem;">権限</th>
+                                <th style="padding:0.75rem 1rem;font-weight:600;color:var(--muted);font-size:0.75rem;">割り当て店舗</th>
                                 <th style="padding:0.75rem 1rem;font-weight:600;color:var(--muted);font-size:0.75rem;">登録日</th>
                                 <th style="padding:0.75rem 1rem;font-weight:600;color:var(--muted);font-size:0.75rem;">契約プラン</th>
                                 <th style="padding:0.75rem 1rem;font-weight:600;color:var(--muted);font-size:0.75rem;">有効期限</th>
@@ -102,6 +103,20 @@
                                     {% else %}
                                     <span style="font-size:0.72rem;background:var(--bg);border:1px solid var(--border);border-radius:99px;padding:2px 9px;color:var(--muted);">一般</span>
                                     {% endif %}
+                                </td>
+                                <td style="padding:0.75rem 1rem;vertical-align:middle;">
+                                    {% if user.shops %}
+                                        {% for s in user.shops %}
+                                        <span style="font-size:0.78rem;display:inline-block;margin-bottom:2px;">{{ s.name }}</span>{% if not loop.last %}<br>{% endif %}
+                                        {% endfor %}
+                                    {% else %}
+                                    <span style="font-size:0.75rem;color:var(--muted);">未割り当て</span>
+                                    {% endif %}
+                                    <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2 ms-1"
+                                            title="店舗を割り当て"
+                                            onclick="openAssignModal({{ user.id }}, '{{ user.name | e }}')">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                    </button>
                                 </td>
                                 <td style="padding:0.75rem 1rem;vertical-align:middle;color:var(--muted);">
                                     {{ user.created_at[:10] if user.created_at else '—' }}
@@ -159,6 +174,37 @@
         </div>
     </div>
 
+</div>
+
+<!-- ===== 店舗割り当てモーダル ===== -->
+<div class="modal fade" id="assignShopModal" tabindex="-1" aria-labelledby="assignShopModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:400px;">
+        <div class="modal-content" style="border:1px solid var(--border);border-radius:var(--radius);">
+            <div class="modal-header" style="border-bottom:1px solid var(--border);padding:1rem 1.25rem;">
+                <h6 class="modal-title fw-bold mb-0" id="assignShopModalLabel">店舗を割り当て</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="閉じる" style="font-size:0.75rem;"></button>
+            </div>
+            <form id="assignShopForm" method="POST" action="">
+                <div class="modal-body" style="padding:1.25rem;">
+                    <p id="assignTargetName" style="font-size:0.85rem;margin-bottom:1rem;color:var(--muted);"></p>
+                    <div>
+                        <label class="form-label" style="font-size:0.82rem;font-weight:600;">割り当てる店舗</label>
+                        <select class="form-select form-select-sm" name="shop_id" required>
+                            <option value="">— 選択してください —</option>
+                            {% for s in shops_list %}
+                            <option value="{{ s.id }}">{{ s.name }}（{{ s.slug }}）</option>
+                            {% endfor %}
+                        </select>
+                        <div class="form-text" style="font-size:0.75rem;">既に他のユーザーに割り当て済みの店舗を選ぶと、割り当て先が変更されます。</div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="border-top:1px solid var(--border);padding:0.75rem 1.25rem;">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">キャンセル</button>
+                    <button type="submit" class="btn btn-primary btn-sm">割り当てる</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
 
 <!-- ===== プラン編集モーダル ===== -->
@@ -230,6 +276,13 @@ function openPlanModal(userId, userName, plan, expiresAt) {
     document.getElementById('planSelect').value = plan || '月額プラン';
     document.getElementById('planExpiresAt').value = expiresAt || '';
     new bootstrap.Modal(document.getElementById('editPlanModal')).show();
+}
+
+function openAssignModal(userId, userName) {
+    document.getElementById('assignShopForm').action = '/admin/users/' + userId + '/assign-shop';
+    document.getElementById('assignTargetName').textContent = '「' + userName + '」に割り当てる店舗を選んでください。';
+    document.querySelector('#assignShopModal select[name="shop_id"]').value = '';
+    new bootstrap.Modal(document.getElementById('assignShopModal')).show();
 }
 
 function openResetModal(userId, userName) {

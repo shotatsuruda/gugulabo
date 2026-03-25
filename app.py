@@ -2915,7 +2915,19 @@ def admin_users():
     rows = conn.execute(
         "SELECT id, email, name, is_admin, created_at, plan, plan_expires_at FROM users ORDER BY id"
     ).fetchall()
+    all_shops = conn.execute(
+        "SELECT id, name, slug, user_id FROM shops ORDER BY id"
+    ).fetchall()
     conn.close()
+
+    # ユーザーごとに割り当て済み店舗をまとめる
+    shop_map = {}
+    for s in all_shops:
+        uid = s["user_id"]
+        if uid not in shop_map:
+            shop_map[uid] = []
+        shop_map[uid].append({"id": s["id"], "name": s["name"]})
+
     users = []
     for row in rows:
         d = dict(row)
@@ -2924,8 +2936,29 @@ def admin_users():
             d["created_at"] = ca.strftime("%Y-%m-%d %H:%M:%S")
         if not d.get("plan"):
             d["plan"] = "月額プラン"
+        d["shops"] = shop_map.get(d["id"], [])
         users.append(d)
-    return render_template("admin.html", users=users)
+
+    shops_list = [dict(s) for s in all_shops]
+    return render_template("admin.html", users=users, shops_list=shops_list)
+
+
+@app.route("/admin/users/<int:user_id>/assign-shop", methods=["POST"])
+@admin_required
+def admin_assign_shop(user_id):
+    """指定ユーザーに店舗を割り当てる"""
+    shop_id = request.form.get("shop_id", type=int)
+    if not shop_id:
+        flash("店舗を選択してください。", "danger")
+        return redirect(url_for("admin_users"))
+    conn = get_db()
+    conn.execute("UPDATE shops SET user_id = ? WHERE id = ?", (user_id, shop_id))
+    conn.commit()
+    shop = conn.execute("SELECT name FROM shops WHERE id = ?", (shop_id,)).fetchone()
+    user = conn.execute("SELECT name FROM users WHERE id = ?", (user_id,)).fetchone()
+    conn.close()
+    flash(f"「{shop['name']}」を「{user['name']}」に割り当てました。", "success")
+    return redirect(url_for("admin_users"))
 
 
 @app.route("/admin/users", methods=["POST"])
