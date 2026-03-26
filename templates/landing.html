@@ -713,6 +713,7 @@
             /* ---- アンケートカスタマイズ・集計セクション（共通） ---- */
             .feature-sec { padding: 48px 0 !important; }
             .feature-2col { grid-template-columns: 1fr; gap: 32px; }
+            .feature-2col.reverse { grid-template-columns: 1fr; }
             .feature-2col .mock-col { order: -1; }
             .feature-2col .text-col { order: 1; }
             .feature-2col h2 { font-size: 24px !important; }
@@ -748,6 +749,11 @@
                 width: 100%;
                 padding: 14px;
             }
+            /* スマホ: テキストを上・モックを下に */
+            #customize-survey .mock-col { order: 1; }
+            #customize-survey .text-col { order: -1; }
+            #survey-analytics .mock-col { order: 1; }
+            #survey-analytics .text-col { order: -1; }
         }
     </style>
 </head>

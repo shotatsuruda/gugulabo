@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% block title %}リマインダーアラート - ググラボ{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="mb-0">リマインダーアラート</h4>
+  <a href="/reminder/visit" class="btn btn-primary btn-sm">＋ 来店記録</a>
+</div>
+
+<div id="loading" class="text-center text-muted py-5">読み込み中...</div>
+<div id="empty"   class="text-center text-muted py-5 d-none">
+  対象顧客はいません 🎉
+</div>
+
+<div id="table-wrap" class="d-none">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>顧客名</th>
+          <th>メニュー</th>
+          <th>最終来店日</th>
+          <th>超過</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="alert-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- コピー用 hidden textarea -->
+<textarea id="copy-buf" style="position:absolute;left:-9999px;" aria-hidden="true"></textarea>
+{% endblock %}
+
+{% block scripts %}
+<script>
+fetch("/reminder/alerts")
+  .then(r => r.json())
+  .then(alerts => {
+    document.getElementById("loading").classList.add("d-none");
+
+    if (!alerts.length) {
+      document.getElementById("empty").classList.remove("d-none");
+      return;
+    }
+
+    document.getElementById("table-wrap").classList.remove("d-none");
+    const tbody = document.getElementById("alert-tbody");
+
+    alerts.forEach((a, i) => {
+      const d = a.days_overdue;
+      // 超過日数で色分け
+      const badge =
+        d >= 8 ? "danger" :
+        d >= 4 ? "warning" : "secondary";
+      const rowClass =
+        d >= 8 ? "table-danger" :
+        d >= 4 ? "table-warning" : "";
+
+      const tr = document.createElement("tr");
+      tr.className = rowClass;
+      tr.innerHTML = `
+        <td class="fw-semibold">${esc(a.customer_name)}</td>
+        <td>${esc(a.menu_name)}</td>
+        <td>${esc(a.last_visited)}</td>
+        <td><span class="badge bg-${badge}">${d}日超過</span></td>
+        <td>
+          <button class="btn btn-outline-secondary btn-sm copy-btn"
+                  data-msg="${esc(a.message)}"
+                  data-idx="${i}">
+            文章をコピー
+          </button>
+        </td>`;
+      tbody.appendChild(tr);
+    });
+
+    // コピーボタン処理
+    tbody.addEventListener("click", e => {
+      const btn = e.target.closest(".copy-btn");
+      if (!btn) return;
+      const msg = btn.dataset.msg;
+      const buf = document.getElementById("copy-buf");
+      buf.value = msg;
+      buf.select();
+      document.execCommand("copy");
+
+      // Clipboard API にも対応
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(msg).catch(() => {});
+      }
+
+      btn.textContent = "コピーしました✓";
+      btn.classList.replace("btn-outline-secondary", "btn-success");
+      setTimeout(() => {
+        btn.textContent = "文章をコピー";
+        btn.classList.replace("btn-success", "btn-outline-secondary");
+      }, 2000);
+    });
+  })
+  .catch(() => {
+    document.getElementById("loading").textContent = "読み込みに失敗しました。";
+  });
+
+function esc(str) {
+  return String(str ?? "")
+    .replace(/&/g,"&amp;").replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+</script>
+{% endblock %}

@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+{% block title %}テンプレート管理 - ググラボ{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="mb-0">テンプレート管理</h4>
+  <a href="/reminder/visit" class="btn btn-outline-secondary btn-sm">← 来店記録に戻る</a>
+</div>
+
+<div id="alert-area"></div>
+
+<!-- 一覧 -->
+<div id="loading" class="text-center text-muted py-3">読み込み中...</div>
+<div id="list-wrap"></div>
+
+<!-- 新規追加 -->
+<div class="card shadow-sm mt-4">
+  <div class="card-header fw-semibold">新規テンプレート追加</div>
+  <div class="card-body p-4">
+    <form id="add-form" class="row g-3">
+      <div class="col-md-3">
+        <label class="form-label">メニュー名</label>
+        <input type="text" id="add-menu" class="form-control" placeholder="カラー" required>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">周期（日）</label>
+        <input type="number" id="add-cycle" class="form-control" min="1" placeholder="60" required>
+      </div>
+      <div class="col-md-7">
+        <label class="form-label">定型文（{name} で顧客名を挿入）</label>
+        <input type="text" id="add-body" class="form-control"
+               placeholder="{name}様、カラーのご来店からしばらく経ちました。" required>
+      </div>
+      <div class="col-12">
+        <button type="submit" class="btn btn-primary" id="add-btn">追加する</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let templates = [];
+
+function loadTemplates() {
+  fetch("/reminder/templates")
+    .then(r => r.json())
+    .then(data => {
+      templates = data;
+      document.getElementById("loading").classList.add("d-none");
+      renderList();
+    })
+    .catch(() => {
+      document.getElementById("loading").textContent = "読み込みに失敗しました。";
+    });
+}
+
+function renderList() {
+  const wrap = document.getElementById("list-wrap");
+  if (!templates.length) {
+    wrap.innerHTML = '<p class="text-muted">テンプレートがありません。</p>';
+    return;
+  }
+
+  wrap.innerHTML = `
+    <div class="table-responsive">
+      <table class="table table-hover align-middle">
+        <thead class="table-light">
+          <tr>
+            <th>メニュー名</th>
+            <th>周期（日）</th>
+            <th>定型文</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="tmpl-tbody"></tbody>
+      </table>
+    </div>`;
+
+  const tbody = document.getElementById("tmpl-tbody");
+  templates.forEach(t => {
+    const tr = document.createElement("tr");
+    tr.dataset.id = t.id;
+    tr.innerHTML = `
+      <td>
+        <span class="view-mode">${esc(t.menu_name)}</span>
+        <input class="form-control form-control-sm edit-mode d-none" value="${esc(t.menu_name)}" data-field="menu_name">
+      </td>
+      <td>
+        <span class="view-mode">${t.cycle_days}</span>
+        <input type="number" class="form-control form-control-sm edit-mode d-none" value="${t.cycle_days}" data-field="cycle_days" style="width:80px;">
+      </td>
+      <td>
+        <span class="view-mode text-truncate d-block" style="max-width:300px;" title="${esc(t.message_body)}">${esc(t.message_body)}</span>
+        <input class="form-control form-control-sm edit-mode d-none" value="${esc(t.message_body)}" data-field="message_body">
+      </td>
+      <td class="text-nowrap">
+        <button class="btn btn-outline-primary btn-sm view-mode edit-toggle-btn">編集</button>
+        <button class="btn btn-primary btn-sm edit-mode d-none save-btn">保存</button>
+        <button class="btn btn-outline-secondary btn-sm edit-mode d-none cancel-btn ms-1">キャンセル</button>
+        <button class="btn btn-outline-danger btn-sm view-mode delete-btn ms-1">削除</button>
+      </td>`;
+    tbody.appendChild(tr);
+  });
+
+  // 編集ボタン
+  tbody.addEventListener("click", e => {
+    const tr = e.target.closest("tr");
+    if (!tr) return;
+    const id = tr.dataset.id;
+
+    if (e.target.classList.contains("edit-toggle-btn")) {
+      tr.querySelectorAll(".view-mode").forEach(el => el.classList.add("d-none"));
+      tr.querySelectorAll(".edit-mode").forEach(el => el.classList.remove("d-none"));
+    }
+
+    if (e.target.classList.contains("cancel-btn")) {
+      tr.querySelectorAll(".view-mode").forEach(el => el.classList.remove("d-none"));
+      tr.querySelectorAll(".edit-mode").forEach(el => el.classList.add("d-none"));
+    }
+
+    if (e.target.classList.contains("save-btn")) {
+      const body = {};
+      tr.querySelectorAll("[data-field]").forEach(inp => {
+        body[inp.dataset.field] = inp.value;
+      });
+      body.cycle_days = parseInt(body.cycle_days);
+      fetch(`/reminder/templates/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      }).then(r => r.json()).then(d => {
+        if (d.ok) {
+          showAlert("success", "更新しました。");
+          loadTemplates();
+        } else {
+          showAlert("danger", d.error || "更新に失敗しました。");
+        }
+      });
+    }
+
+    if (e.target.classList.contains("delete-btn")) {
+      if (!confirm("このテンプレートを削除しますか？")) return;
+      fetch(`/reminder/templates/${id}`, { method: "DELETE" })
+        .then(r => r.json()).then(d => {
+          if (d.ok) {
+            showAlert("success", "削除しました。");
+            loadTemplates();
+          } else {
+            showAlert("danger", d.error || "削除に失敗しました。");
+          }
+        });
+    }
+  });
+}
+
+// 新規追加
+document.getElementById("add-form").addEventListener("submit", async e => {
+  e.preventDefault();
+  const btn = document.getElementById("add-btn");
+  btn.disabled = true;
+
+  const body = {
+    menu_name:    document.getElementById("add-menu").value.trim(),
+    cycle_days:   parseInt(document.getElementById("add-cycle").value),
+    message_body: document.getElementById("add-body").value.trim(),
+  };
+
+  try {
+    const res = await fetch("/reminder/templates", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    const data = await res.json();
+    if (res.ok) {
+      showAlert("success", "テンプレートを追加しました。");
+      document.getElementById("add-form").reset();
+      loadTemplates();
+    } else {
+      showAlert("danger", data.error || "追加に失敗しました。");
+    }
+  } catch {
+    showAlert("danger", "通信エラーが発生しました。");
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+function showAlert(type, msg) {
+  const area = document.getElementById("alert-area");
+  area.innerHTML = `<div class="alert alert-${type} alert-dismissible fade show">
+    ${msg}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>`;
+}
+
+function esc(str) {
+  return String(str ?? "")
+    .replace(/&/g,"&amp;").replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+loadTemplates();
+</script>
+{% endblock %}
