@@ -821,7 +821,7 @@ def generate_review_response(review_text: str, business_type: str = "") -> str:
 - レビューの内容（良い点・気になった点）に具体的に言及する
 - ポジティブな内容は喜びを表現する
 - ネガティブな内容は真摯に受け止め、改善への姿勢を示す
-- 必ず100〜140文字以内に収める（超過厳禁）
+- 文字数は必ず100文字以上140文字以下で作成すること（100文字未満・140文字超は厳禁）
 - 署名は「{sign}」とする
 
 【お客様のレビュー】
@@ -836,12 +836,12 @@ def generate_review_response(review_text: str, business_type: str = "") -> str:
             messages=[{"role": "user", "content": prompt}],
         )
         result = response.choices[0].message.content
-        if len(result) <= 140:
+        if 100 <= len(result) <= 140:
             return result
-        # 超過した場合はプロンプトを強化して再試行
-        prompt = f"""以下の返答文は{len(result)}文字あり長すぎます。署名「{sign}」を含めて必ず140文字以内に短く書き直してください。返答文のみ出力してください。\n\n{result}"""
+        # 範囲外の場合はプロンプトを強化して再試行
+        prompt = f"""以下の返答文は{len(result)}文字です。署名「{sign}」を含めて必ず100文字以上140文字以下で書き直してください。返答文のみ出力してください。\n\n{result}"""
 
-    # 再試行後も超過している場合は句点で強制カット
+    # 再試行後も140文字超の場合は句点で強制カット
     if len(result) > 140:
         cut = result[:140]
         last_punct = max(cut.rfind('。'), cut.rfind('！'), cut.rfind('？'))
