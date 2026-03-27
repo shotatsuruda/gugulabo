@@ -1,6 +1,6 @@
 """
 collect_reviews.py
-大阪・神戸エリアの美容室口コミ収集スクリプト
+salons.json の全 place_id を対象に口コミを収集するスクリプト
 
 使い方:
     cd /var/www/gugulabo
@@ -18,22 +18,11 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# ----------------------------------------------------------------
-# 収集対象の place_id リスト（手動で追加・編集してください）
-# Google Maps で店舗を開き URL に含まれる ChIJ... の文字列
-# ----------------------------------------------------------------
-PLACE_IDS = [
-    # 大阪エリア
-    # "ChIJ_________OSAKA_1",  # 店舗名（コメントに記載推奨）
-    # "ChIJ_________OSAKA_2",
-
-    # 神戸エリア
-    # "ChIJ_________KOBE_1",
-    # "ChIJ_________KOBE_2",
-]
-
-OUTPUT_FILE = os.path.join(os.path.dirname(__file__), "reviews_collected.json")
-MAX_REVIEWS = 5  # Places API の上限
+SALONS_FILE  = os.path.join(os.path.dirname(__file__), "salons.json")
+OUTPUT_FILE  = os.path.join(os.path.dirname(__file__), "reviews_collected.json")
+MAX_REVIEWS  = 5    # Places API の上限
+MIN_RATING   = 4.0  # 評価フィルタ
+MIN_LENGTH   = 50   # 文字数フィルタ
 
 
 def fetch_reviews(place_id: str) -> dict:
@@ -57,9 +46,16 @@ def fetch_reviews(place_id: str) -> dict:
 
 
 def collect():
-    if not PLACE_IDS:
-        print("PLACE_IDS が空です。スクリプト上部にplace_idを追加してください。")
+    # salons.json から place_id を読み込む
+    if not os.path.exists(SALONS_FILE):
+        print(f"salons.json が見つかりません: {SALONS_FILE}")
         return
+
+    with open(SALONS_FILE, "r", encoding="utf-8") as f:
+        salons = json.load(f)
+
+    place_ids = [s["place_id"] for s in salons if s.get("place_id")]
+    print(f"=== collect_reviews.py 開始: {len(place_ids)}件の店舗を処理 ===")
 
     # 既存データ読み込み（重複回避）
     existing = []
@@ -70,12 +66,13 @@ def collect():
     existing_keys = {(r["place_id"], r["review_text"]) for r in existing}
     new_records = []
 
-    for place_id in PLACE_IDS:
-        print(f"\n▶ 取得中: {place_id}")
+    for i, place_id in enumerate(place_ids, 1):
+        print(f"\n[{i}/{len(place_ids)}] 取得中: {place_id}")
         try:
             result = fetch_reviews(place_id)
         except Exception as e:
             print(f"  エラー: {e}")
+            time.sleep(1)
             continue
 
         shop_name = result.get("name", "不明")
@@ -84,28 +81,34 @@ def collect():
 
         count = 0
         for r in reviews[:MAX_REVIEWS]:
-            lang = r.get("original_language") or r.get("language", "ja")
-            text = r.get("text", "").strip()
+            lang   = r.get("original_language") or r.get("language", "ja")
+            text   = r.get("text", "").strip()
+            rating = r.get("rating", 0)
 
-            # 日本語レビューのみ・空テキスト除外
-            if lang != "ja" or not text:
+            # 日本語・評価4以上・50文字以上のみ
+            if lang != "ja":
+                continue
+            if not text:
+                continue
+            if rating < MIN_RATING:
+                continue
+            if len(text) < MIN_LENGTH:
                 continue
 
             key = (place_id, text)
             if key in existing_keys:
-                print(f"  スキップ（重複）: {text[:30]}...")
                 continue
 
             record = {
-                "place_id": place_id,
-                "shop_name": shop_name,
+                "place_id":    place_id,
+                "shop_name":   shop_name,
                 "review_text": text,
-                "rating": r.get("rating", 0),
+                "rating":      rating,
             }
             new_records.append(record)
             existing_keys.add(key)
             count += 1
-            print(f"  [{r.get('rating')}★] {text[:40]}...")
+            print(f"  [{rating}★] {text[:40]}...")
 
         print(f"  → 新規追加: {count}件")
         time.sleep(0.5)  # API レート制限対策
