@@ -829,12 +829,19 @@ def generate_review_response(review_text: str, business_type: str = "") -> str:
 
 【返答文のみを出力してください。説明や前置きは不要です。】"""
 
-    response = client.chat.completions.create(
-        model="anthropic/claude-sonnet-4-6",
-        max_tokens=1024,
-        messages=[{"role": "user", "content": prompt}],
-    )
-    return response.choices[0].message.content
+    for _ in range(3):
+        response = client.chat.completions.create(
+            model="anthropic/claude-sonnet-4-6",
+            max_tokens=1024,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        result = response.choices[0].message.content
+        if len(result) <= 200:
+            return result
+        # 超過した場合はプロンプトを強化して再試行
+        prompt = f"""以下の返答文は{len(result)}文字あり長すぎます。署名「{sign}」を含めて必ず200文字以内に短く書き直してください。返答文のみ出力してください。\n\n{result}"""
+
+    return result
 
 
 def predict_business_type_from_name(shop_name: str) -> str:
