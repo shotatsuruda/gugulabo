@@ -841,6 +841,12 @@ def generate_review_response(review_text: str, business_type: str = "") -> str:
         # 超過した場合はプロンプトを強化して再試行
         prompt = f"""以下の返答文は{len(result)}文字あり長すぎます。署名「{sign}」を含めて必ず140文字以内に短く書き直してください。返答文のみ出力してください。\n\n{result}"""
 
+    # 再試行後も超過している場合は句点で強制カット
+    if len(result) > 140:
+        cut = result[:140]
+        last_punct = max(cut.rfind('。'), cut.rfind('！'), cut.rfind('？'))
+        result = cut[:last_punct + 1] if last_punct > 80 else cut
+
     return result
 
 
