@@ -1768,6 +1768,9 @@ def submit_feedback(slug):
             result_json = resp.json()
             if "choices" in result_json and len(result_json["choices"]) > 0:
                 ai_draft = result_json["choices"][0]["message"]["content"].strip()
+                # 句点の後に自然な改行を挿入（連続する改行は除去）
+                import re
+                ai_draft = re.sub(r'。(?!\n)', '。\n', ai_draft)
     except Exception as e:
         print("AI draft generation failed:", e)
 
