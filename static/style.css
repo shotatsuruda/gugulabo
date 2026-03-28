@@ -1166,13 +1166,10 @@ footer {
     bottom: 0;
     left: 0;
     right: 0;
-    height: 60px;
-    background: #fff;
-    border-top: 1px solid var(--border);
-    display: flex;
+    background: #1C1C1C;
+    display: block;
     z-index: 1050;
-    padding-bottom: env(safe-area-inset-bottom, 0px);
-    box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+    padding-bottom: env(safe-area-inset-bottom, 16px);
 }
 .mobile-tab-bar .tab-item {
     flex: 1;
@@ -1197,9 +1194,9 @@ footer {
 }
 @media (max-width: 767.98px) {
     .container.my-4 {
-        padding-bottom: 5rem !important;
+        padding-bottom: 6rem !important;
     }
     footer {
-        margin-bottom: 60px;
+        margin-bottom: 80px;
     }
 }
