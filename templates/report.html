@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% block title %}レポート | গগラボ{% endblock %}
+
+{% block content %}
+
+<div class="d-flex align-items-center gap-2 mb-4">
+    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8C7B6B"
+        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="20" x2="18" y2="10"/>
+        <line x1="12" y1="20" x2="12" y2="4"/>
+        <line x1="6" y1="20" x2="6" y2="14"/>
+    </svg>
+    <h2 class="mb-0 fw-bold" style="font-size:1.2rem;">レポート</h2>
+</div>
+
+<!-- 今月の統計サマリー -->
+<div class="card mb-4">
+    <div class="card-body p-4">
+        <h3 class="fw-bold mb-3" style="font-size:0.95rem;color:#8C7B6B;">今月のサマリー</h3>
+        <div class="row g-3">
+            <div class="col-6 col-md-3">
+                <div class="text-center p-3" style="background:#FBF8F5;border-radius:12px;">
+                    <div style="font-size:1.8rem;font-weight:bold;color:#C9A96E;">{{ total_count }}</div>
+                    <div class="text-muted small">回答数</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="text-center p-3" style="background:#FBF8F5;border-radius:12px;">
+                    <div style="font-size:1.8rem;font-weight:bold;color:#C9A96E;">{{ satisfaction_rate }}%</div>
+                    <div class="text-muted small">とても満足率</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="text-center p-3" style="background:#FBF8F5;border-radius:12px;">
+                    <div style="font-size:1.8rem;font-weight:bold;color:#C9A96E;">{{ revisit_rate }}%</div>
+                    <div class="text-muted small">また来たい率</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="text-center p-3" style="background:#FBF8F5;border-radius:12px;">
+                    <div style="font-size:1.2rem;font-weight:bold;color:#C9A96E;line-height:1.3;">{{ popular_menu }}</div>
+                    <div class="text-muted small">人気メニュー</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- アンケート回答一覧へのリンクカード -->
+<div class="card">
+    <div class="card-body p-4 d-flex align-items-center justify-content-between gap-3">
+        <div>
+            <h3 class="fw-bold mb-1" style="font-size:0.95rem;">アンケート回答一覧</h3>
+            <p class="text-muted mb-0" style="font-size:0.82rem;">お客様の回答内容・AI生成口コミを確認できます</p>
+        </div>
+        <a href="/dashboard/answers" class="btn btn-dark btn-sm px-4 flex-shrink-0">回答を見る →</a>
+    </div>
+</div>
+
+{% endblock %}

@@ -267,146 +267,26 @@
 </div>
 </div>
 
-<!-- アンケート回答セクション -->
+<!-- レポートへの導線 -->
 <div class="mt-3">
-    <h2 style="font-family:var(--font-heading);font-size:1.1rem;font-weight:700;margin-bottom:1.5rem;">
-        アンケート回答一覧
-    </h2>
-
-    <!-- 統計サマリー -->
-    <div class="row g-3 mb-4">
-        <div class="col-6 col-md-3">
-            <div class="card text-center p-3">
-                <div style="font-size:1.8rem;font-weight:bold;color:#C9A96E;">{{ total_count }}</div>
-                <div class="text-muted small">今月の回答数</div>
+    <a href="/dashboard/report" class="card text-decoration-none d-flex flex-row align-items-center justify-content-between p-3 gap-3" style="border-color:var(--border);">
+        <div class="d-flex align-items-center gap-3">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                stroke="#C9A96E" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="20" x2="18" y2="10"/>
+                <line x1="12" y1="20" x2="12" y2="4"/>
+                <line x1="6" y1="20" x2="6" y2="14"/>
+            </svg>
+            <div>
+                <div class="fw-bold" style="font-size:0.9rem;color:#2C2C2C;">レポート・回答一覧</div>
+                <div class="text-muted" style="font-size:0.78rem;">今月の統計サマリーとアンケート回答を確認</div>
             </div>
         </div>
-        <div class="col-6 col-md-3">
-            <div class="card text-center p-3">
-                <div style="font-size:1.8rem;font-weight:bold;color:#C9A96E;">{{ satisfaction_rate }}%</div>
-                <div class="text-muted small">とても満足率</div>
-            </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="card text-center p-3">
-                <div style="font-size:1.8rem;font-weight:bold;color:#C9A96E;">{{ revisit_rate }}%</div>
-                <div class="text-muted small">また来たい率</div>
-            </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="card text-center p-3">
-                <div style="font-size:1.2rem;font-weight:bold;color:#C9A96E;line-height:1.3;">{{ popular_menu }}</div>
-                <div class="text-muted small">人気メニュー（今月）</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- フィルターバー -->
-    <div class="d-flex flex-wrap gap-3 align-items-center mb-3" style="font-size:0.85rem;">
-        <div class="d-flex gap-1 align-items-center">
-            <span class="text-muted me-1">期間:</span>
-            {% for p, label in [('today','今日'),('week','今週'),('month','今月'),('all','全期間')] %}
-            <a href="?period={{ p }}&satisfaction_filter={{ satisfaction_filter }}"
-               class="btn btn-sm {% if period == p %}btn-dark{% else %}btn-outline-secondary{% endif %} py-1 px-2">
-                {{ label }}
-            </a>
-            {% endfor %}
-        </div>
-        <div class="d-flex gap-1 align-items-center">
-            <span class="text-muted me-1">満足度:</span>
-            {% for sf, label in [('all','すべて'),('とても満足','とても満足'),('満足','満足'),('普通以下','普通以下')] %}
-            <a href="?period={{ period }}&satisfaction_filter={{ sf }}"
-               class="btn btn-sm {% if satisfaction_filter == sf %}btn-dark{% else %}btn-outline-secondary{% endif %} py-1 px-2">
-                {{ label }}
-            </a>
-            {% endfor %}
-        </div>
-    </div>
-
-    <!-- 回答一覧テーブル -->
-    {% if survey_responses %}
-    <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
-        <table class="table table-hover align-middle" style="font-size:0.82rem;min-width:900px;">
-            <thead style="background:#FBF8F5;">
-                <tr>
-                    <th style="white-space:nowrap;">受付日時</th>
-                    <th style="white-space:nowrap;">メニュー（Q1）</th>
-                    <th style="white-space:nowrap;">満足度（Q2）</th>
-                    <th style="white-space:nowrap;">よかった点（Q3）</th>
-                    <th style="white-space:nowrap;">再来店意向（Q4）</th>
-                    <th style="white-space:nowrap;">お客様のメッセージ（Q5）</th>
-                    <th style="white-space:nowrap;">AI生成口コミ</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for r in survey_responses %}
-                <tr>
-                    <td style="white-space:nowrap;color:#888;">{{ r.submitted_at }}</td>
-                    <td>{{ r.menu or '―' }}</td>
-                    <td>
-                        {% if r.satisfaction == 'とても満足' %}
-                        <span class="badge" style="background:#C9A96E;">{{ r.satisfaction }}</span>
-                        {% elif r.satisfaction == '満足' %}
-                        <span class="badge bg-secondary">{{ r.satisfaction }}</span>
-                        {% elif r.satisfaction %}
-                        <span class="badge bg-light text-dark border">{{ r.satisfaction }}</span>
-                        {% else %}―{% endif %}
-                    </td>
-                    <td style="max-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-                        {{ r.good_points or '―' }}
-                    </td>
-                    <td style="white-space:nowrap;">{{ r.revisit or '―' }}</td>
-                    <td style="max-width:160px;color:#555;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-                        {{ r.comment or '―' }}
-                    </td>
-                    <td style="white-space:nowrap;">
-                        {% if r.ai_draft %}
-                        <span style="color:#555;">{{ r.ai_draft[:50] }}…</span>
-                        <button type="button" class="btn btn-sm ms-1"
-                                style="font-size:0.7rem;padding:1px 7px;background:#F5EDE8;color:#C9A96E;border:1px solid #E8D8C8;border-radius:4px;"
-                                onclick="showAiDraft(this)" data-draft="{{ r.ai_draft | e }}">全文を見る</button>
-                        {% else %}―{% endif %}
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-
-    <!-- AI生成口コミ全文モーダル -->
-    <div class="modal fade" id="aiDraftModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header" style="border-bottom:1px solid #f0ebe4;">
-                    <h5 class="modal-title fw-bold" style="font-size:0.95rem;">AI生成口コミ 全文</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body" style="font-size:0.88rem;line-height:1.8;white-space:pre-wrap;" id="aiDraftModalBody"></div>
-                <div class="modal-footer" style="border-top:1px solid #f0ebe4;">
-                    <button type="button" class="btn btn-sm btn-outline-secondary" id="aiDraftCopyBtn">コピー</button>
-                    <button type="button" class="btn btn-sm btn-dark" data-bs-dismiss="modal">閉じる</button>
-                </div>
-            </div>
-        </div>
-    </div>
-    <script>
-    function showAiDraft(btn) {
-        const draft = btn.getAttribute('data-draft');
-        document.getElementById('aiDraftModalBody').textContent = draft;
-        document.getElementById('aiDraftCopyBtn').onclick = function() {
-            navigator.clipboard.writeText(draft).then(() => {
-                this.textContent = 'コピーしました！';
-                setTimeout(() => { this.textContent = 'コピー'; }, 2000);
-            });
-        };
-        new bootstrap.Modal(document.getElementById('aiDraftModal')).show();
-    }
-    </script>
-    {% else %}
-    <div class="text-center py-5 text-muted" style="background:#FBF8F5;border-radius:12px;border:1px solid #EDE8E0;">
-        <p style="font-size:0.9rem;">この期間のアンケート回答はありません</p>
-    </div>
-    {% endif %}
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+            stroke="#9A9A9A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 18 15 12 9 6"/>
+        </svg>
+    </a>
 </div>
 
 {% endblock %}

@@ -1076,73 +1076,6 @@ def index():
             elif sa and isinstance(sa, str):
                 fb["submitted_at"] = sa[:16]
 
-        # ===== アンケート回答一覧・統計 =====
-        import datetime
-        from collections import Counter
-        now_dt = datetime.datetime.now()
-        month_start = now_dt.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-
-        # フィルターパラメータ
-        period = request.args.get("period", "month")
-        satisfaction_filter = request.args.get("satisfaction_filter", "all")
-
-        if period == "today":
-            date_filter = now_dt.replace(hour=0, minute=0, second=0, microsecond=0)
-        elif period == "week":
-            date_filter = now_dt - datetime.timedelta(days=7)
-        elif period == "all":
-            date_filter = datetime.datetime(2000, 1, 1)
-        else:  # month
-            date_filter = month_start
-
-        conn2 = get_db()
-
-        # 今月の統計用（全件）
-        monthly_responses_raw = conn2.execute(
-            """
-            SELECT satisfaction, revisit, menu
-            FROM feedbacks f
-            JOIN shops s ON s.id = f.shop_id
-            WHERE s.user_id = ? AND salon_type IS NOT NULL
-            AND date(f.submitted_at) >= date('now', 'start of month')
-            """,
-            (current_user.id,),
-        ).fetchall()
-        total_count = len(monthly_responses_raw)
-        very_satisfied = sum(1 for r in monthly_responses_raw if r["satisfaction"] == "とても満足")
-        revisit_yes    = sum(1 for r in monthly_responses_raw if r["revisit"] == "ぜひまた来たい")
-        satisfaction_rate = round(very_satisfied / total_count * 100) if total_count > 0 else 0
-        revisit_rate      = round(revisit_yes    / total_count * 100) if total_count > 0 else 0
-        all_menus = []
-        for r in monthly_responses_raw:
-            if r["menu"]:
-                all_menus.extend([m.strip() for m in r["menu"].split(",")])
-        popular_menu = Counter(all_menus).most_common(1)[0][0] if all_menus else "データなし"
-
-        # フィルター付き回答一覧
-        base_query = """
-            SELECT f.id, f.submitted_at, f.salon_type, f.menu, f.satisfaction,
-                   f.good_points, f.revisit, f.comment, f.ai_draft, s.name AS shop_name
-            FROM feedbacks f
-            JOIN shops s ON s.id = f.shop_id
-            WHERE s.user_id = ? AND salon_type IS NOT NULL
-            AND f.submitted_at >= ?
-        """
-        params = [current_user.id, date_filter.strftime("%Y-%m-%d %H:%M:%S")]
-        if satisfaction_filter != "all":
-            if satisfaction_filter == "普通以下":
-                base_query += " AND satisfaction IN ('普通', '少し不満', '不満')"
-            else:
-                base_query += " AND satisfaction = ?"
-                params.append(satisfaction_filter)
-        base_query += " ORDER BY f.submitted_at DESC LIMIT 30"
-        survey_responses = [dict(r) for r in conn2.execute(base_query, params).fetchall()]
-        for r in survey_responses:
-            sa = r.get("submitted_at")
-            if sa and isinstance(sa, str):
-                r["submitted_at"] = sa[:16]
-        conn2.close()
-
         return render_template(
             "index.html",
             feedbacks=feedbacks,
@@ -1151,13 +1084,6 @@ def index():
             daily_trend=daily_trend,
             coupon_total=coupon_total,
             monthly_count=monthly_count,
-            survey_responses=survey_responses,
-            total_count=total_count,
-            satisfaction_rate=satisfaction_rate,
-            revisit_rate=revisit_rate,
-            popular_menu=popular_menu,
-            period=period,
-            satisfaction_filter=satisfaction_filter,
         )
     resp = make_response(render_template("landing.html"))
     resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
@@ -2075,6 +2001,93 @@ _TEMPLATE_DEFAULTS = {
     "template_4": "本日はご来店ありがとうございました。\nよろしければ、こちらからご感想をいただけると嬉しいです。\n1分ほどでご投稿いただけます。\n{url}",
     "template_5": "本日は初めてのご来店ありがとうございました。\n数ある美容室の中から当店を選んでいただき嬉しく思っております。\n本日の施術はいかがでしたか？\nもしよろしければこちらからご感想をお聞かせいただけると嬉しいです。\n{url}",
 }
+
+
+def _get_survey_stats_and_responses(user_id, period, satisfaction_filter):
+    """アンケート統計＆回答一覧を取得する共通ヘルパー"""
+    import datetime
+    from collections import Counter
+    now_dt = datetime.datetime.now()
+    month_start = now_dt.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+
+    if period == "today":
+        date_filter = now_dt.replace(hour=0, minute=0, second=0, microsecond=0)
+    elif period == "week":
+        date_filter = now_dt - datetime.timedelta(days=7)
+    elif period == "all":
+        date_filter = datetime.datetime(2000, 1, 1)
+    else:
+        date_filter = month_start
+
+    conn = get_db()
+    monthly_responses_raw = conn.execute(
+        """
+        SELECT satisfaction, revisit, menu
+        FROM feedbacks f
+        JOIN shops s ON s.id = f.shop_id
+        WHERE s.user_id = ? AND salon_type IS NOT NULL
+        AND date(f.submitted_at) >= date('now', 'start of month')
+        """,
+        (user_id,),
+    ).fetchall()
+    total_count = len(monthly_responses_raw)
+    very_satisfied = sum(1 for r in monthly_responses_raw if r["satisfaction"] == "とても満足")
+    revisit_yes    = sum(1 for r in monthly_responses_raw if r["revisit"] == "ぜひまた来たい")
+    satisfaction_rate = round(very_satisfied / total_count * 100) if total_count > 0 else 0
+    revisit_rate      = round(revisit_yes    / total_count * 100) if total_count > 0 else 0
+    all_menus = []
+    for r in monthly_responses_raw:
+        if r["menu"]:
+            all_menus.extend([m.strip() for m in r["menu"].split(",")])
+    popular_menu = Counter(all_menus).most_common(1)[0][0] if all_menus else "データなし"
+
+    base_query = """
+        SELECT f.id, f.submitted_at, f.salon_type, f.menu, f.satisfaction,
+               f.good_points, f.revisit, f.comment, f.ai_draft, s.name AS shop_name
+        FROM feedbacks f
+        JOIN shops s ON s.id = f.shop_id
+        WHERE s.user_id = ? AND salon_type IS NOT NULL
+        AND f.submitted_at >= ?
+    """
+    params = [user_id, date_filter.strftime("%Y-%m-%d %H:%M:%S")]
+    if satisfaction_filter != "all":
+        if satisfaction_filter == "普通以下":
+            base_query += " AND satisfaction IN ('普通', '少し不満', '不満')"
+        else:
+            base_query += " AND satisfaction = ?"
+            params.append(satisfaction_filter)
+    base_query += " ORDER BY f.submitted_at DESC LIMIT 200"
+    survey_responses = [dict(r) for r in conn.execute(base_query, params).fetchall()]
+    for r in survey_responses:
+        sa = r.get("submitted_at")
+        if sa and isinstance(sa, str):
+            r["submitted_at"] = sa[:16]
+    conn.close()
+    return dict(
+        survey_responses=survey_responses,
+        total_count=total_count,
+        satisfaction_rate=satisfaction_rate,
+        revisit_rate=revisit_rate,
+        popular_menu=popular_menu,
+        period=period,
+        satisfaction_filter=satisfaction_filter,
+    )
+
+
+@app.route("/dashboard/answers")
+@payment_required
+def dashboard_answers():
+    period = request.args.get("period", "month")
+    satisfaction_filter = request.args.get("satisfaction_filter", "all")
+    ctx = _get_survey_stats_and_responses(current_user.id, period, satisfaction_filter)
+    return render_template("answers.html", **ctx)
+
+
+@app.route("/dashboard/report")
+@payment_required
+def dashboard_report():
+    ctx = _get_survey_stats_and_responses(current_user.id, "month", "all")
+    return render_template("report.html", **ctx)
 
 
 @app.route("/dashboard/template", methods=["GET", "POST"])
