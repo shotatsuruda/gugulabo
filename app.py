@@ -2457,6 +2457,12 @@ def webhook():
     return "", 200
 
 
+@app.route("/shops")
+@payment_required
+def shops_page():
+    return render_template("shops.html")
+
+
 @app.route("/qr")
 @payment_required
 def qr_form():

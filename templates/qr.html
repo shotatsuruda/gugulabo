@@ -3,40 +3,6 @@
 {% block title %}QRコード生成 | ググラボ{% endblock %}
 
 {% block content %}
-<style>
-.line-connect-banner {
-    background: #F0FFF4;
-    border: 1px solid #86EFAC;
-    border-radius: 10px;
-    padding: 12px 14px;
-    margin-top: 10px;
-}
-.line-connect-banner-inner {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-.line-connect-icon { font-size: 24px; flex-shrink: 0; }
-.line-connect-title { font-weight: 700; font-size: 13px; color: #166534; }
-.line-connect-desc { font-size: 11px; color: #16a34a; margin-top: 2px; }
-.line-connect-btn {
-    margin-left: auto;
-    background: #22C55E;
-    color: white;
-    padding: 8px 16px;
-    border-radius: 8px;
-    font-size: 13px;
-    font-weight: 700;
-    text-decoration: none;
-    white-space: nowrap;
-    flex-shrink: 0;
-}
-.line-connect-btn:hover { background: #16a34a; color: white; }
-@media (max-width: 768px) {
-    .line-connect-banner-inner { flex-wrap: wrap; }
-    .line-connect-btn { margin-left: 0; width: 100%; text-align: center; margin-top: 8px; }
-}
-</style>
 
 <div class="d-flex align-items-center gap-2 mb-4">
     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8C7B6B"
@@ -51,92 +17,6 @@
     </svg>
     <h2 class="mb-0 fw-bold" style="font-size:1.2rem;">QRコード生成</h2>
 </div>
-
-<div class="row g-4">
-
-    <!-- ===== 左: 店舗管理 ===== -->
-    <div class="col-lg-4">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">店舗管理</h5>
-            </div>
-            <div class="card-body p-3">
-                <!-- 店舗追加フォーム -->
-                <form id="add_shop_form">
-                    <div class="mb-2">
-                        <label class="form-label">店舗名</label>
-                        <input type="text" class="form-control form-control-sm" id="new_shop_name"
-                            placeholder="例：ヘアサロン リュミエール 渋谷店" required>
-                    </div>
-                    <div class="mb-2">
-                        <label class="form-label">
-                            スラッグ（URL用）
-                            <span style="font-weight:400;color:#9A9A9A;font-size:0.72rem;">― 省略可</span>
-                        </label>
-                        <input type="text" class="form-control form-control-sm" id="new_shop_slug"
-                            placeholder="例：hair-salon-lumiere（英数字・ハイフン）">
-                        <div class="form-text">省略すると shop-{ID} が自動設定されます</div>
-                    </div>
-                    <div class="mb-2">
-                        <label class="form-label">サロンタイプ</label>
-                        <select class="form-select form-select-sm" id="new_shop_business_type">
-                            <option value="総合サロン" selected>総合サロン（カット・カラー・パーマ等すべて対応）</option>
-                            <option value="女性専用サロン">女性専用サロン</option>
-                            <option value="メンズサロン">メンズサロン</option>
-                            <option value="ヘッドスパ専門">ヘッドスパ・トリートメント専門</option>
-                            <option value="縮毛矯正専門">縮毛矯正・パーマ専門</option>
-                        </select>
-                    </div>
-                    <div class="mb-2">
-                        <label class="form-label">
-                            Google Place ID
-                        </label>
-                        <input type="text" class="form-control form-control-sm" id="new_shop_place_id"
-                            placeholder="例：ChIJN1t_tDeuEmsRUsoyG83frY4" required>
-                        <div class="form-text">
-                            LINE連携に必要です。／
-                            <a href="https://developers.google.com/maps/documentation/javascript/examples/places-placeid-finder" target="_blank" style="color:#8C7B6B;">Place IDの調べ方</a>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">GoogleレビューURL</label>
-                        <input type="url" class="form-control form-control-sm" id="new_shop_url"
-                            placeholder="https://g.page/r/...">
-                        <div class="form-text d-flex align-items-center gap-2">
-                            GoogleレビューURLの取得方法
-                            <a href="/manual#review-url" target="_blank"
-                               class="btn btn-sm" style="font-size:0.72rem;padding:1px 8px;background:#F5EDE8;color:#C9A96E;border:1px solid #E8D8C8;border-radius:4px;">
-                                取得方法を見る →
-                            </a>
-                        </div>
-                    </div>
-                    <button type="submit" class="btn btn-primary btn-sm w-100">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
-                            style="vertical-align:-1px;margin-right:4px;">
-                            <line x1="12" y1="5" x2="12" y2="19" />
-                            <line x1="5" y1="12" x2="19" y2="12" />
-                        </svg>店舗を追加
-                    </button>
-                </form>
-
-                <hr class="my-3" style="border-color:#E8E4DF;">
-
-                <!-- 店舗一覧 -->
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <div class="fw-semibold">店舗一覧</div>
-                    <button class="btn btn-outline-secondary btn-sm"
-                        onclick="downloadShopUrls()">URL一覧CSVをダウンロード</button>
-                </div>
-                <div id="shop_list">
-                    <p style="font-size:0.8rem;color:#9A9A9A;text-align:center;padding:0.5rem 0;">読み込み中...</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ===== 右: デザイン設定 + クーポン設定 + プレビュー ===== -->
-    <div class="col-lg-8">
 
         <!-- QRコードデザイン設定カード -->
         <div class="card">
@@ -502,10 +382,6 @@
             </div>
         </div>
 
-    </div><!-- /col-lg-8 -->
-
-</div><!-- /row -->
-
 <!-- 使い方ガイド -->
 <div class="card mt-4" style="background-color:#F5F3F0;">
     <div class="card-body py-3 px-4">
@@ -531,45 +407,6 @@
             <li>生成したQRコードはPNGでダウンロードして印刷してご使用ください</li>
             <li>QRコードはレジ横・待合スペース・テーブルへの設置がおすすめです</li>
         </ul>
-    </div>
-</div>
-
-<!-- ===== 店舗編集モーダル（Place ID / LINE User ID） ===== -->
-<div class="modal fade" id="editShopModal" tabindex="-1" aria-labelledby="editShopModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content" style="border-radius:12px;">
-            <div class="modal-header border-0 pb-0">
-                <h6 class="modal-title fw-bold mb-0" id="editShopModalLabel">店舗設定の編集</h6>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body pt-2">
-                <p class="text-muted" style="font-size:0.8rem;" id="editShopModalSubtitle"></p>
-                <div class="mb-3">
-                    <label class="form-label fw-semibold" style="font-size:0.85rem;">
-                        Google Place ID
-                        <span style="font-weight:400;color:#9A9A9A;font-size:0.72rem;">― 週次レポートの口コミ取得に使用</span>
-                    </label>
-                    <input type="text" class="form-control form-control-sm" id="edit_place_id"
-                        placeholder="例：ChIJN1t_tDeuEmsRUsoyG83frY4">
-                    <div class="form-text">
-                        <a href="https://developers.google.com/maps/documentation/places/web-service/place-id" target="_blank" style="color:#8C7B6B;">Place IDの調べ方</a>
-                    </div>
-                </div>
-                <div class="mb-2">
-                    <label class="form-label fw-semibold" style="font-size:0.85rem;">
-                        LINE User ID
-                        <span style="font-weight:400;color:#9A9A9A;font-size:0.72rem;">― 週次レポートの送信先</span>
-                    </label>
-                    <input type="text" class="form-control form-control-sm" id="edit_line_user_id"
-                        placeholder="例：Uxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx">
-                    <div class="form-text">LINE公式アカウントを友だち追加後、Webhookで自動取得されます</div>
-                </div>
-            </div>
-            <div class="modal-footer border-0 pt-0">
-                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">キャンセル</button>
-                <button type="button" class="btn btn-primary btn-sm" id="editShopSaveBtn">保存する</button>
-            </div>
-        </div>
     </div>
 </div>
 
@@ -612,16 +449,7 @@
     let shops = [];
     let currentQRData = null;
     let currentShop = null;
-    let _slugEdited = false;
     let selectedPopTemplate = null;
-
-    function _suggestSlugFromName(v) {
-        if (!v) return "";
-        let s = v.normalize('NFKD').toLowerCase();
-        s = s.replace(/[^a-z0-9]+/g, "-");
-        s = s.replace(/-+/g, "-").replace(/^-|-$|_/g, "");
-        return s;
-    }
 
     // ===== デザインテンプレートプリセット =====
     const TEMPLATES = [
@@ -696,61 +524,7 @@
     async function loadShops() {
         const res = await fetch('/qr/shops');
         shops = await res.json();
-        renderShopList();
         renderShopSelect();
-    }
-
-    function renderShopList() {
-        const el = document.getElementById('shop_list');
-        if (shops.length === 0) {
-            el.innerHTML = '<p style="font-size:0.8rem;color:#9A9A9A;text-align:center;padding:0.5rem 0;">登録された店舗がありません</p>';
-            return;
-        }
-        el.innerHTML = shops.map(s => {
-            const surveyUrl = window.location.origin + '/shop/' + s.slug;
-            return `
-        <div class="shop-item mb-2 p-2">
-            <div class="d-flex justify-content-between align-items-start">
-                <div class="flex-grow-1 me-2 overflow-hidden">
-                    <div class="fw-semibold small text-truncate">${esc(s.name)}${s.business_type ? ` <span style="font-size:0.7rem;background:#F5F3F0;border:1px solid #E8E4DF;border-radius:4px;padding:1px 5px;color:#8C7B6B;">${esc(s.business_type)}</span>` : ''}</div>
-                    <div class="url-text text-truncate">${esc(s.review_url)}</div>
-                    <div class="url-text text-truncate"><a href="${surveyUrl}" target="_blank" style="color:#8C7B6B;">${surveyUrl}</a></div>
-                    <div class="mt-1 d-flex align-items-center gap-2 flex-wrap">
-                        ${s.line_user_id
-                            ? '<span style="font-size:0.72rem;color:#00B900;">✅ LINE連携済み</span>'
-                            : ''
-                        }
-                        ${s.place_id
-                            ? '<span style="font-size:0.72rem;color:#4285F4;">✅ Googleマップ連携済み</span><button onclick="fetchPlaceId(' + s.id + ', this)" style="background:none;border:none;color:#999;cursor:pointer;font-size:0.72rem;padding:0;">再連携</button>'
-                            : '<button onclick="fetchPlaceId(' + s.id + ', this)" style="background:#4285F4;color:white;border:none;border-radius:6px;padding:2px 8px;cursor:pointer;font-size:0.72rem;">🗺️ Googleマップと自動連携</button>'
-                        }
-                    </div>
-                    <div id="place-result-${s.id}" style="font-size:0.72rem;margin-top:2px;"></div>
-                </div>
-                <div class="d-flex gap-1 flex-shrink-0">
-                    <button class="btn btn-outline-secondary btn-sm py-0 px-1"
-                            onclick="openEditShopModal(${s.id})" title="編集">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                    </button>
-                    <button class="btn btn-outline-danger btn-sm py-0 px-1"
-                            onclick="deleteShop(${s.id})" title="削除">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
-                    </button>
-                </div>
-            </div>
-            ${!s.line_user_id ? `
-            <div class="line-connect-banner">
-                <div class="line-connect-banner-inner">
-                    <div class="line-connect-icon">💬</div>
-                    <div class="line-connect-text">
-                        <div class="line-connect-title">LINE連携が未設定です</div>
-                        <div class="line-connect-desc">連携するとWeeklyレポートがLINEで届きます</div>
-                    </div>
-                    <a href="/shop/${s.id}/line-connect" class="line-connect-btn">LINEを連携する</a>
-                </div>
-            </div>` : ''}
-        </div>`;
-        }).join('');
     }
 
     function renderShopSelect() {
@@ -760,98 +534,6 @@
             shops.map(s => `<option value="${s.id}">${esc(s.name)}</option>`).join('');
         if (cur) sel.value = cur;
     }
-
-    // ===== 店舗追加 =====
-    document.getElementById('add_shop_form').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const name = document.getElementById('new_shop_name').value.trim();
-        const slug = document.getElementById('new_shop_slug').value.trim();
-        const review_url = document.getElementById('new_shop_url').value.trim();
-        const business_type = document.getElementById('new_shop_business_type').value;
-        const place_id = document.getElementById('new_shop_place_id').value.trim();
-
-        const res = await fetch('/qr/shops', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, slug, review_url, business_type, place_id }),
-        });
-
-        let respJson = null;
-        try { respJson = await res.json(); } catch (_) { }
-        if (res.ok) {
-            document.getElementById('new_shop_name').value = '';
-            document.getElementById('new_shop_slug').value = '';
-            document.getElementById('new_shop_url').value = '';
-            document.getElementById('new_shop_business_type').value = '';
-            document.getElementById('new_shop_place_id').value = '';
-            _slugEdited = false;
-            await loadShops();
-        } else {
-            if (respJson && respJson.error) {
-                alert(respJson.error);
-            } else {
-                alert('店舗の登録に失敗しました。');
-            }
-        }
-    });
-
-    // ===== 店舗削除 =====
-    async function deleteShop(id) {
-        if (!confirm('この店舗を削除しますか？')) return;
-        await fetch(`/qr/shops/${id}`, { method: 'DELETE' });
-        await loadShops();
-    }
-
-    // ===== Googleマップ自動連携 =====
-    async function fetchPlaceId(shopId, btn) {
-        const originalText = btn.textContent;
-        btn.textContent = '検索中...';
-        btn.disabled = true;
-
-        const res = await fetch(`/shop/${shopId}/fetch-place-id`, { method: 'POST' });
-        const data = await res.json();
-        const result = document.getElementById(`place-result-${shopId}`);
-
-        if (data.success) {
-            result.innerHTML = `<span style="color:#4285F4;">✅ ${esc(data.place_name)}（${esc(data.place_address)}）</span>`;
-            await loadShops();
-        } else {
-            result.innerHTML = `<span style="color:red;">❌ ${esc(data.message)}</span>`;
-            btn.textContent = originalText;
-            btn.disabled = false;
-        }
-    }
-
-    // ===== 店舗編集モーダル =====
-    let _editingShopId = null;
-
-    function openEditShopModal(shopId) {
-        const shop = shops.find(s => s.id === shopId);
-        if (!shop) return;
-        _editingShopId = shopId;
-        document.getElementById('editShopModalSubtitle').textContent = shop.name;
-        document.getElementById('edit_place_id').value = shop.place_id || '';
-        document.getElementById('edit_line_user_id').value = shop.line_user_id || '';
-        new bootstrap.Modal(document.getElementById('editShopModal')).show();
-    }
-
-    document.getElementById('editShopSaveBtn').addEventListener('click', async () => {
-        if (!_editingShopId) return;
-        const place_id     = document.getElementById('edit_place_id').value.trim();
-        const line_user_id = document.getElementById('edit_line_user_id').value.trim();
-
-        const res = await fetch(`/qr/shops/${_editingShopId}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ place_id, line_user_id }),
-        });
-        if (res.ok) {
-            bootstrap.Modal.getInstance(document.getElementById('editShopModal')).hide();
-            await loadShops();
-        } else {
-            alert('保存に失敗しました。');
-        }
-    });
 
     // ===== 店舗選択イベント =====
     document.getElementById('shop_select').addEventListener('change', async function () {
@@ -1217,32 +899,5 @@
             .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
 
-    function downloadShopUrls() {
-        if (!shops || shops.length === 0) return;
-        const base = window.location.origin.replace(/\/$/, '');
-        const rows = [["id", "name", "slug", "url"]];
-        shops.forEach(s => {
-            const url = `${base}/shop/${s.slug}`;
-            rows.push([String(s.id), s.name, s.slug, url]);
-        });
-        const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
-        const csv = rows.map(r => r.map(v => /[",\n]/.test(String(v)) ? `"${String(v).replace(/"/g, '""')}"` : String(v)).join(",")).join("\n");
-        const blob = new Blob([bom, csv], { type: "text/csv" });
-        const a = document.createElement("a");
-        a.href = URL.createObjectURL(blob);
-        a.download = `shop_urls_${Date.now()}.csv`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-    }
-    document.getElementById('new_shop_name').addEventListener('input', function () {
-        if (_slugEdited) return;
-        const v = this.value;
-        const sug = _suggestSlugFromName(v);
-        document.getElementById('new_shop_slug').value = sug;
-    });
-    document.getElementById('new_shop_slug').addEventListener('input', function () {
-        _slugEdited = true;
-    });
 </script>
 {% endblock %}
