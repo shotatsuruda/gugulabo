@@ -184,7 +184,7 @@
 
     <!-- スマホ用 上部ピルメニュー -->
     {% if current_user.is_authenticated %}
-    <nav class="d-md-none" style="background:#fff;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:900;box-shadow:0 2px 10px rgba(0,0,0,0.05);padding-top:env(safe-area-inset-top,0px);">
+    <nav class="d-md-none" style="background:#fff;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:900;box-shadow:0 2px 10px rgba(0,0,0,0.05);padding-top:12px;">
         <div style="display:flex;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;">
 
             <a href="/qr" class="top-tab-item {% if request.path == '/qr' %}top-tab-active{% endif %}">
