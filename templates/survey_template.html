@@ -35,80 +35,42 @@
     </div>
 </div>
 
-<!-- LINE用 -->
-<div class="card mb-3">
+<!-- テンプレート一覧 -->
+<p class="text-muted mb-3" style="font-size:0.85rem;">テンプレートを選んでコピーしてください。文章は編集・保存も可能です。</p>
+
+{% set template_labels = [
+    ('template_1', '仕上がり確認'),
+    ('template_2', 'ヘアスタイル向け'),
+    ('template_3', '担当者名入り'),
+    ('template_4', 'シンプル'),
+    ('template_5', '初来店向け'),
+] %}
+
+{% for key, label in template_labels %}
+{% set idx = loop.index %}
+<div class="card mb-3 tmpl-card" id="card-{{ key }}" style="cursor:pointer;border:2px solid transparent;transition:border-color 0.15s;"
+     onclick="selectTemplate('{{ key }}')">
     <div class="card-body p-4">
-        <div class="d-flex justify-content-between align-items-start mb-3">
-            <div>
-                <h3 class="fw-bold mb-0" style="font-size:0.95rem;">LINE用テンプレート</h3>
-                <p class="text-muted mb-0" style="font-size:0.8rem;">絵文字あり・短め</p>
+        <div class="d-flex justify-content-between align-items-start mb-2">
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge rounded-pill"
+                      style="background:#F5EDE8;color:#C9A96E;font-size:0.75rem;font-weight:600;">{{ idx }}</span>
+                <h3 class="fw-bold mb-0" style="font-size:0.95rem;">{{ label }}</h3>
             </div>
-            <div class="d-flex gap-2">
+            <div class="d-flex gap-2" onclick="event.stopPropagation()">
                 <button class="btn btn-sm btn-outline-secondary px-3"
-                        onclick="copyTemplate('tmpl-line', this)">コピー</button>
+                        onclick="copyTemplate('tmpl-{{ key }}', this)">コピー</button>
                 <button class="btn btn-sm btn-dark px-3"
-                        onclick="saveTemplate('line', 'tmpl-line', this)">保存</button>
+                        onclick="saveTemplate('{{ key }}', 'tmpl-{{ key }}', this)">保存</button>
             </div>
         </div>
-        <textarea id="tmpl-line" class="form-control" rows="5"
-                  style="font-size:0.875rem;border-color:var(--border);">{{ templates.line }}</textarea>
+        <textarea id="tmpl-{{ key }}" class="form-control" rows="4"
+                  style="font-size:0.875rem;border-color:var(--border);background:#fafafa;"
+                  onclick="event.stopPropagation()">{{ templates[key] }}</textarea>
         <p class="text-muted mt-1 mb-0" style="font-size:0.75rem;">{url} が実際のアンケートURLに置換されます</p>
     </div>
 </div>
-
-<!-- SMS用 -->
-<div class="card mb-3">
-    <div class="card-body p-4">
-        <div class="d-flex justify-content-between align-items-start mb-3">
-            <div>
-                <h3 class="fw-bold mb-0" style="font-size:0.95rem;">SMS用テンプレート</h3>
-                <p class="text-muted mb-0" style="font-size:0.8rem;">URL込み・100文字以内目安</p>
-            </div>
-            <div class="d-flex gap-2">
-                <button class="btn btn-sm btn-outline-secondary px-3"
-                        onclick="copyTemplate('tmpl-sms', this)">コピー</button>
-                <button class="btn btn-sm btn-dark px-3"
-                        onclick="saveTemplate('sms', 'tmpl-sms', this)">保存</button>
-            </div>
-        </div>
-        <textarea id="tmpl-sms" class="form-control" rows="3"
-                  style="font-size:0.875rem;border-color:var(--border);"
-                  oninput="updateSmsCount(this)">{{ templates.sms }}</textarea>
-        <p class="mt-1 mb-0" id="sms-count" style="font-size:0.75rem;color:var(--muted);"></p>
-    </div>
-</div>
-
-<!-- メール用 -->
-<div class="card mb-4">
-    <div class="card-body p-4">
-        <div class="d-flex justify-content-between align-items-start mb-3">
-            <div>
-                <h3 class="fw-bold mb-0" style="font-size:0.95rem;">メール用テンプレート</h3>
-                <p class="text-muted mb-0" style="font-size:0.8rem;">件名・本文を一括保存</p>
-            </div>
-            <button class="btn btn-sm btn-dark px-3"
-                    onclick="saveEmailTemplate(this)">保存</button>
-        </div>
-
-        <label class="form-label mb-1" style="font-size:0.8rem;font-weight:600;color:var(--muted);">件名</label>
-        <div class="d-flex align-items-center gap-2 mb-3">
-            <input type="text" class="form-control" id="tmpl-email-subject"
-                   value="{{ templates.email_subject }}"
-                   style="font-size:0.875rem;border-color:var(--border);">
-            <button class="btn btn-sm btn-outline-secondary px-3 flex-shrink-0"
-                    onclick="copyRaw('tmpl-email-subject', this)">コピー</button>
-        </div>
-
-        <label class="form-label mb-1" style="font-size:0.8rem;font-weight:600;color:var(--muted);">本文</label>
-        <div class="d-flex gap-2 align-items-start">
-            <textarea id="tmpl-email-body" class="form-control" rows="8"
-                      style="font-size:0.875rem;border-color:var(--border);">{{ templates.email_body }}</textarea>
-            <button class="btn btn-sm btn-outline-secondary px-3 flex-shrink-0"
-                    onclick="copyTemplate('tmpl-email-body', this)">コピー</button>
-        </div>
-        <p class="text-muted mt-1 mb-0" style="font-size:0.75rem;">{url} が実際のアンケートURLに置換されます</p>
-    </div>
-</div>
+{% endfor %}
 
 <a href="/" class="text-muted" style="font-size:0.85rem;">← ダッシュボードへ戻る</a>
 {% endblock %}
@@ -122,30 +84,36 @@ function resolveUrl(text) {
     return text.replace(/\{url\}/g, SURVEY_URL);
 }
 
-// input/textarea の値をそのままコピー（URL置換なし）
-function copyRaw(elementId, btn) {
-    const el = document.getElementById(elementId);
-    const text = el.tagName === 'TEXTAREA' ? el.value : el.value;
-    navigator.clipboard.writeText(text).then(() => flashBtn(btn, 'コピー完了！', btn.classList.contains('btn-dark') ? 'btn-dark' : 'btn-outline-secondary'));
+function selectTemplate(key) {
+    document.querySelectorAll('.tmpl-card').forEach(c => {
+        c.style.borderColor = 'transparent';
+        c.style.background = '';
+    });
+    const card = document.getElementById('card-' + key);
+    card.style.borderColor = '#C9A96E';
+    card.style.background = '#fdfaf6';
 }
 
-// {url} を実際のURLに置換してコピー
+function copyRaw(elementId, btn) {
+    const el = document.getElementById(elementId);
+    navigator.clipboard.writeText(el.value).then(() => flashBtn(btn, 'コピー完了！', 'btn-dark'));
+}
+
 function copyTemplate(elementId, btn) {
     const el = document.getElementById(elementId);
-    const text = resolveUrl(el.tagName === 'TEXTAREA' ? el.value : el.value);
+    const text = resolveUrl(el.value);
     navigator.clipboard.writeText(text).then(() => flashBtn(btn, 'コピー完了！', 'btn-outline-secondary'));
 }
 
 function flashBtn(btn, label, restoreClass) {
     const original = btn.textContent;
-    const originalClass = restoreClass;
     btn.textContent = label;
     btn.classList.remove('btn-outline-secondary', 'btn-dark');
     btn.classList.add('btn-success');
     setTimeout(() => {
         btn.textContent = original;
         btn.classList.remove('btn-success');
-        btn.classList.add(originalClass);
+        btn.classList.add(restoreClass);
     }, 2000);
 }
 
@@ -161,33 +129,5 @@ function saveTemplate(channel, elementId, btn) {
         if (data.ok) flashBtn(btn, '保存しました', 'btn-dark');
     });
 }
-
-function saveEmailTemplate(btn) {
-    const subject = document.getElementById('tmpl-email-subject').value;
-    const body    = document.getElementById('tmpl-email-body').value;
-    Promise.all([
-        fetch('/dashboard/template', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ shop_id: SHOP_ID, channel: 'email_subject', content: subject }),
-        }).then(r => r.json()),
-        fetch('/dashboard/template', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ shop_id: SHOP_ID, channel: 'email_body', content: body }),
-        }).then(r => r.json()),
-    ]).then(([r1, r2]) => {
-        if (r1.ok && r2.ok) flashBtn(btn, '保存しました', 'btn-dark');
-    });
-}
-
-// SMS文字数カウント（{url}をSURVEY_URLに展開して計算）
-function updateSmsCount(el) {
-    const count = resolveUrl(el.value).length;
-    const counter = document.getElementById('sms-count');
-    counter.textContent = `${count}文字`;
-    counter.style.color = count > 100 ? '#dc3545' : 'var(--muted)';
-}
-updateSmsCount(document.getElementById('tmpl-sms'));
 </script>
 {% endblock %}
