@@ -2036,6 +2036,12 @@ def survey_settings():
                 gp_options = q.get("options", [])
             elif q["id"] == "comment":
                 placeholder = q.get("placeholder", "")
+    else:
+        # 旧形式（q6/q7キー）からデフォルト選択肢を取得
+        if "q6" in base_opts and isinstance(base_opts["q6"], dict):
+            menu_options = base_opts["q6"].get("choices", [])
+        if "q7" in base_opts and isinstance(base_opts["q7"], dict):
+            gp_options = base_opts["q7"].get("choices", [])
     cq_json = shop_dict.get("custom_questions")
     if cq_json:
         try:
