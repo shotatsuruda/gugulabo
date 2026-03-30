@@ -945,7 +945,8 @@ def call_openrouter_text(prompt: str) -> str:
         },
         timeout=30,
     )
-    resp.raise_for_status()
+    if not resp.ok:
+        raise Exception(f"{resp.status_code}: {resp.text[:300]}")
     return resp.json()["choices"][0]["message"]["content"]
 
 
