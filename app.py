@@ -3250,8 +3250,12 @@ def gbp_posts_setup():
         conn.close()
         return redirect(url_for("gbp_posts_page"))
 
+    style_images = conn.execute(
+        "SELECT id, filename, extracted_text FROM post_style_images WHERE shop_id = ? ORDER BY uploaded_at DESC",
+        (shop["id"],),
+    ).fetchall()
     conn.close()
-    return render_template("gbp_setup.html", shop=shop)
+    return render_template("gbp_setup.html", shop=shop, style_images=style_images)
 
 
 @app.route("/gbp-posts")
@@ -3276,8 +3280,12 @@ def gbp_posts_page():
         "SELECT * FROM gbp_posts WHERE shop_id = ? AND status = 'draft' ORDER BY created_at DESC",
         (shop["id"],),
     ).fetchall()
-    style_count = conn.execute(
+    style_total = conn.execute(
         "SELECT COUNT(*) as cnt FROM post_style_images WHERE shop_id = ?",
+        (shop["id"],),
+    ).fetchone()["cnt"]
+    style_extracted = conn.execute(
+        "SELECT COUNT(*) as cnt FROM post_style_images WHERE shop_id = ? AND extracted_text IS NOT NULL",
         (shop["id"],),
     ).fetchone()["cnt"]
     shops = conn.execute(
@@ -3286,7 +3294,7 @@ def gbp_posts_page():
     ).fetchall()
     conn.close()
     return render_template("gbp_posts.html", shop=shop, posts=posts,
-                           style_count=style_count, shops=shops)
+                           style_total=style_total, style_extracted=style_extracted, shops=shops)
 
 
 @app.route("/gbp-posts/upload-style", methods=["POST"])
@@ -3372,108 +3380,109 @@ def gbp_posts_upload_style():
     return jsonify({"success": True, "count": saved})
 
 
-@app.route("/gbp-posts/generate-style", methods=["POST"])
+@app.route("/gbp-posts/style-images/<int:image_id>", methods=["DELETE"])
 @payment_required
-def gbp_posts_generate_style():
-    """スタイル学習モード：過去投稿を参考に3パターン生成"""
+def gbp_posts_delete_style_image(image_id):
+    """スタイル画像を1枚削除"""
+    conn = get_db()
+    row = conn.execute(
+        "SELECT psi.id, psi.filename FROM post_style_images psi"
+        " JOIN shops s ON s.id = psi.shop_id"
+        " WHERE psi.id = ? AND s.user_id = ?",
+        (image_id, current_user.id),
+    ).fetchone()
+    if not row:
+        conn.close()
+        return jsonify({"success": False, "error": "画像が見つかりません。"})
+    file_path = os.path.join(_STYLE_UPLOAD_DIR, row["filename"])
+    if os.path.exists(file_path):
+        os.remove(file_path)
+    conn.execute("DELETE FROM post_style_images WHERE id = ?", (image_id,))
+    conn.commit()
+    conn.close()
+    return jsonify({"success": True})
+
+
+@app.route("/gbp-posts/generate", methods=["POST"])
+@payment_required
+def gbp_posts_generate():
+    """統合生成ルート：テーマ×参照ソースの組み合わせで1パターン生成"""
     conn = get_db()
     shop = _get_current_gbp_shop(conn, current_user.id)
     if not shop:
         conn.close()
         return jsonify({"error": "店舗が見つかりません。"})
 
-    rows = conn.execute(
-        "SELECT extracted_text FROM post_style_images"
-        " WHERE shop_id = ? AND extracted_text IS NOT NULL"
-        " ORDER BY uploaded_at DESC",
-        (shop["id"],),
-    ).fetchall()
-    all_count = conn.execute(
-        "SELECT COUNT(*) as cnt FROM post_style_images WHERE shop_id = ?", (shop["id"],)
-    ).fetchone()
+    data = request.get_json() or {}
+    themes        = data.get("themes") or []
+    hint          = (data.get("hint") or "").strip()
+    use_shop_info = bool(data.get("use_shop_info"))
+    use_style     = bool(data.get("use_style"))
+    use_ai        = bool(data.get("use_ai"))
+
+    if not use_shop_info and not use_style and not use_ai:
+        conn.close()
+        return jsonify({"error": "参照ソースを1つ以上選択してください。"})
+
+    style_texts = []
+    if use_style:
+        rows = conn.execute(
+            "SELECT extracted_text FROM post_style_images"
+            " WHERE shop_id = ? AND extracted_text IS NOT NULL"
+            " ORDER BY uploaded_at DESC",
+            (shop["id"],),
+        ).fetchall()
+        style_texts = [r["extracted_text"] for r in rows]
+        if not style_texts:
+            conn.close()
+            return jsonify({"error": "過去の投稿が未登録です。設定画面からスクショを追加してください。"})
     conn.close()
 
-    if not rows:
-        # テキスト抽出済みレコードがない → 画像未登録 or 全件抽出失敗
-        if all_count and all_count["cnt"] > 0:
-            return jsonify({"error": "アップロードされた画像のテキスト抽出に失敗しています。GBP投稿の文字が見えるスクリーンショットを再アップロードしてください。"})
-        return jsonify({"error": "過去の投稿画像をアップロードしてください。"})
-
-    data = request.get_json() or {}
-    hint = (data.get("hint") or "").strip()
-    extracted_texts = "\n---\n".join(r["extracted_text"] for r in rows)
+    themes_str = "、".join(themes) if themes else "（指定なし）"
     current_month = datetime.now().month
 
-    prompt = f"""以下は、あるサロンがGoogleビジネスプロフィールに投稿してきた「最新情報」の実例です。
-
-【過去の投稿例】
-{extracted_texts}
-
-上記の投稿から以下を分析してください：
-- 文体・トーン（丁寧語/タメ口、絵文字の使い方、改行のリズム）
-- よく使うキーワードや表現
-- 文章の構成パターン
-
-その上で、同じスタイルを維持しながら新しい投稿文を3パターン生成してください。
-補足情報：{hint if hint else '特になし'}
-現在の月：{current_month}月
-
-【出力形式】
-必ずJSON形式のみで出力してください。前後に余分なテキストや```は含めないでください。
-{{"patterns": ["パターン1の本文", "パターン2の本文", "パターン3の本文"]}}"""
-
-    try:
-        raw = call_openrouter_text(prompt)
-        return jsonify({"patterns": _parse_patterns(raw)})
-    except Exception:
-        return jsonify({"error": "生成に失敗しました。再度お試しください。"})
-
-
-@app.route("/gbp-posts/generate-auto", methods=["POST"])
-@payment_required
-def gbp_posts_generate_auto():
-    """おまかせモード：サロン情報から3パターン生成"""
-    conn = get_db()
-    shop = _get_current_gbp_shop(conn, current_user.id)
-    conn.close()
-    if not shop:
-        return jsonify({"error": "店舗が見つかりません。"})
-
-    data = request.get_json() or {}
-    hint = (data.get("hint") or "").strip()
-    current_month = datetime.now().month
-
-    prompt = f"""あなたは美容室のGoogleビジネスプロフィール「最新情報」の投稿文を書くプロです。
-以下のサロン情報をもとに、集客につながる投稿文を3パターン生成してください。
-
-【サロン情報】
-店名：{shop['name']}
-メインメニュー：{shop.get('main_menus') or '未設定'}
-強み・こだわり：{shop.get('strengths') or '未設定'}
-ターゲット客層：{shop.get('target_customers') or '未設定'}
-アクセス：{shop.get('nearest_station') or '未設定'}
-予約方法：{shop.get('reservation_method') or '未設定'}
-価格帯：{shop.get('price_range') or '未設定'}
-現在の月：{current_month}月
-補足：{hint if hint else '特になし'}
-
+    parts = [
+        "あなたは美容室のGoogleビジネスプロフィール「最新情報」の投稿文を書くプロです。",
+        "以下の情報をもとに、集客につながる投稿文を1つ生成してください。",
+        "",
+        f"【投稿テーマ】\n{themes_str}",
+    ]
+    if hint:
+        parts.append(f"\n【補足メモ】\n{hint}")
+    if use_shop_info:
+        parts.append(
+            f"\n【サロン情報】\n"
+            f"店名：{shop['name']}\n"
+            f"メインメニュー：{shop['main_menus'] or '未設定'}\n"
+            f"強み・こだわり：{shop['strengths'] or '未設定'}\n"
+            f"ターゲット客層：{shop['target_customers'] or '未設定'}\n"
+            f"アクセス：{shop['nearest_station'] or '未設定'}\n"
+            f"予約方法：{shop['reservation_method'] or '未設定'}\n"
+            f"価格帯：{shop['price_range'] or '未設定'}"
+        )
+    if use_style and style_texts:
+        combined = "\n---\n".join(style_texts)
+        parts.append(f"\n【過去の投稿例（文体・トーンを必ず踏襲すること）】\n{combined}")
+    if use_ai and not use_shop_info and not use_style:
+        parts.append("\nサロンの一般的な特徴を想定し、自由に魅力的な投稿文を生成してください。")
+    parts.append(f"""
 【生成条件】
 - 文字数：150〜300文字
 - 語尾は丁寧語（です・ます調）
 - 絵文字を適度に使用（1〜3個程度）
 - ハッシュタグは末尾に2〜3個
 - MEOを意識したキーワードを自然に含める
-- 季節感を盛り込む
-- 3パターンはそれぞれ異なる切り口にする
-  （例：メニュー訴求／季節テーマ／エリア×集客訴求）
+- 現在の月（{current_month}月）の季節感を盛り込む
+- 過去の投稿例がある場合はその文体・トーン・構成を必ず踏襲する
 
 【出力形式】
-必ずJSON形式のみで出力してください。前後に余分なテキストや```は含めないでください。
-{{"patterns": ["パターン1の本文", "パターン2の本文", "パターン3の本文"]}}"""
+投稿文のテキストのみを出力してください。
+JSONや```などの余分な記号は一切含めないでください。""")
 
+    prompt = "\n".join(parts)
     try:
-        raw = call_openrouter_text(prompt)
-        return jsonify({"patterns": _parse_patterns(raw)})
+        result = call_openrouter_text(prompt)
+        return jsonify({"pattern": result.strip()})
     except Exception:
         return jsonify({"error": "生成に失敗しました。再度お試しください。"})
 

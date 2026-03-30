@@ -18,174 +18,164 @@
     {% endif %}
 </div>
 
-<!-- 生成モードタブ -->
-<ul class="nav nav-tabs mb-3" id="modeTab">
-    <li class="nav-item">
-        <a class="nav-link active" id="tab-style" href="#" onclick="switchTab('style');return false;">
-            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:4px;"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-            スタイル学習
-        </a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link" id="tab-auto" href="#" onclick="switchTab('auto');return false;">
-            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:4px;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-            おまかせ
-        </a>
-    </li>
-</ul>
+<!-- スクショ登録状況 -->
+<div class="d-flex align-items-center justify-content-between mb-3 px-1">
+    <span style="font-size:0.8rem;color:#8C7B6B;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        過去の投稿スクショ
+        <strong>{{ style_total }}枚</strong>登録済み
+        {% if style_extracted > 0 %}
+        <span style="color:#22c55e;font-size:0.72rem;">（{{ style_extracted }}枚テキスト抽出済み）</span>
+        {% elif style_total > 0 %}
+        <span style="color:#ef4444;font-size:0.72rem;">（テキスト抽出失敗）</span>
+        {% endif %}
+    </span>
+    <a href="/gbp-posts/setup?shop_id={{ shop.id }}" style="font-size:0.78rem;color:#C9A96E;">スクショを追加・管理 →</a>
+</div>
 
-<div class="row g-3">
-    <!-- 左カラム：入力 -->
-    <div class="col-lg-5">
+<!-- 生成フォーム -->
+<div class="card mb-4">
+    <div class="card-body p-4">
 
-        <!-- スタイル学習パネル -->
-        <div id="panel-style" class="card">
-            <div class="card-header">
-                <div class="ai-label-tag">INPUT</div>
-                <div class="fw-semibold" style="font-size:0.875rem;margin-top:2px;">過去の投稿から学習して生成</div>
+        <!-- STEP 1: テーマ -->
+        <div class="mb-4">
+            <div class="fw-semibold mb-2" style="font-size:0.9rem;">
+                <span style="background:#C9A96E;color:#fff;border-radius:4px;padding:1px 8px;font-size:0.72rem;margin-right:6px;">STEP 1</span>
+                投稿テーマを選ぶ
+                <span style="font-weight:400;color:#9A9A9A;font-size:0.75rem;margin-left:4px;">（複数選択可）</span>
             </div>
-            <div class="card-body p-4">
-                <!-- アップロードエリア -->
-                <div class="mb-3">
-                    <label class="form-label fw-semibold" style="font-size:0.875rem;">
-                        過去の投稿スクリーンショット
-                        <span style="font-weight:400;color:#9A9A9A;font-size:0.72rem;">（最大5枚・各10MB以下）</span>
-                    </label>
-                    <div id="drop-zone"
-                         style="border:2px dashed var(--border);border-radius:8px;padding:24px;text-align:center;cursor:pointer;transition:border-color 0.2s;"
-                         ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)"
-                         onclick="document.getElementById('file-input').click()">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#C9A96E" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:8px;"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
-                        <p class="mb-1" style="font-size:0.82rem;color:#6b6b8a;">クリックまたはドラッグ&ドロップ</p>
-                        <p class="mb-0" style="font-size:0.72rem;color:#9A9A9A;">JPG / PNG</p>
-                    </div>
-                    <input type="file" id="file-input" multiple accept=".jpg,.jpeg,.png" class="d-none" onchange="uploadFiles(this.files)">
-                    <div class="mt-2 d-flex align-items-center gap-2">
-                        <span style="font-size:0.78rem;color:#8C7B6B;">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-                            現在 <strong id="style-count">{{ style_count }}</strong> 枚登録済み
-                        </span>
-                        <div id="upload-spinner" class="spinner-border spinner-border-sm d-none" style="width:14px;height:14px;color:#C9A96E;" role="status"></div>
-                    </div>
-                </div>
 
-                <!-- 補足メモ -->
-                <div class="mb-3">
-                    <label class="form-label" style="font-size:0.875rem;">補足メモ
-                        <span style="font-weight:400;color:#9A9A9A;font-size:0.72rem;">（任意）</span>
-                    </label>
-                    <textarea class="form-control" id="hint-style" rows="3"
-                              placeholder="例：今月はトリートメントキャンペーン中。新メニューのヘッドスパを訴求したい。"></textarea>
-                </div>
+            {% set theme_groups = [
+                ("季節・時期", ["春の新スタイル", "梅雨のうねりケア", "夏のダメージ対策", "秋のカラーチェンジ", "冬の乾燥ケア", "年末年始の予約受付"]),
+                ("メニュー訴求", ["カット", "カラー", "パーマ", "縮毛矯正", "トリートメント", "ヘッドスパ"]),
+                ("キャンペーン・特典", ["初回限定", "平日割引", "友達紹介", "季節限定メニュー"]),
+                ("お知らせ", ["営業時間のご案内", "新スタッフ紹介", "新メニュー導入", "設備・環境のご紹介"])
+            ] %}
 
-                <div class="d-grid">
-                    <button class="btn btn-primary" onclick="generate('style')">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-                        生成する（3パターン）
+            {% for group_name, items in theme_groups %}
+            <div class="mb-2">
+                <div style="font-size:0.7rem;font-weight:700;color:#9A9A9A;letter-spacing:0.05em;margin-bottom:5px;">{{ group_name }}</div>
+                <div class="d-flex flex-wrap gap-1">
+                    {% for item in items %}
+                    <button type="button" class="btn btn-sm theme-btn"
+                            style="font-size:0.78rem;padding:3px 10px;border-radius:20px;border:1px solid var(--border);background:#fff;color:#555;transition:all 0.15s;"
+                            onclick="toggleTheme(this, '{{ item }}')">{{ item }}</button>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+
+            <div class="mt-3">
+                <label class="form-label" style="font-size:0.82rem;">補足メモ <span style="font-weight:400;color:#9A9A9A;font-size:0.72rem;">（任意）</span></label>
+                <textarea class="form-control" id="hint" rows="2"
+                          placeholder="例：春カラーでピンクベージュを推したい、新メニューのヘッドスパを訴求したい"></textarea>
+            </div>
+        </div>
+
+        <!-- STEP 2: 参照ソース -->
+        <div class="mb-4">
+            <div class="fw-semibold mb-2" style="font-size:0.9rem;">
+                <span style="background:#C9A96E;color:#fff;border-radius:4px;padding:1px 8px;font-size:0.72rem;margin-right:6px;">STEP 2</span>
+                参照ソースを選ぶ
+            </div>
+
+            <div class="d-flex flex-column gap-2">
+                <label class="d-flex align-items-start gap-2 p-3 source-option" style="border:1px solid var(--border);border-radius:8px;cursor:pointer;">
+                    <input type="checkbox" id="src-shop" class="source-cb mt-1" onchange="updateGenerateBtn()">
+                    <div>
+                        <div style="font-size:0.85rem;font-weight:600;">サロン登録情報を使う</div>
+                        <div style="font-size:0.75rem;color:#9A9A9A;">登録済みの強み・メニュー・ターゲット等を参照</div>
+                    </div>
+                </label>
+
+                <label class="d-flex align-items-start gap-2 p-3 source-option {% if style_extracted == 0 %}opacity-50{% endif %}"
+                       style="border:1px solid var(--border);border-radius:8px;{% if style_extracted > 0 %}cursor:pointer;{% else %}cursor:default;{% endif %}">
+                    <input type="checkbox" id="src-style" class="source-cb mt-1" onchange="updateGenerateBtn()"
+                           {% if style_extracted == 0 %}disabled{% endif %}>
+                    <div>
+                        <div style="font-size:0.85rem;font-weight:600;">過去の投稿スタイルを使う</div>
+                        {% if style_extracted > 0 %}
+                        <div style="font-size:0.75rem;color:#9A9A9A;">アップロード済みスクショの文体・トーンを参照（{{ style_extracted }}枚）</div>
+                        {% else %}
+                        <div style="font-size:0.75rem;color:#ef4444;">
+                            ※過去の投稿が未登録です。
+                            <a href="/gbp-posts/setup?shop_id={{ shop.id }}" style="color:#C9A96E;">設定画面から追加できます →</a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </label>
+
+                <label class="d-flex align-items-start gap-2 p-3 source-option" style="border:1px solid var(--border);border-radius:8px;cursor:pointer;">
+                    <input type="checkbox" id="src-ai" class="source-cb mt-1" onchange="updateGenerateBtn()">
+                    <div>
+                        <div style="font-size:0.85rem;font-weight:600;">AIにおまかせ</div>
+                        <div style="font-size:0.75rem;color:#9A9A9A;">テーマと補足メモだけでAIが自由に生成</div>
+                    </div>
+                </label>
+            </div>
+        </div>
+
+        <!-- STEP 3: 生成 -->
+        <div>
+            <div class="fw-semibold mb-2" style="font-size:0.9rem;">
+                <span style="background:#C9A96E;color:#fff;border-radius:4px;padding:1px 8px;font-size:0.72rem;margin-right:6px;">STEP 3</span>
+                生成
+            </div>
+
+            <div class="d-grid mb-3">
+                <button id="generate-btn" class="btn btn-primary" onclick="generate()" disabled>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                    生成する
+                </button>
+            </div>
+
+            <!-- ローディング -->
+            <div id="loading" class="text-center py-4 d-none">
+                <div class="spinner-border" style="color:#C9A96E;" role="status"></div>
+                <p class="mt-2 mb-0" style="font-size:0.875rem;color:#9A9A9A;">AIが投稿文を生成中です...</p>
+            </div>
+
+            <!-- エラー -->
+            <div id="error-msg" class="alert alert-danger d-none" role="alert" style="font-size:0.85rem;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:5px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                <span id="error-text"></span>
+            </div>
+
+            <!-- 結果エリア -->
+            <div id="result-area" class="d-none">
+                <label class="form-label" style="font-size:0.875rem;">生成された投稿文（編集できます）</label>
+                <textarea id="post-content" class="form-control" rows="8"></textarea>
+                <div class="d-flex justify-content-between align-items-center mt-1 mb-3">
+                    <span style="font-size:0.75rem;color:#9A9A9A;"><span id="char-count">0</span> 文字 <span style="color:#C9A96E;">（目安：150〜300文字）</span></span>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="generate()" style="font-size:0.78rem;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:3px;"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                        再生成
                     </button>
                 </div>
-            </div>
-        </div>
-
-        <!-- おまかせパネル -->
-        <div id="panel-auto" class="card d-none">
-            <div class="card-header">
-                <div class="ai-label-tag">INPUT</div>
-                <div class="fw-semibold" style="font-size:0.875rem;margin-top:2px;">サロン情報から自動生成</div>
-            </div>
-            <div class="card-body p-4">
-                <div class="mb-3 p-3" style="background:#F5F3F0;border-radius:8px;font-size:0.8rem;">
-                    <div style="font-weight:600;color:#8C7B6B;margin-bottom:6px;">{{ shop.name }}</div>
-                    {% if shop.main_menus %}<div class="text-muted">📋 {{ shop.main_menus }}</div>{% endif %}
-                    {% if shop.nearest_station %}<div class="text-muted">📍 {{ shop.nearest_station }}</div>{% endif %}
-                    <a href="/gbp-posts/setup?shop_id={{ shop.id }}" class="d-block mt-2" style="font-size:0.75rem;color:#C9A96E;">サロン情報を編集 →</a>
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label" style="font-size:0.875rem;">補足メモ
-                        <span style="font-weight:400;color:#9A9A9A;font-size:0.72rem;">（任意）</span>
-                    </label>
-                    <textarea class="form-control" id="hint-auto" rows="3"
-                              placeholder="例：今月はトリートメントを推したい、春の新メニュー告知など"></textarea>
-                </div>
-
-                <div class="d-grid">
-                    <button class="btn btn-primary" onclick="generate('auto')">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-                        生成する（3パターン）
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-primary" onclick="saveDraft()">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:4px;"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                        下書き保存
+                    </button>
+                    <button class="btn btn-secondary btn-sm" disabled
+                            data-bs-toggle="tooltip" title="GBP API承認後に有効化されます">
+                        投稿する（GBP API承認後に有効化）
                     </button>
                 </div>
+                <div id="save-toast" class="alert alert-success mt-2 d-none" style="font-size:0.85rem;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:5px;"><polyline points="20 6 9 17 4 12"/></svg>
+                    下書きを保存しました！
+                </div>
             </div>
         </div>
 
-    </div>
-
-    <!-- 右カラム：出力 -->
-    <div class="col-lg-7">
-        <div class="card h-100">
-            <div class="card-header">
-                <div class="ai-label-tag">OUTPUT</div>
-                <div class="fw-semibold" style="font-size:0.875rem;margin-top:2px;">生成結果</div>
-            </div>
-            <div class="card-body p-4 d-flex flex-column">
-
-                <!-- ローディング -->
-                <div id="loading" class="text-center py-5 d-none">
-                    <div class="spinner-border" style="color:#C9A96E;" role="status"></div>
-                    <p class="mt-3" style="font-size:0.875rem;color:#9A9A9A;">AIが投稿文を生成中です...</p>
-                </div>
-
-                <!-- エラー -->
-                <div id="error-msg" class="alert alert-danger d-none" role="alert">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:5px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                    <span id="error-text"></span>
-                </div>
-
-                <!-- 3パターンカード -->
-                <div id="patterns-area" class="d-none">
-                    <p class="text-muted mb-2" style="font-size:0.8rem;">パターンを選んで編集してください：</p>
-                    <div id="pattern-cards" class="d-flex flex-column gap-2 mb-3"></div>
-                </div>
-
-                <!-- 編集テキストエリア -->
-                <div id="editor-area" class="d-none flex-grow-1 d-flex flex-column">
-                    <label class="form-label" style="font-size:0.875rem;">投稿文（編集可能）</label>
-                    <textarea id="post-content" class="form-control flex-grow-1" rows="8"
-                              placeholder="パターンを選択すると表示されます"></textarea>
-                    <div class="text-end mt-1 mb-3" style="font-size:0.75rem;color:#9A9A9A;">
-                        <span id="char-count">0</span> 文字
-                        <span style="color:#C9A96E;margin-left:4px;">（目安：150〜300文字）</span>
-                    </div>
-                    <div class="d-grid gap-2">
-                        <button class="btn btn-outline-primary" onclick="saveDraft()">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:4px;"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-                            下書き保存
-                        </button>
-                        <button class="btn btn-secondary btn-sm" disabled
-                                data-bs-toggle="tooltip" title="GBP API承認後に有効化されます">
-                            投稿する（GBP API承認後に有効化）
-                        </button>
-                    </div>
-                    <div id="save-toast" class="alert alert-success mt-2 d-none">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:5px;"><polyline points="20 6 9 17 4 12"/></svg>
-                        下書きを保存しました！
-                    </div>
-                </div>
-
-                <!-- 初期プレースホルダー -->
-                <div id="placeholder" class="text-center py-5" style="color:#9A9A9A;font-size:0.875rem;">
-                    左側で設定を入力して「生成する」を押してください
-                </div>
-
-            </div>
-        </div>
     </div>
 </div>
 
-<!-- 過去の下書き一覧 -->
-<div class="card mt-4">
+<!-- 下書き一覧 -->
+<div class="card">
     <div class="card-header d-flex align-items-center justify-content-between">
-        <div class="fw-semibold" style="font-size:0.875rem;">過去の下書き一覧</div>
+        <div class="fw-semibold" style="font-size:0.875rem;">下書き一覧</div>
         <span class="badge" style="background:var(--copper,#C9A96E);color:#fff;">{{ posts|length }} 件</span>
     </div>
     <div class="card-body p-0">
@@ -197,7 +187,7 @@
                     <div style="flex:1;min-width:0;">
                         <div class="d-flex align-items-center gap-2 mb-1">
                             <span class="badge" style="background:#F0EDE8;color:#8C7B6B;font-size:0.68rem;">
-                                {{ '学習' if post.mode == 'style' else 'おまかせ' }}
+                                {{ post.mode or 'auto' }}
                             </span>
                             <span style="font-size:0.68rem;color:#9A9A9A;">{{ post.created_at[:16].replace('T', ' ') }}</span>
                         </div>
@@ -232,134 +222,85 @@
 
 {% block scripts %}
 <script>
-    // Bootstrap tooltip 初期化
     document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => new bootstrap.Tooltip(el));
 
     const SHOP_ID = {{ shop.id }};
-    let currentMode = 'style';
-    let currentPostId = null;  // 編集中の既存下書きID
-
-    // ── タブ切替 ──────────────────────────────────────────
-    function switchTab(mode) {
-        currentMode = mode;
-        document.getElementById('tab-style').classList.toggle('active', mode === 'style');
-        document.getElementById('tab-auto').classList.toggle('active', mode === 'auto');
-        document.getElementById('panel-style').classList.toggle('d-none', mode !== 'style');
-        document.getElementById('panel-auto').classList.toggle('d-none', mode !== 'auto');
-    }
+    let selectedThemes = [];
+    let currentPostId = null;
 
     function switchShop(shopId) {
         window.location.href = '/gbp-posts?shop_id=' + shopId;
     }
 
-    // ── ファイルアップロード ──────────────────────────────
-    function onDragOver(e) {
-        e.preventDefault();
-        document.getElementById('drop-zone').style.borderColor = '#C9A96E';
-    }
-    function onDragLeave(e) {
-        document.getElementById('drop-zone').style.borderColor = 'var(--border)';
-    }
-    function onDrop(e) {
-        e.preventDefault();
-        onDragLeave(e);
-        uploadFiles(e.dataTransfer.files);
-    }
-
-    async function uploadFiles(files) {
-        if (!files || files.length === 0) return;
-        const spinner = document.getElementById('upload-spinner');
-        spinner.classList.remove('d-none');
-
-        const formData = new FormData();
-        Array.from(files).slice(0, 5).forEach(f => formData.append('images', f));
-
-        try {
-            const res = await fetch('/gbp-posts/upload-style', { method: 'POST', body: formData });
-            const data = await res.json();
-            if (data.success) {
-                const cnt = parseInt(document.getElementById('style-count').textContent) + data.count;
-                document.getElementById('style-count').textContent = cnt;
-            } else {
-                alert(data.error || 'アップロードに失敗しました。');
-            }
-        } catch (e) {
-            alert('通信エラーが発生しました。');
-        } finally {
-            spinner.classList.add('d-none');
+    // ── テーマ選択 ──────────────────────────────────────
+    function toggleTheme(btn, theme) {
+        const idx = selectedThemes.indexOf(theme);
+        if (idx === -1) {
+            selectedThemes.push(theme);
+            btn.style.background = '#C9A96E';
+            btn.style.color = '#fff';
+            btn.style.borderColor = '#C9A96E';
+        } else {
+            selectedThemes.splice(idx, 1);
+            btn.style.background = '#fff';
+            btn.style.color = '#555';
+            btn.style.borderColor = 'var(--border)';
         }
+        updateGenerateBtn();
+    }
+
+    // ── 生成ボタン活性制御 ──────────────────────────────
+    function updateGenerateBtn() {
+        const anySource = ['src-shop','src-style','src-ai'].some(id => {
+            const el = document.getElementById(id);
+            return el && !el.disabled && el.checked;
+        });
+        const hasTheme = selectedThemes.length > 0;
+        document.getElementById('generate-btn').disabled = !(anySource && hasTheme);
     }
 
     // ── 生成 ────────────────────────────────────────────
-    async function generate(mode) {
-        const hint = document.getElementById(mode === 'style' ? 'hint-style' : 'hint-auto').value.trim();
-        const endpoint = mode === 'style' ? '/gbp-posts/generate-style' : '/gbp-posts/generate-auto';
+    async function generate() {
+        const use_shop_info = document.getElementById('src-shop').checked;
+        const use_style     = document.getElementById('src-style').checked;
+        const use_ai        = document.getElementById('src-ai').checked;
+        const hint          = document.getElementById('hint').value.trim();
 
-        showLoading(true);
-        resetOutput();
+        document.getElementById('loading').classList.remove('d-none');
+        document.getElementById('result-area').classList.add('d-none');
+        document.getElementById('error-msg').classList.add('d-none');
+        document.getElementById('generate-btn').disabled = true;
 
         try {
-            const res = await fetch(endpoint, {
+            const res = await fetch('/gbp-posts/generate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ hint }),
+                body: JSON.stringify({ themes: selectedThemes, hint, use_shop_info, use_style, use_ai }),
             });
             const data = await res.json();
-
             if (data.error) {
                 showError(data.error);
                 return;
             }
-            renderPatterns(data.patterns, mode);
+            document.getElementById('post-content').value = data.pattern;
+            updateCharCount();
+            document.getElementById('result-area').classList.remove('d-none');
+            currentPostId = null;
         } catch (e) {
             showError('通信エラーが発生しました。');
         } finally {
-            showLoading(false);
+            document.getElementById('loading').classList.add('d-none');
+            updateGenerateBtn();
         }
     }
 
-    function renderPatterns(patterns, mode) {
-        const area = document.getElementById('patterns-area');
-        const cards = document.getElementById('pattern-cards');
-        cards.innerHTML = '';
-        patterns.forEach((text, i) => {
-            const card = document.createElement('div');
-            card.className = 'card';
-            card.style.cursor = 'pointer';
-            card.innerHTML = `
-                <div class="card-body py-2 px-3">
-                    <div class="d-flex align-items-start gap-2">
-                        <span style="font-size:0.72rem;font-weight:700;color:#C9A96E;min-width:64px;">パターン ${i + 1}</span>
-                        <p class="mb-0" style="font-size:0.8rem;color:#2C2C2C;white-space:pre-wrap;">${escHtml(text)}</p>
-                    </div>
-                    <div class="text-end mt-1">
-                        <button class="btn btn-outline-primary btn-sm" onclick="selectPattern(${JSON.stringify(text)}, '${mode}')">このパターンを使う</button>
-                    </div>
-                </div>`;
-            cards.appendChild(card);
-        });
-        area.classList.remove('d-none');
-        document.getElementById('placeholder').classList.add('d-none');
-    }
-
-    function selectPattern(text, mode) {
-        currentPostId = null;  // 新規保存
-        currentMode = mode;
-        document.getElementById('post-content').value = text;
-        updateCharCount();
-        document.getElementById('editor-area').classList.remove('d-none');
-        document.getElementById('editor-area').style.display = 'flex';
-        window.scrollTo({ top: document.getElementById('editor-area').offsetTop - 80, behavior: 'smooth' });
-    }
-
+    // ── 下書き読み込み ──────────────────────────────────
     function loadDraft(postId, content) {
         currentPostId = postId;
         document.getElementById('post-content').value = content;
         updateCharCount();
-        document.getElementById('patterns-area').classList.add('d-none');
-        document.getElementById('editor-area').classList.remove('d-none');
-        document.getElementById('editor-area').style.display = 'flex';
-        document.getElementById('placeholder').classList.add('d-none');
+        document.getElementById('result-area').classList.remove('d-none');
+        document.getElementById('error-msg').classList.add('d-none');
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
@@ -368,16 +309,12 @@
         const content = document.getElementById('post-content').value.trim();
         if (!content) { alert('投稿文が空です。'); return; }
 
+        const mode = document.getElementById('src-style').checked ? 'style' : 'auto';
         try {
             const res = await fetch('/gbp-posts/save', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    shop_id: SHOP_ID,
-                    content,
-                    mode: currentMode,
-                    post_id: currentPostId,
-                }),
+                body: JSON.stringify({ shop_id: SHOP_ID, content, mode, post_id: currentPostId }),
             });
             const data = await res.json();
             if (data.success) {
@@ -386,10 +323,10 @@
                 toast.classList.remove('d-none');
                 setTimeout(() => toast.classList.add('d-none'), 2500);
                 if (!document.getElementById('draft-' + data.post_id)) {
-                    location.reload();  // 新規保存時はリロードして一覧を更新
+                    location.reload();
                 }
             } else {
-                alert('保存に失敗しました: ' + data.error);
+                alert('保存に失敗しました: ' + (data.error || ''));
             }
         } catch (e) {
             alert('通信エラーが発生しました。');
@@ -405,11 +342,9 @@
             if (data.success) {
                 const el = document.getElementById('draft-' + postId);
                 if (el) el.remove();
-                // 一覧が空になったら案内文表示
                 if (!document.querySelector('#drafts-list .list-group-item')) {
                     document.getElementById('drafts-list')?.remove();
-                    const noDrafts = document.getElementById('no-drafts');
-                    if (noDrafts) noDrafts.classList.remove('d-none');
+                    document.getElementById('no-drafts')?.classList.remove('d-none');
                 }
             }
         } catch (e) {
@@ -418,26 +353,13 @@
     }
 
     // ── ユーティリティ ──────────────────────────────────
-    function showLoading(flag) {
-        document.getElementById('loading').classList.toggle('d-none', !flag);
-        if (flag) document.getElementById('placeholder').classList.add('d-none');
-    }
-    function resetOutput() {
-        document.getElementById('error-msg').classList.add('d-none');
-        document.getElementById('patterns-area').classList.add('d-none');
-        document.getElementById('editor-area').classList.add('d-none');
-    }
     function showError(msg) {
         document.getElementById('error-text').textContent = msg;
         document.getElementById('error-msg').classList.remove('d-none');
-        document.getElementById('placeholder').classList.add('d-none');
     }
     function updateCharCount() {
         document.getElementById('char-count').textContent =
             document.getElementById('post-content').value.length;
-    }
-    function escHtml(s) {
-        return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
 
     document.getElementById('post-content').addEventListener('input', updateCharCount);

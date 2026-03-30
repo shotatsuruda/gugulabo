@@ -12,7 +12,8 @@
     AI生成の精度を高めるために、サロンの情報を教えてください。あとから変更できます。
 </p>
 
-<div class="card">
+<!-- サロン情報フォーム -->
+<div class="card mb-4">
     <div class="card-body p-4">
         <form method="POST" action="/gbp-posts/setup">
             <input type="hidden" name="shop_id" value="{{ shop.id }}">
@@ -83,4 +84,144 @@
     </div>
 </div>
 
+<!-- 過去の投稿スクショ -->
+<div class="card">
+    <div class="card-header">
+        <div class="fw-semibold" style="font-size:0.875rem;">過去の投稿スクショ</div>
+    </div>
+    <div class="card-body p-4">
+        <p class="text-muted mb-3" style="font-size:0.82rem;">
+            過去にGoogleビジネスプロフィールに投稿した最新情報のスクリーンショットを登録すると、同じ文体・トーンで生成できます。
+        </p>
+
+        <!-- アップロードエリア -->
+        <div class="mb-3">
+            <div id="drop-zone"
+                 style="border:2px dashed var(--border);border-radius:8px;padding:24px;text-align:center;cursor:pointer;transition:border-color 0.2s;"
+                 ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)"
+                 onclick="document.getElementById('file-input').click()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#C9A96E" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:8px;"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
+                <p class="mb-1" style="font-size:0.82rem;color:#6b6b8a;">クリックまたはドラッグ&ドロップ</p>
+                <p class="mb-0" style="font-size:0.72rem;color:#9A9A9A;">JPG / PNG・最大5枚・各10MB以下</p>
+            </div>
+            <input type="file" id="file-input" multiple accept=".jpg,.jpeg,.png" class="d-none" onchange="uploadFiles(this.files)">
+        </div>
+
+        <div class="d-flex align-items-center gap-2 mb-3">
+            <button class="btn btn-outline-primary btn-sm" onclick="document.getElementById('file-input').click()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:4px;"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
+                スクショを追加
+            </button>
+            <div id="upload-spinner" class="spinner-border spinner-border-sm d-none" style="width:16px;height:16px;color:#C9A96E;" role="status"></div>
+            <span id="upload-msg" style="font-size:0.78rem;color:#22c55e;display:none;"></span>
+        </div>
+
+        <!-- エラー -->
+        <div id="upload-error" class="alert alert-danger d-none mb-3" style="font-size:0.82rem;"></div>
+
+        <!-- 登録済み画像一覧 -->
+        <div id="style-images-list">
+            {% if style_images %}
+            <div style="font-size:0.78rem;color:#9A9A9A;margin-bottom:8px;">登録済み {{ style_images|length }}枚</div>
+            <div class="d-flex flex-wrap gap-2" id="thumbs-container">
+                {% for img in style_images %}
+                <div class="position-relative thumb-item" id="thumb-{{ img.id }}"
+                     style="width:80px;height:80px;border-radius:6px;overflow:hidden;border:1px solid var(--border);">
+                    <img src="/static/uploads/post_styles/{{ img.filename }}"
+                         style="width:100%;height:100%;object-fit:cover;"
+                         onerror="this.style.display='none'">
+                    {% if img.extracted_text %}
+                    <div style="position:absolute;bottom:0;left:0;right:0;background:rgba(34,197,94,0.8);text-align:center;padding:1px;font-size:0.6rem;color:#fff;">抽出済み</div>
+                    {% else %}
+                    <div style="position:absolute;bottom:0;left:0;right:0;background:rgba(239,68,68,0.8);text-align:center;padding:1px;font-size:0.6rem;color:#fff;">抽出失敗</div>
+                    {% endif %}
+                    <button onclick="deleteImage({{ img.id }})"
+                            style="position:absolute;top:2px;right:2px;background:rgba(0,0,0,0.5);border:none;color:#fff;border-radius:50%;width:18px;height:18px;font-size:10px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div id="no-images" style="font-size:0.8rem;color:#9A9A9A;">まだスクショが登録されていません。</div>
+            {% endif %}
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const SHOP_ID = {{ shop.id }};
+
+    function onDragOver(e) {
+        e.preventDefault();
+        document.getElementById('drop-zone').style.borderColor = '#C9A96E';
+    }
+    function onDragLeave(e) {
+        document.getElementById('drop-zone').style.borderColor = 'var(--border)';
+    }
+    function onDrop(e) {
+        e.preventDefault();
+        onDragLeave(e);
+        uploadFiles(e.dataTransfer.files);
+    }
+
+    async function uploadFiles(files) {
+        if (!files || files.length === 0) return;
+        const spinner = document.getElementById('upload-spinner');
+        const msg = document.getElementById('upload-msg');
+        const errEl = document.getElementById('upload-error');
+        spinner.classList.remove('d-none');
+        msg.style.display = 'none';
+        errEl.classList.add('d-none');
+
+        const formData = new FormData();
+        Array.from(files).slice(0, 5).forEach(f => formData.append('images', f));
+
+        try {
+            const res = await fetch('/gbp-posts/upload-style', { method: 'POST', body: formData });
+            const data = await res.json();
+            if (data.success) {
+                msg.textContent = `${data.count}枚アップロードしました`;
+                msg.style.display = 'inline';
+                setTimeout(() => { msg.style.display = 'none'; }, 3000);
+                location.reload();
+            } else {
+                errEl.textContent = data.error || 'アップロードに失敗しました。';
+                errEl.classList.remove('d-none');
+            }
+        } catch (e) {
+            errEl.textContent = '通信エラーが発生しました。';
+            errEl.classList.remove('d-none');
+        } finally {
+            spinner.classList.add('d-none');
+        }
+    }
+
+    async function deleteImage(imageId) {
+        if (!confirm('このスクショを削除しますか？')) return;
+        try {
+            const res = await fetch(`/gbp-posts/style-images/${imageId}`, { method: 'DELETE' });
+            const data = await res.json();
+            if (data.success) {
+                document.getElementById('thumb-' + imageId)?.remove();
+                // サムネイルが全部なくなったら案内表示
+                const thumbs = document.querySelectorAll('.thumb-item');
+                if (thumbs.length === 0) {
+                    const container = document.getElementById('thumbs-container');
+                    if (container) container.remove();
+                    const noImages = document.getElementById('no-images');
+                    if (noImages) noImages.style.display = 'block';
+                    else {
+                        const list = document.getElementById('style-images-list');
+                        list.innerHTML = '<div style="font-size:0.8rem;color:#9A9A9A;">まだスクショが登録されていません。</div>';
+                    }
+                }
+            }
+        } catch (e) {
+            alert('通信エラーが発生しました。');
+        }
+    }
+</script>
 {% endblock %}
