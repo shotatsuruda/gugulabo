@@ -2854,7 +2854,7 @@ def get_shops():
     """ログイン中ユーザーの店舗一覧をJSON形式で返す"""
     conn = get_db()
     shops = conn.execute(
-        "SELECT id, name, review_url, slug, place_id, line_user_id, status, business_type, created_at FROM shops WHERE user_id = ? ORDER BY created_at DESC",
+        "SELECT id, name, review_url, slug, place_id, line_user_id, status, business_type, created_at, main_menus, strengths, target_customers, nearest_station, reservation_method, price_range FROM shops WHERE user_id = ? ORDER BY created_at DESC",
         (current_user.id,),
     ).fetchall()
     conn.close()
@@ -2948,12 +2948,18 @@ def update_shop(shop_id):
         return jsonify({"error": "店舗が見つかりません"}), 404
 
     data = request.get_json()
-    place_id     = (data.get("place_id")     or "").strip() or None
-    line_user_id = (data.get("line_user_id") or "").strip() or None
+    place_id           = (data.get("place_id")           or "").strip() or None
+    line_user_id       = (data.get("line_user_id")       or "").strip() or None
+    main_menus         = (data.get("main_menus")         or "").strip() or None
+    strengths          = (data.get("strengths")          or "").strip() or None
+    target_customers   = (data.get("target_customers")   or "").strip() or None
+    nearest_station    = (data.get("nearest_station")    or "").strip() or None
+    reservation_method = (data.get("reservation_method") or "").strip() or None
+    price_range        = (data.get("price_range")        or "").strip() or None
 
     conn.execute(
-        "UPDATE shops SET place_id = ?, line_user_id = ? WHERE id = ?",
-        (place_id, line_user_id, shop_id)
+        "UPDATE shops SET place_id = ?, line_user_id = ?, main_menus = ?, strengths = ?, target_customers = ?, nearest_station = ?, reservation_method = ?, price_range = ? WHERE id = ?",
+        (place_id, line_user_id, main_menus, strengths, target_customers, nearest_station, reservation_method, price_range, shop_id)
     )
     conn.commit()
     conn.close()

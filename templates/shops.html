@@ -129,7 +129,7 @@
 
 <!-- ===== 店舗編集モーダル ===== -->
 <div class="modal fade" id="editShopModal" tabindex="-1" aria-labelledby="editShopModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content" style="border-radius:12px;">
             <div class="modal-header border-0 pb-0">
                 <h6 class="modal-title fw-bold mb-0" id="editShopModalLabel">店舗設定の編集</h6>
@@ -148,7 +148,7 @@
                         <a href="https://developers.google.com/maps/documentation/places/web-service/place-id" target="_blank" style="color:#8C7B6B;">Place IDの調べ方</a>
                     </div>
                 </div>
-                <div class="mb-2">
+                <div class="mb-3">
                     <label class="form-label fw-semibold" style="font-size:0.85rem;">
                         LINE User ID
                         <span style="font-weight:400;color:#9A9A9A;font-size:0.72rem;">― 週次レポートの送信先</span>
@@ -156,6 +156,42 @@
                     <input type="text" class="form-control form-control-sm" id="edit_line_user_id"
                         placeholder="例：Uxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx">
                     <div class="form-text">LINE公式アカウントを友だち追加後、Webhookで自動取得されます</div>
+                </div>
+
+                <!-- GBP最新情報用サロン情報 -->
+                <div class="pt-2 mb-1" style="border-top:1px solid var(--border);">
+                    <div class="fw-semibold mb-2" style="font-size:0.8rem;color:#8C7B6B;letter-spacing:0.04em;">AI最新情報生成用のサロン情報</div>
+                    <div class="mb-2">
+                        <label class="form-label" style="font-size:0.82rem;font-weight:600;">メインメニュー</label>
+                        <textarea class="form-control form-control-sm" id="edit_main_menus" rows="2"
+                            placeholder="例：カット、カラー、パーマ、縮毛矯正、トリートメント"></textarea>
+                        <div class="form-text">提供しているサービスをカンマ区切りで</div>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label" style="font-size:0.82rem;font-weight:600;">強み・こだわり</label>
+                        <textarea class="form-control form-control-sm" id="edit_strengths" rows="2"
+                            placeholder="例：ダメージレスカラー専門、個室あり、子連れOK"></textarea>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label" style="font-size:0.82rem;font-weight:600;">ターゲット客層</label>
+                        <input type="text" class="form-control form-control-sm" id="edit_target_customers"
+                            placeholder="例：30〜40代女性、ママ層">
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label" style="font-size:0.82rem;font-weight:600;">最寄り駅・エリア</label>
+                        <input type="text" class="form-control form-control-sm" id="edit_nearest_station"
+                            placeholder="例：渋谷駅徒歩5分、新宿区">
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label" style="font-size:0.82rem;font-weight:600;">予約方法</label>
+                        <input type="text" class="form-control form-control-sm" id="edit_reservation_method"
+                            placeholder="例：ホットペッパー、LINE、電話">
+                    </div>
+                    <div class="mb-0">
+                        <label class="form-label" style="font-size:0.82rem;font-weight:600;">価格帯</label>
+                        <input type="text" class="form-control form-control-sm" id="edit_price_range"
+                            placeholder="例：カット4,000円〜、カラー8,000円〜">
+                    </div>
                 </div>
             </div>
             <div class="modal-footer border-0 pt-0">
@@ -321,18 +357,30 @@
         document.getElementById('editShopModalSubtitle').textContent = shop.name;
         document.getElementById('edit_place_id').value = shop.place_id || '';
         document.getElementById('edit_line_user_id').value = shop.line_user_id || '';
+        document.getElementById('edit_main_menus').value = shop.main_menus || '';
+        document.getElementById('edit_strengths').value = shop.strengths || '';
+        document.getElementById('edit_target_customers').value = shop.target_customers || '';
+        document.getElementById('edit_nearest_station').value = shop.nearest_station || '';
+        document.getElementById('edit_reservation_method').value = shop.reservation_method || '';
+        document.getElementById('edit_price_range').value = shop.price_range || '';
         new bootstrap.Modal(document.getElementById('editShopModal')).show();
     }
 
     document.getElementById('editShopSaveBtn').addEventListener('click', async () => {
         if (!_editingShopId) return;
-        const place_id     = document.getElementById('edit_place_id').value.trim();
-        const line_user_id = document.getElementById('edit_line_user_id').value.trim();
+        const place_id           = document.getElementById('edit_place_id').value.trim();
+        const line_user_id       = document.getElementById('edit_line_user_id').value.trim();
+        const main_menus         = document.getElementById('edit_main_menus').value.trim();
+        const strengths          = document.getElementById('edit_strengths').value.trim();
+        const target_customers   = document.getElementById('edit_target_customers').value.trim();
+        const nearest_station    = document.getElementById('edit_nearest_station').value.trim();
+        const reservation_method = document.getElementById('edit_reservation_method').value.trim();
+        const price_range        = document.getElementById('edit_price_range').value.trim();
 
         const res = await fetch(`/qr/shops/${_editingShopId}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ place_id, line_user_id }),
+            body: JSON.stringify({ place_id, line_user_id, main_menus, strengths, target_customers, nearest_station, reservation_method, price_range }),
         });
         if (res.ok) {
             bootstrap.Modal.getInstance(document.getElementById('editShopModal')).hide();
