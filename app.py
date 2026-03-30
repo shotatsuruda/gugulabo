@@ -21,6 +21,7 @@ from email.mime.text import MIMEText
 from functools import wraps
 
 import bcrypt
+import requests
 import stripe
 from dotenv import load_dotenv
 from flask import (
