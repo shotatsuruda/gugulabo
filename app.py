@@ -3331,23 +3331,44 @@ def gbp_posts_upload_style():
                 "この画像はGoogleビジネスプロフィールの投稿スクリーンショットです。"
                 "投稿本文のテキストをそのまま抽出してください。テキスト以外は出力しないでください。",
             )
-        except Exception:
+        except Exception as e:
+            app.logger.warning(f"Vision extraction failed: {e}")
             extracted = None
 
-        if DB_TYPE == "postgresql":
-            conn.execute(
-                "INSERT INTO post_style_images (shop_id, filename, extracted_text) VALUES (%s, %s, %s)",
-                (shop["id"], filename, extracted),
-            )
+        if extracted:
+            if DB_TYPE == "postgresql":
+                conn.execute(
+                    "INSERT INTO post_style_images (shop_id, filename, extracted_text) VALUES (%s, %s, %s)",
+                    (shop["id"], filename, extracted),
+                )
+            else:
+                conn.execute(
+                    "INSERT INTO post_style_images (shop_id, filename, extracted_text) VALUES (?, ?, ?)",
+                    (shop["id"], filename, extracted),
+                )
+            saved += 1
         else:
-            conn.execute(
-                "INSERT INTO post_style_images (shop_id, filename, extracted_text) VALUES (?, ?, ?)",
-                (shop["id"], filename, extracted),
-            )
-        saved += 1
+            # テキスト抽出失敗でもファイルは保存済みなので記録だけしておく
+            if DB_TYPE == "postgresql":
+                conn.execute(
+                    "INSERT INTO post_style_images (shop_id, filename, extracted_text) VALUES (%s, %s, %s)",
+                    (shop["id"], filename, None),
+                )
+            else:
+                conn.execute(
+                    "INSERT INTO post_style_images (shop_id, filename, extracted_text) VALUES (?, ?, ?)",
+                    (shop["id"], filename, None),
+                )
 
     conn.commit()
     conn.close()
+
+    if saved == 0:
+        return jsonify({
+            "success": False,
+            "error": "画像のテキスト抽出に失敗しました。GBP投稿のスクリーンショット（文字が含まれる画像）をアップロードしてください。",
+            "count": 0,
+        })
     return jsonify({"success": True, "count": saved})
 
 
@@ -3367,10 +3388,16 @@ def gbp_posts_generate_style():
         " ORDER BY uploaded_at DESC",
         (shop["id"],),
     ).fetchall()
+    all_count = conn.execute(
+        "SELECT COUNT(*) as cnt FROM post_style_images WHERE shop_id = ?", (shop["id"],)
+    ).fetchone()
     conn.close()
 
     if not rows:
-        return jsonify({"error": "過去の投稿をアップロードしてください"})
+        # テキスト抽出済みレコードがない → 画像未登録 or 全件抽出失敗
+        if all_count and all_count["cnt"] > 0:
+            return jsonify({"error": "アップロードされた画像のテキスト抽出に失敗しています。GBP投稿の文字が見えるスクリーンショットを再アップロードしてください。"})
+        return jsonify({"error": "過去の投稿画像をアップロードしてください。"})
 
     data = request.get_json() or {}
     hint = (data.get("hint") or "").strip()
