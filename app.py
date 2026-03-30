@@ -25,7 +25,7 @@ import stripe
 from dotenv import load_dotenv
 from flask import (
     Flask, abort, flash, jsonify, redirect, render_template,
-    request, url_for, send_file, make_response
+    request, session, url_for, send_file, make_response
 )
 from flask_login import (
     LoginManager, UserMixin, current_user, login_required,
@@ -353,6 +353,30 @@ def init_db():
         except Exception:
             pass
 
+    # shopsテーブルへのGBPプロフィール関連カラム追加
+    if DB_TYPE == "postgresql":
+        conn.execute("ALTER TABLE shops ADD COLUMN IF NOT EXISTS main_menus TEXT")
+        conn.execute("ALTER TABLE shops ADD COLUMN IF NOT EXISTS strengths TEXT")
+        conn.execute("ALTER TABLE shops ADD COLUMN IF NOT EXISTS target_customers TEXT")
+        conn.execute("ALTER TABLE shops ADD COLUMN IF NOT EXISTS nearest_station TEXT")
+        conn.execute("ALTER TABLE shops ADD COLUMN IF NOT EXISTS reservation_method TEXT")
+        conn.execute("ALTER TABLE shops ADD COLUMN IF NOT EXISTS price_range TEXT")
+        conn.execute("ALTER TABLE shops ADD COLUMN IF NOT EXISTS profile_completed INTEGER DEFAULT 0")
+    else:
+        for _col, _def in [
+            ("main_menus",         "TEXT"),
+            ("strengths",          "TEXT"),
+            ("target_customers",   "TEXT"),
+            ("nearest_station",    "TEXT"),
+            ("reservation_method", "TEXT"),
+            ("price_range",        "TEXT"),
+            ("profile_completed",  "INTEGER DEFAULT 0"),
+        ]:
+            try:
+                conn.execute(f"ALTER TABLE shops ADD COLUMN {_col} {_def}")
+            except Exception:
+                pass
+
     # users テーブルへの各カラム追加（マイグレーション）
     if DB_TYPE == "postgresql":
         conn.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS plan TEXT DEFAULT '月額プラン'")
@@ -543,6 +567,44 @@ def init_db():
             content    TEXT NOT NULL,
             updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             UNIQUE(store_id, channel)
+        )
+        """
+    )
+
+    # GBP最新情報テーブル
+    conn.execute(
+        f"""
+        CREATE TABLE IF NOT EXISTS gbp_posts (
+            id         {pk},
+            shop_id    INTEGER NOT NULL,
+            content    TEXT NOT NULL,
+            mode       TEXT NOT NULL DEFAULT 'auto',
+            status     TEXT DEFAULT 'draft',
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            posted_at  DATETIME,
+            FOREIGN KEY (shop_id) REFERENCES shops(id)
+        )
+        """
+    )
+    # gbp_postsのmodeカラム追加（旧スキーマ対応）
+    if DB_TYPE == "postgresql":
+        conn.execute("ALTER TABLE gbp_posts ADD COLUMN IF NOT EXISTS mode TEXT NOT NULL DEFAULT 'auto'")
+    else:
+        try:
+            conn.execute("ALTER TABLE gbp_posts ADD COLUMN mode TEXT NOT NULL DEFAULT 'auto'")
+        except Exception:
+            pass
+
+    # 投稿スタイル画像テーブル
+    conn.execute(
+        f"""
+        CREATE TABLE IF NOT EXISTS post_style_images (
+            id             {pk},
+            shop_id        INTEGER NOT NULL,
+            filename       TEXT NOT NULL,
+            extracted_text TEXT,
+            uploaded_at    DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (shop_id) REFERENCES shops(id)
         )
         """
     )
@@ -797,7 +859,7 @@ def build_qr_image(
 
 # ===== OpenRouter AI返答生成 =====
 
-def generate_review_response(review_text: str, business_type: str = "") -> str:
+def generate_review_response(review_text: str, business_type: str = "", rating: int = 0) -> str:
     """OpenRouter APIを使い、Googleレビューへの返答文を日本語で生成する"""
     client = OpenAI(
         api_key=OPENROUTER_API_KEY,
@@ -813,6 +875,12 @@ def generate_review_response(review_text: str, business_type: str = "") -> str:
         sign     = "スタッフ一同"
         context  = ""
 
+    # 低評価（星1〜2）は140〜180文字、それ以外は100〜140文字
+    if 1 <= rating <= 2:
+        min_chars, max_chars = 140, 180
+    else:
+        min_chars, max_chars = 100, 140
+
     prompt = f"""あなたは{persona}です{context}。お客様からGoogleにいただいた以下のレビューに対して、丁寧でプロフェッショナルな返答文を日本語で作成してください。
 
 【返答文の条件】
@@ -821,7 +889,7 @@ def generate_review_response(review_text: str, business_type: str = "") -> str:
 - レビューの内容（良い点・気になった点）に具体的に言及する
 - ポジティブな内容は喜びを表現する
 - ネガティブな内容は真摯に受け止め、改善への姿勢を示す
-- 文字数は必ず100文字以上140文字以下で作成すること（100文字未満・140文字超は厳禁）
+- 文字数は必ず{min_chars}文字以上{max_chars}文字以下で作成すること（{min_chars}文字未満・{max_chars}文字超は厳禁）
 - 署名は「{sign}」とする
 
 【お客様のレビュー】
@@ -836,18 +904,88 @@ def generate_review_response(review_text: str, business_type: str = "") -> str:
             messages=[{"role": "user", "content": prompt}],
         )
         result = response.choices[0].message.content
-        if 100 <= len(result) <= 140:
+        if min_chars <= len(result) <= max_chars:
             return result
         # 範囲外の場合はプロンプトを強化して再試行
-        prompt = f"""以下の返答文は{len(result)}文字です。署名「{sign}」を含めて必ず100文字以上140文字以下で書き直してください。返答文のみ出力してください。\n\n{result}"""
+        prompt = f"""以下の返答文は{len(result)}文字です。署名「{sign}」を含めて必ず{min_chars}文字以上{max_chars}文字以下で書き直してください。返答文のみ出力してください。\n\n{result}"""
 
-    # 再試行後も140文字超の場合は句点で強制カット
-    if len(result) > 140:
-        cut = result[:140]
+    # 再試行後もmax_chars超の場合は句点で強制カット
+    if len(result) > max_chars:
+        cut = result[:max_chars]
         last_punct = max(cut.rfind('。'), cut.rfind('！'), cut.rfind('？'))
-        result = cut[:last_punct + 1] if last_punct > 80 else cut
+        result = cut[:last_punct + 1] if last_punct > min_chars - 20 else cut
 
     return result
+
+
+_GBP_MODEL = "google/gemini-2.0-flash"
+_OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
+_STYLE_UPLOAD_DIR = os.path.join(os.path.dirname(__file__), "static", "uploads", "post_styles")
+
+
+def _openrouter_headers() -> dict:
+    return {
+        "Authorization": f"Bearer {os.environ.get('OPENROUTER_API_KEY')}",
+        "HTTP-Referer": "https://gugulabo.com",
+        "X-Title": "Gugulabo GBP",
+        "Content-Type": "application/json",
+    }
+
+
+def call_openrouter_text(prompt: str) -> str:
+    """テキストのみのプロンプトでOpenRouterを呼び出す"""
+    resp = requests.post(
+        _OPENROUTER_URL,
+        headers=_openrouter_headers(),
+        json={
+            "model": _GBP_MODEL,
+            "messages": [{"role": "user", "content": prompt}],
+            "max_tokens": 1200,
+        },
+        timeout=30,
+    )
+    resp.raise_for_status()
+    return resp.json()["choices"][0]["message"]["content"]
+
+
+def call_openrouter_vision(image_path: str, prompt: str) -> str:
+    """画像+テキストのプロンプトでOpenRouterを呼び出す"""
+    import base64
+    with open(image_path, "rb") as f:
+        image_data = base64.b64encode(f.read()).decode("utf-8")
+    ext = image_path.rsplit(".", 1)[-1].lower()
+    mime_type = "image/png" if ext == "png" else "image/jpeg"
+    resp = requests.post(
+        _OPENROUTER_URL,
+        headers=_openrouter_headers(),
+        json={
+            "model": _GBP_MODEL,
+            "messages": [{
+                "role": "user",
+                "content": [
+                    {"type": "image_url", "image_url": {"url": f"data:{mime_type};base64,{image_data}"}},
+                    {"type": "text", "text": prompt},
+                ],
+            }],
+            "max_tokens": 800,
+        },
+        timeout=60,
+    )
+    resp.raise_for_status()
+    return resp.json()["choices"][0]["message"]["content"]
+
+
+def _parse_patterns(raw: str) -> list:
+    """OpenRouterのJSON応答からpatternsリストを取り出す（マークダウン除去付き）"""
+    import json
+    raw = raw.strip()
+    if raw.startswith("```"):
+        parts = raw.split("```")
+        raw = parts[1] if len(parts) > 1 else raw
+        if raw.startswith("json"):
+            raw = raw[4:]
+    raw = raw.strip()
+    return json.loads(raw)["patterns"]
 
 
 def predict_business_type_from_name(shop_name: str) -> str:
@@ -3023,13 +3161,362 @@ def generate_response():
     """AI返答文生成処理（Ajax用JSONレスポンス）"""
     review_text   = (request.form.get("review_text")   or "").strip()
     business_type = (request.form.get("business_type") or "").strip()
+    try:
+        rating = int(request.form.get("rating") or 0)
+    except ValueError:
+        rating = 0
     if not review_text:
         return jsonify({"success": False, "error": "レビュー内容を入力してください。"})
     try:
-        response_text = generate_review_response(review_text, business_type)
+        response_text = generate_review_response(review_text, business_type, rating)
         return jsonify({"success": True, "response": response_text})
     except Exception as e:
         return jsonify({"success": False, "error": f"AI返答生成に失敗しました: {str(e)}"})
+
+
+# ----- GBP最新情報 -----
+
+def _get_current_gbp_shop(conn, user_id):
+    """セッションまたはデフォルトで現在のshopを取得"""
+    shop_id = session.get("gbp_shop_id")
+    shop = None
+    if shop_id:
+        shop = conn.execute(
+            "SELECT * FROM shops WHERE id = ? AND user_id = ?",
+            (shop_id, user_id),
+        ).fetchone()
+    if not shop:
+        shop = conn.execute(
+            "SELECT * FROM shops WHERE user_id = ? ORDER BY created_at DESC",
+            (user_id,),
+        ).fetchone()
+    if shop:
+        session["gbp_shop_id"] = shop["id"]
+    return shop
+
+
+@app.route("/gbp-posts/setup", methods=["GET", "POST"])
+@payment_required
+def gbp_posts_setup():
+    """サロン詳細情報設定画面"""
+    conn = get_db()
+    shop_id = request.args.get("shop_id") or request.form.get("shop_id") or session.get("gbp_shop_id")
+    if shop_id:
+        shop = conn.execute(
+            "SELECT * FROM shops WHERE id = ? AND user_id = ?",
+            (shop_id, current_user.id),
+        ).fetchone()
+    else:
+        shop = conn.execute(
+            "SELECT * FROM shops WHERE user_id = ? ORDER BY created_at DESC",
+            (current_user.id,),
+        ).fetchone()
+
+    if not shop:
+        conn.close()
+        return redirect(url_for("index"))
+
+    session["gbp_shop_id"] = shop["id"]
+
+    if request.method == "POST":
+        vals = (
+            (request.form.get("main_menus")         or "").strip(),
+            (request.form.get("strengths")           or "").strip(),
+            (request.form.get("target_customers")    or "").strip(),
+            (request.form.get("nearest_station")     or "").strip(),
+            (request.form.get("reservation_method")  or "").strip(),
+            (request.form.get("price_range")         or "").strip(),
+            shop["id"],
+        )
+        if DB_TYPE == "postgresql":
+            conn.execute(
+                "UPDATE shops SET main_menus=%s, strengths=%s, target_customers=%s,"
+                " nearest_station=%s, reservation_method=%s, price_range=%s,"
+                " profile_completed=1 WHERE id=%s", vals,
+            )
+        else:
+            conn.execute(
+                "UPDATE shops SET main_menus=?, strengths=?, target_customers=?,"
+                " nearest_station=?, reservation_method=?, price_range=?,"
+                " profile_completed=1 WHERE id=?", vals,
+            )
+        conn.commit()
+        conn.close()
+        return redirect(url_for("gbp_posts_page"))
+
+    conn.close()
+    return render_template("gbp_setup.html", shop=shop)
+
+
+@app.route("/gbp-posts")
+@payment_required
+def gbp_posts_page():
+    """GBP最新情報メイン画面"""
+    # ?shop_id= が渡された場合はセッションを更新
+    if request.args.get("shop_id"):
+        session["gbp_shop_id"] = int(request.args.get("shop_id"))
+    conn = get_db()
+    shop = _get_current_gbp_shop(conn, current_user.id)
+
+    if not shop:
+        conn.close()
+        return redirect(url_for("index"))
+
+    if not shop["profile_completed"] and not request.args.get("skip"):
+        conn.close()
+        return redirect(url_for("gbp_posts_setup"))
+
+    posts = conn.execute(
+        "SELECT * FROM gbp_posts WHERE shop_id = ? AND status = 'draft' ORDER BY created_at DESC",
+        (shop["id"],),
+    ).fetchall()
+    style_count = conn.execute(
+        "SELECT COUNT(*) as cnt FROM post_style_images WHERE shop_id = ?",
+        (shop["id"],),
+    ).fetchone()["cnt"]
+    shops = conn.execute(
+        "SELECT id, name FROM shops WHERE user_id = ? ORDER BY created_at DESC",
+        (current_user.id,),
+    ).fetchall()
+    conn.close()
+    return render_template("gbp_posts.html", shop=shop, posts=posts,
+                           style_count=style_count, shops=shops)
+
+
+@app.route("/gbp-posts/upload-style", methods=["POST"])
+@payment_required
+def gbp_posts_upload_style():
+    """過去のGBP投稿画像をアップロードしてテキスト抽出"""
+    conn = get_db()
+    shop = _get_current_gbp_shop(conn, current_user.id)
+    if not shop:
+        conn.close()
+        return jsonify({"success": False, "error": "店舗が見つかりません。"})
+
+    os.makedirs(_STYLE_UPLOAD_DIR, exist_ok=True)
+
+    files = request.files.getlist("images")
+    if not files or all(f.filename == "" for f in files):
+        conn.close()
+        return jsonify({"success": False, "error": "ファイルが選択されていません。"})
+
+    ALLOWED_EXT = {"jpg", "jpeg", "png"}
+    MAX_SIZE = 10 * 1024 * 1024
+    saved = 0
+
+    for f in files[:5]:
+        ext = f.filename.rsplit(".", 1)[-1].lower() if "." in f.filename else ""
+        if ext not in ALLOWED_EXT:
+            continue
+        data = f.read()
+        if len(data) > MAX_SIZE:
+            continue
+
+        ts = int(datetime.now().timestamp() * 1000)
+        save_ext = "png" if ext == "png" else "jpg"
+        filename = f"{shop['id']}_{ts}_{saved}.{save_ext}"
+        save_path = os.path.join(_STYLE_UPLOAD_DIR, filename)
+        with open(save_path, "wb") as fp:
+            fp.write(data)
+
+        try:
+            extracted = call_openrouter_vision(
+                save_path,
+                "この画像はGoogleビジネスプロフィールの投稿スクリーンショットです。"
+                "投稿本文のテキストをそのまま抽出してください。テキスト以外は出力しないでください。",
+            )
+        except Exception:
+            extracted = None
+
+        if DB_TYPE == "postgresql":
+            conn.execute(
+                "INSERT INTO post_style_images (shop_id, filename, extracted_text) VALUES (%s, %s, %s)",
+                (shop["id"], filename, extracted),
+            )
+        else:
+            conn.execute(
+                "INSERT INTO post_style_images (shop_id, filename, extracted_text) VALUES (?, ?, ?)",
+                (shop["id"], filename, extracted),
+            )
+        saved += 1
+
+    conn.commit()
+    conn.close()
+    return jsonify({"success": True, "count": saved})
+
+
+@app.route("/gbp-posts/generate-style", methods=["POST"])
+@payment_required
+def gbp_posts_generate_style():
+    """スタイル学習モード：過去投稿を参考に3パターン生成"""
+    conn = get_db()
+    shop = _get_current_gbp_shop(conn, current_user.id)
+    if not shop:
+        conn.close()
+        return jsonify({"error": "店舗が見つかりません。"})
+
+    rows = conn.execute(
+        "SELECT extracted_text FROM post_style_images"
+        " WHERE shop_id = ? AND extracted_text IS NOT NULL"
+        " ORDER BY uploaded_at DESC",
+        (shop["id"],),
+    ).fetchall()
+    conn.close()
+
+    if not rows:
+        return jsonify({"error": "過去の投稿をアップロードしてください"})
+
+    data = request.get_json() or {}
+    hint = (data.get("hint") or "").strip()
+    extracted_texts = "\n---\n".join(r["extracted_text"] for r in rows)
+    current_month = datetime.now().month
+
+    prompt = f"""以下は、あるサロンがGoogleビジネスプロフィールに投稿してきた「最新情報」の実例です。
+
+【過去の投稿例】
+{extracted_texts}
+
+上記の投稿から以下を分析してください：
+- 文体・トーン（丁寧語/タメ口、絵文字の使い方、改行のリズム）
+- よく使うキーワードや表現
+- 文章の構成パターン
+
+その上で、同じスタイルを維持しながら新しい投稿文を3パターン生成してください。
+補足情報：{hint if hint else '特になし'}
+現在の月：{current_month}月
+
+【出力形式】
+必ずJSON形式のみで出力してください。前後に余分なテキストや```は含めないでください。
+{{"patterns": ["パターン1の本文", "パターン2の本文", "パターン3の本文"]}}"""
+
+    try:
+        raw = call_openrouter_text(prompt)
+        return jsonify({"patterns": _parse_patterns(raw)})
+    except Exception:
+        return jsonify({"error": "生成に失敗しました。再度お試しください。"})
+
+
+@app.route("/gbp-posts/generate-auto", methods=["POST"])
+@payment_required
+def gbp_posts_generate_auto():
+    """おまかせモード：サロン情報から3パターン生成"""
+    conn = get_db()
+    shop = _get_current_gbp_shop(conn, current_user.id)
+    conn.close()
+    if not shop:
+        return jsonify({"error": "店舗が見つかりません。"})
+
+    data = request.get_json() or {}
+    hint = (data.get("hint") or "").strip()
+    current_month = datetime.now().month
+
+    prompt = f"""あなたは美容室のGoogleビジネスプロフィール「最新情報」の投稿文を書くプロです。
+以下のサロン情報をもとに、集客につながる投稿文を3パターン生成してください。
+
+【サロン情報】
+店名：{shop['name']}
+メインメニュー：{shop.get('main_menus') or '未設定'}
+強み・こだわり：{shop.get('strengths') or '未設定'}
+ターゲット客層：{shop.get('target_customers') or '未設定'}
+アクセス：{shop.get('nearest_station') or '未設定'}
+予約方法：{shop.get('reservation_method') or '未設定'}
+価格帯：{shop.get('price_range') or '未設定'}
+現在の月：{current_month}月
+補足：{hint if hint else '特になし'}
+
+【生成条件】
+- 文字数：150〜300文字
+- 語尾は丁寧語（です・ます調）
+- 絵文字を適度に使用（1〜3個程度）
+- ハッシュタグは末尾に2〜3個
+- MEOを意識したキーワードを自然に含める
+- 季節感を盛り込む
+- 3パターンはそれぞれ異なる切り口にする
+  （例：メニュー訴求／季節テーマ／エリア×集客訴求）
+
+【出力形式】
+必ずJSON形式のみで出力してください。前後に余分なテキストや```は含めないでください。
+{{"patterns": ["パターン1の本文", "パターン2の本文", "パターン3の本文"]}}"""
+
+    try:
+        raw = call_openrouter_text(prompt)
+        return jsonify({"patterns": _parse_patterns(raw)})
+    except Exception:
+        return jsonify({"error": "生成に失敗しました。再度お試しください。"})
+
+
+@app.route("/gbp-posts/save", methods=["POST"])
+@payment_required
+def gbp_posts_save():
+    """GBP投稿文を下書き保存（新規INSERT / 既存UPDATE）"""
+    data = request.get_json() or {}
+    shop_id = data.get("shop_id")
+    content = (data.get("content") or "").strip()
+    mode    = (data.get("mode") or "auto").strip()
+    post_id = data.get("post_id")  # 指定時はUPDATE
+
+    if not shop_id or not content:
+        return jsonify({"success": False, "error": "パラメータが不足しています。"})
+
+    conn = get_db()
+    shop = conn.execute(
+        "SELECT id FROM shops WHERE id = ? AND user_id = ?",
+        (shop_id, current_user.id),
+    ).fetchone()
+    if not shop:
+        conn.close()
+        return jsonify({"success": False, "error": "店舗が見つかりません。"})
+
+    if post_id:
+        conn.execute(
+            "UPDATE gbp_posts SET content = ? WHERE id = ? AND shop_id = ?",
+            (content, post_id, shop_id),
+        )
+        conn.commit()
+        conn.close()
+        return jsonify({"success": True, "post_id": post_id})
+
+    if DB_TYPE == "postgresql":
+        cur = conn.execute(
+            "INSERT INTO gbp_posts (shop_id, content, mode, status) VALUES (%s, %s, %s, 'draft') RETURNING id",
+            (shop_id, content, mode),
+        )
+        new_id = cur.fetchone()[0]
+    else:
+        cur = conn.execute(
+            "INSERT INTO gbp_posts (shop_id, content, mode, status) VALUES (?, ?, ?, 'draft')",
+            (shop_id, content, mode),
+        )
+        new_id = cur.lastrowid
+    conn.commit()
+    conn.close()
+    return jsonify({"success": True, "post_id": new_id})
+
+
+@app.route("/gbp-posts/<int:post_id>", methods=["DELETE"])
+@payment_required
+def gbp_posts_delete(post_id):
+    """GBP下書きを削除"""
+    conn = get_db()
+    post = conn.execute(
+        "SELECT gp.id FROM gbp_posts gp JOIN shops s ON s.id = gp.shop_id"
+        " WHERE gp.id = ? AND s.user_id = ?",
+        (post_id, current_user.id),
+    ).fetchone()
+    if not post:
+        conn.close()
+        return jsonify({"success": False, "error": "投稿が見つかりません。"})
+    conn.execute("DELETE FROM gbp_posts WHERE id = ?", (post_id,))
+    conn.commit()
+    conn.close()
+    return jsonify({"success": True})
+
+
+@app.route("/gbp-posts/publish/<int:post_id>", methods=["POST"])
+@payment_required
+def gbp_posts_publish(post_id):
+    """GBP投稿（GBP API承認後に実装）"""
+    return jsonify({"message": "GBP API承認後に投稿機能が有効になります"})
 
 
 # ----- 管理者: ユーザー管理 -----

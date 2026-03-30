@@ -31,6 +31,19 @@
                         <span id="business_type_label" style="font-size:0.75rem;font-weight:600;color:#8C7B6B;"></span>
                     </div>
                 </div>
+                <div class="mb-3">
+                    <label class="form-label">星評価
+                        <span style="font-weight:400;color:#9A9A9A;font-size:0.72rem;">― 低評価（★1・★2）は長め（140〜180文字）の返答を生成</span>
+                    </label>
+                    <select class="form-select form-select-sm" id="review_rating">
+                        <option value="0">-- 指定なし（100〜140文字）--</option>
+                        <option value="1">★1（低評価）</option>
+                        <option value="2">★2（低評価）</option>
+                        <option value="3">★3（普通）</option>
+                        <option value="4">★4（良い）</option>
+                        <option value="5">★5（最高）</option>
+                    </select>
+                </div>
                 <label for="review_text" class="form-label">レビュー内容を貼り付けてください</label>
                 <textarea class="form-control flex-grow-1" id="review_text" rows="9"
                           placeholder="例：スタッフの対応がとても丁寧で、居心地よく過ごせました。サービスの質も高く、また利用したいと思います。ただ、待ち時間が少し長く感じました。"></textarea>
@@ -170,6 +183,7 @@
             const formData = new FormData();
             formData.append('review_text', reviewText);
             formData.append('business_type', getSelectedBusinessType());
+            formData.append('rating', document.getElementById('review_rating').value);
             const response = await fetch('/review/generate', { method: 'POST', body: formData });
             const data = await response.json();
 

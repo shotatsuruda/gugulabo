@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+
+{% block title %}サロン情報の設定 | গগラボ{% endblock %}
+
+{% block content %}
+
+<div class="d-flex align-items-center gap-2 mb-2">
+    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8C7B6B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+    <h2 class="mb-0 fw-bold" style="font-size:1.2rem;">サロン情報の設定</h2>
+</div>
+<p class="text-muted mb-4" style="font-size:0.85rem;">
+    AI生成の精度を高めるために、サロンの情報を教えてください。あとから変更できます。
+</p>
+
+<div class="card">
+    <div class="card-body p-4">
+        <form method="POST" action="/gbp-posts/setup">
+            <input type="hidden" name="shop_id" value="{{ shop.id }}">
+
+            <div class="mb-4">
+                <div class="d-flex align-items-center gap-2 mb-3 pb-2" style="border-bottom:1px solid var(--border);">
+                    <span style="font-size:0.72rem;font-weight:700;color:#9A9A9A;letter-spacing:0.06em;">{{ shop.name }}</span>
+                </div>
+
+                <!-- メインメニュー -->
+                <div class="mb-3">
+                    <label class="form-label fw-semibold" style="font-size:0.875rem;">メインメニュー</label>
+                    <textarea class="form-control" name="main_menus" rows="2"
+                              placeholder="例：カット、カラー、パーマ、縮毛矯正、トリートメント">{{ shop.main_menus or '' }}</textarea>
+                    <div class="form-text">提供しているサービスをカンマ区切りで記入してください。</div>
+                </div>
+
+                <!-- 強み・こだわり -->
+                <div class="mb-3">
+                    <label class="form-label fw-semibold" style="font-size:0.875rem;">強み・こだわり</label>
+                    <textarea class="form-control" name="strengths" rows="2"
+                              placeholder="例：ダメージレスカラー専門、個室あり、子連れOK、マンツーマン対応">{{ shop.strengths or '' }}</textarea>
+                </div>
+
+                <!-- ターゲット客層 -->
+                <div class="mb-3">
+                    <label class="form-label fw-semibold" style="font-size:0.875rem;">ターゲット客層</label>
+                    <input type="text" class="form-control" name="target_customers"
+                           placeholder="例：30〜40代女性、ママ層、ビジネスマン"
+                           value="{{ shop.target_customers or '' }}">
+                </div>
+
+                <!-- 最寄り駅・エリア -->
+                <div class="mb-3">
+                    <label class="form-label fw-semibold" style="font-size:0.875rem;">最寄り駅・エリア</label>
+                    <input type="text" class="form-control" name="nearest_station"
+                           placeholder="例：渋谷駅徒歩5分、新宿区"
+                           value="{{ shop.nearest_station or '' }}">
+                </div>
+
+                <!-- 予約方法 -->
+                <div class="mb-3">
+                    <label class="form-label fw-semibold" style="font-size:0.875rem;">予約方法</label>
+                    <input type="text" class="form-control" name="reservation_method"
+                           placeholder="例：ホットペッパー、LINE、電話"
+                           value="{{ shop.reservation_method or '' }}">
+                </div>
+
+                <!-- 価格帯 -->
+                <div class="mb-3">
+                    <label class="form-label fw-semibold" style="font-size:0.875rem;">価格帯</label>
+                    <input type="text" class="form-control" name="price_range"
+                           placeholder="例：カット4,000円〜、カラー8,000円〜"
+                           value="{{ shop.price_range or '' }}">
+                </div>
+            </div>
+
+            <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:5px;"><polyline points="20 6 9 17 4 12"/></svg>
+                    保存して投稿生成へ進む
+                </button>
+                <a href="/gbp-posts?skip=1" class="btn btn-link text-muted" style="font-size:0.82rem;">
+                    スキップ（あとで設定する）
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}

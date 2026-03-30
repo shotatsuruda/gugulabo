@@ -91,10 +91,16 @@ def generate_reply(review: dict, business_type: str) -> str:
     else:
         tone = "誠実にお詫びし、具体的な改善意思を示す。防御的にならず真摯に受け止める"
 
+    # 低評価（星1〜2）は140〜180文字、それ以外は80〜120文字
+    if rating <= 2:
+        min_chars, max_chars = 140, 180
+    else:
+        min_chars, max_chars = 80, 120
+
     closing = "／".join(persona["closing_examples"])
 
     prompt = f"""あなたは{persona["role"]}です。
-以下のGoogleレビューに対して返答文を80〜120文字で作成してください。
+以下のGoogleレビューに対して返答文を{min_chars}〜{max_chars}文字で作成してください。
 
 【投稿者】{author}
 【評価】★{rating}
@@ -110,7 +116,7 @@ def generate_reply(review: dict, business_type: str) -> str:
 - 口コミの内容に具体的に触れる（テキストなしの場合はスターへの感謝を）
 - 店名・個人名は含めない
 - 定型文にならないよう自然に
-- 文字数：80〜120文字
+- 文字数：{min_chars}〜{max_chars}文字
 - 返答文のみを出力すること（前置き・説明・注釈は不要）
 """
 
