@@ -3483,8 +3483,9 @@ JSONや```などの余分な記号は一切含めないでください。""")
     try:
         result = call_openrouter_text(prompt)
         return jsonify({"pattern": result.strip()})
-    except Exception:
-        return jsonify({"error": "生成に失敗しました。再度お試しください。"})
+    except Exception as e:
+        app.logger.error(f"GBP generate error: {e}")
+        return jsonify({"error": f"生成に失敗しました: {str(e)}"})
 
 
 @app.route("/gbp-posts/save", methods=["POST"])
