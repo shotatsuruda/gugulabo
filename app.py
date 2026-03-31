@@ -2622,6 +2622,12 @@ def qr_form():
     return render_template("qr.html", shop_name=SHOP_NAME)
 
 
+@app.route("/coupon-settings")
+@payment_required
+def coupon_settings():
+    return render_template("coupon_settings.html")
+
+
 @app.route("/bulk-create", methods=["GET", "POST"])
 @payment_required
 def bulk_create():
