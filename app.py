@@ -2946,7 +2946,7 @@ def add_shop():
 @app.route("/qr/shops/<int:shop_id>", methods=["PATCH"])
 @payment_required
 def update_shop(shop_id):
-    """店舗の place_id / line_user_id を更新する（所有者のみ）"""
+    """店舗情報を更新する（所有者のみ）"""
     conn = get_db()
     shop = conn.execute(
         "SELECT id FROM shops WHERE id = ? AND user_id = ?", (shop_id, current_user.id)
@@ -2956,6 +2956,10 @@ def update_shop(shop_id):
         return jsonify({"error": "店舗が見つかりません"}), 404
 
     data = request.get_json()
+    name               = (data.get("name")               or "").strip() or None
+    review_url         = (data.get("review_url")         or "").strip() or None
+    business_type      = (data.get("business_type")      or "").strip() or None
+    slug               = (data.get("slug")               or "").strip() or None
     place_id           = (data.get("place_id")           or "").strip() or None
     line_user_id       = (data.get("line_user_id")       or "").strip() or None
     main_menus         = (data.get("main_menus")         or "").strip() or None
@@ -2965,10 +2969,23 @@ def update_shop(shop_id):
     reservation_method = (data.get("reservation_method") or "").strip() or None
     price_range        = (data.get("price_range")        or "").strip() or None
 
-    conn.execute(
-        "UPDATE shops SET place_id = ?, line_user_id = ?, main_menus = ?, strengths = ?, target_customers = ?, nearest_station = ?, reservation_method = ?, price_range = ? WHERE id = ?",
-        (place_id, line_user_id, main_menus, strengths, target_customers, nearest_station, reservation_method, price_range, shop_id)
-    )
+    fields = []
+    values = []
+    if name:
+        fields.append("name = ?"); values.append(name)
+    if review_url is not None:
+        fields.append("review_url = ?"); values.append(review_url)
+    if business_type is not None:
+        fields.append("business_type = ?"); values.append(business_type)
+    if slug:
+        fields.append("slug = ?"); values.append(slug)
+    fields += ["place_id = ?", "line_user_id = ?", "main_menus = ?", "strengths = ?",
+               "target_customers = ?", "nearest_station = ?", "reservation_method = ?", "price_range = ?"]
+    values += [place_id, line_user_id, main_menus, strengths,
+               target_customers, nearest_station, reservation_method, price_range]
+    values.append(shop_id)
+
+    conn.execute(f"UPDATE shops SET {', '.join(fields)} WHERE id = ?", values)
     conn.commit()
     conn.close()
     return jsonify({"success": True})
