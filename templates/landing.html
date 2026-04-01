@@ -754,6 +754,10 @@
             #customize-survey .text-col { order: -1; }
             #survey-analytics .mock-col { order: 1; }
             #survey-analytics .text-col { order: -1; }
+
+            /* ---- 最新情報セクション スマホ対応 ---- */
+            .gbp-screenshots { flex-direction: column !important; }
+            .gbp-step-cards  { grid-template-columns: 1fr !important; }
         }
     </style>
 </head>
@@ -1226,7 +1230,7 @@
         </div>
 
         <!-- スクリーンショット3枚横並び -->
-        <div style="display:flex;gap:16px;justify-content:center;margin:0 auto 56px;max-width:860px;">
+        <div class="gbp-screenshots" style="display:flex;gap:16px;justify-content:center;margin:0 auto 56px;max-width:860px;">
             <div style="flex:1;min-width:0;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.10);border:1px solid #EDE8E0;">
                 <img src="/static/images/lp/gbp-post-1.jpg" alt="最新情報 生成サンプル1" style="width:100%;display:block;object-fit:cover;">
             </div>
@@ -1239,7 +1243,7 @@
         </div>
 
         <!-- 3つのポイント -->
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;max-width:900px;margin:0 auto;">
+        <div class="gbp-step-cards" style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;max-width:900px;margin:0 auto;">
 
             <!-- ポイント1 -->
             <div style="background:#fff;border:1px solid #EDE8E0;border-radius:12px;overflow:hidden;">
