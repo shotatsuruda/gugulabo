@@ -116,11 +116,52 @@
 
 </div>
 
+<!-- 返答スタイル学習セクション -->
+<div class="card mt-4">
+    <div class="card-header">
+        <div class="ai-label-tag">STYLE</div>
+        <div class="fw-semibold" style="font-size:0.875rem;margin-top:2px;">過去の返答例をアップロード（トーン学習）</div>
+    </div>
+    <div class="card-body p-4">
+        <p style="font-size:0.82rem;color:#5C5C5C;margin-bottom:1rem;">
+            Googleビジネスプロフィールで過去に返答した返答文のスクリーンショットをアップロードすると、同じ文体・トーンでAIが返答を生成します。<br>
+            店舗を選択してからアップロードしてください。
+        </p>
+
+        <!-- ドラッグ&ドロップエリア -->
+        <div id="style_drop_area"
+             style="border:2px dashed #D6CFC8;border-radius:8px;padding:2rem;text-align:center;cursor:pointer;transition:border-color 0.2s;background:#FAFAF9;"
+             onclick="document.getElementById('style_file_input').click()"
+             ondragover="event.preventDefault();this.style.borderColor='#8C7B6B';"
+             ondragleave="this.style.borderColor='#D6CFC8';"
+             ondrop="handleStyleDrop(event)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#B0A89E" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:0.5rem;"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            <p class="mb-0" style="font-size:0.82rem;color:#9A9A9A;">クリックまたはドラッグ&ドロップ（JPG / PNG・最大5枚・各10MBまで）</p>
+        </div>
+        <input type="file" id="style_file_input" accept=".jpg,.jpeg,.png" multiple style="display:none;" onchange="uploadStyleImages(this.files)">
+
+        <!-- アップロード進捗 -->
+        <div id="style_upload_progress" class="mt-3 d-none">
+            <div class="d-flex align-items-center gap-2">
+                <div class="spinner-border spinner-border-sm" role="status"></div>
+                <span style="font-size:0.82rem;color:#5C5C5C;">アップロード・テキスト抽出中...</span>
+            </div>
+        </div>
+
+        <!-- アップロードエラー -->
+        <div id="style_upload_error" class="alert alert-danger mt-3 d-none" style="font-size:0.82rem;"></div>
+
+        <!-- 登録済み画像一覧 -->
+        <div id="style_images_list" class="mt-3"></div>
+    </div>
+</div>
+
 <!-- 使い方ガイド -->
 <div class="card mt-4" style="background-color:#F5F3F0;">
     <div class="card-body py-3 px-4">
         <p class="mb-2" style="font-size:0.72rem;font-weight:700;color:#9A9A9A;letter-spacing:0.06em;text-transform:uppercase;">使い方</p>
         <ol class="mb-0" style="font-size:0.82rem;color:#2C2C2C;padding-left:1.25rem;line-height:2;">
+            <li>（任意）過去の返答スクリーンショットをアップロードしてトーンを学習させます。</li>
             <li>GoogleビジネスプロフィールからレビューをコピーしてLeft側のテキストエリアに貼り付けます。</li>
             <li>「AI返答を生成する」ボタンをクリックします。</li>
             <li>生成された返答文は自由に編集できます。</li>
@@ -148,6 +189,8 @@
                 opt.textContent = s.name + (s.business_type ? `（${s.business_type}）` : '');
                 sel.appendChild(opt);
             });
+            // 最初の店舗のスタイル画像を自動読み込み
+            if (reviewShops.length > 0) loadStyleImages(reviewShops[0].id);
         } catch (_) {}
     })();
 
@@ -161,7 +204,14 @@
         } else {
             badge.classList.add('d-none');
         }
+        // 店舗変更時にスタイル画像を再読み込み
+        if (this.value) loadStyleImages(this.value);
+        else document.getElementById('style_images_list').innerHTML = '';
     });
+
+    function getSelectedShopId() {
+        return document.getElementById('shop_select_review').value || '';
+    }
 
     function getSelectedBusinessType() {
         const sel = document.getElementById('shop_select_review');
@@ -184,6 +234,7 @@
             formData.append('review_text', reviewText);
             formData.append('business_type', getSelectedBusinessType());
             formData.append('rating', document.getElementById('review_rating').value);
+            formData.append('shop_id', getSelectedShopId());
             const response = await fetch('/review/generate', { method: 'POST', body: formData });
             const data = await response.json();
 
@@ -221,5 +272,85 @@
     document.getElementById('review_text').addEventListener('keydown', function(e) {
         if (e.key === 'Enter' && e.ctrlKey) generateResponse();
     });
+
+    // ----- スタイル画像アップロード -----
+
+    function handleStyleDrop(e) {
+        e.preventDefault();
+        document.getElementById('style_drop_area').style.borderColor = '#D6CFC8';
+        uploadStyleImages(e.dataTransfer.files);
+    }
+
+    async function uploadStyleImages(files) {
+        const shopId = getSelectedShopId();
+        if (!shopId) { alert('先に店舗を選択してください。'); return; }
+        if (!files || files.length === 0) return;
+
+        document.getElementById('style_upload_progress').classList.remove('d-none');
+        document.getElementById('style_upload_error').classList.add('d-none');
+
+        const formData = new FormData();
+        formData.append('shop_id', shopId);
+        for (const f of files) formData.append('images', f);
+
+        try {
+            const res = await fetch('/review/upload-style', { method: 'POST', body: formData });
+            const data = await res.json();
+            if (data.success) {
+                await loadStyleImages(shopId);
+            } else {
+                const errEl = document.getElementById('style_upload_error');
+                errEl.textContent = data.error;
+                errEl.classList.remove('d-none');
+            }
+        } catch (_) {
+            const errEl = document.getElementById('style_upload_error');
+            errEl.textContent = '通信エラーが発生しました。';
+            errEl.classList.remove('d-none');
+        } finally {
+            document.getElementById('style_upload_progress').classList.add('d-none');
+            document.getElementById('style_file_input').value = '';
+        }
+    }
+
+    async function loadStyleImages(shopId) {
+        if (!shopId) return;
+        try {
+            const res = await fetch(`/review/style-images?shop_id=${shopId}`);
+            const images = await res.json();
+            renderStyleImages(images);
+        } catch (_) {}
+    }
+
+    function renderStyleImages(images) {
+        const container = document.getElementById('style_images_list');
+        if (!images || images.length === 0) {
+            container.innerHTML = '';
+            return;
+        }
+        container.innerHTML = `
+            <p class="mb-2" style="font-size:0.75rem;font-weight:700;color:#9A9A9A;letter-spacing:0.05em;text-transform:uppercase;">登録済みの返答例（${images.length}件）</p>
+            <div class="d-flex flex-wrap gap-2">
+                ${images.map(img => `
+                    <div class="d-flex align-items-center gap-1 px-2 py-1 rounded" style="background:#F0EDE9;font-size:0.78rem;">
+                        ${img.ok
+                            ? '<span style="color:#4CAF50;font-weight:700;">✓</span>'
+                            : '<span style="color:#E57373;font-weight:700;">✗</span>'
+                        }
+                        <span style="color:#5C5C5C;">返答例 #${img.id}</span>
+                        <button type="button" onclick="deleteStyleImage(${img.id})" style="background:none;border:none;padding:0;cursor:pointer;color:#B0A89E;font-size:0.85rem;line-height:1;" title="削除">×</button>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    }
+
+    async function deleteStyleImage(imageId) {
+        if (!confirm('この返答例を削除しますか？')) return;
+        try {
+            await fetch(`/review/style-images/${imageId}`, { method: 'DELETE' });
+            await loadStyleImages(getSelectedShopId());
+        } catch (_) {}
+    }
 </script>
 {% endblock %}

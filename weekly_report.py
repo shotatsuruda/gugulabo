@@ -54,9 +54,18 @@ def run():
         try:
             new_reviews, current_avg = get_new_reviews(shop_id, place_id, db)
 
+            # 返答スタイルテキストを取得（過去の返答文のトーン学習用）
+            style_rows = db.execute(
+                "SELECT extracted_text FROM reply_style_images"
+                " WHERE shop_id = ? AND extracted_text IS NOT NULL"
+                " ORDER BY uploaded_at DESC LIMIT 5",
+                (shop_id,),
+            ).fetchall()
+            style_texts = [r["extracted_text"] for r in style_rows] or None
+
             replies = []
             for review in new_reviews:
-                reply = generate_reply(review, business_type)
+                reply = generate_reply(review, business_type, style_texts)
                 replies.append(reply)
 
                 db.execute(

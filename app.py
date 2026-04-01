@@ -610,6 +610,20 @@ def init_db():
         """
     )
 
+    # 返答スタイル画像テーブル
+    conn.execute(
+        f"""
+        CREATE TABLE IF NOT EXISTS reply_style_images (
+            id             {pk},
+            shop_id        INTEGER NOT NULL,
+            filename       TEXT NOT NULL,
+            extracted_text TEXT,
+            uploaded_at    DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (shop_id) REFERENCES shops(id)
+        )
+        """
+    )
+
     # デモ用店舗を作成（なければ）
     conn.execute("""
         INSERT INTO shops (user_id, name, slug, review_url)
@@ -860,7 +874,7 @@ def build_qr_image(
 
 # ===== OpenRouter AI返答生成 =====
 
-def generate_review_response(review_text: str, business_type: str = "", rating: int = 0) -> str:
+def generate_review_response(review_text: str, business_type: str = "", rating: int = 0, style_texts: list = None) -> str:
     """OpenRouter APIを使い、Googleレビューへの返答文を日本語で生成する"""
     client = OpenAI(
         api_key=OPENROUTER_API_KEY,
@@ -882,6 +896,11 @@ def generate_review_response(review_text: str, business_type: str = "", rating: 
     else:
         min_chars, max_chars = 100, 140
 
+    style_section = ""
+    if style_texts:
+        combined = "\n---\n".join(style_texts)
+        style_section = f"\n\n【過去の返答例（文体・トーン・言い回しを必ず踏襲すること）】\n{combined}"
+
     prompt = f"""あなたは{persona}です{context}。お客様からGoogleにいただいた以下のレビューに対して、丁寧でプロフェッショナルな返答文を日本語で作成してください。
 
 【返答文の条件】
@@ -892,6 +911,7 @@ def generate_review_response(review_text: str, business_type: str = "", rating: 
 - ネガティブな内容は真摯に受け止め、改善への姿勢を示す
 - 文字数は必ず{min_chars}文字以上{max_chars}文字以下で作成すること（{min_chars}文字未満・{max_chars}文字超は厳禁）
 - 署名は「{sign}」とする
+- 過去の返答例がある場合はその文体・トーン・言い回しを必ず踏襲する{style_section}
 
 【お客様のレビュー】
 {review_text}
@@ -922,6 +942,7 @@ def generate_review_response(review_text: str, business_type: str = "", rating: 
 _GBP_MODEL = "anthropic/claude-haiku-4-5"
 _OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 _STYLE_UPLOAD_DIR = os.path.join(os.path.dirname(__file__), "static", "uploads", "post_styles")
+_REPLY_STYLE_UPLOAD_DIR = os.path.join(os.path.dirname(__file__), "static", "uploads", "reply_styles")
 
 
 def _openrouter_headers() -> dict:
@@ -3198,13 +3219,162 @@ def generate_response():
         rating = int(request.form.get("rating") or 0)
     except ValueError:
         rating = 0
+    try:
+        shop_id = int(request.form.get("shop_id") or 0)
+    except ValueError:
+        shop_id = 0
+
     if not review_text:
         return jsonify({"success": False, "error": "レビュー内容を入力してください。"})
+
+    style_texts = []
+    if shop_id:
+        conn = get_db()
+        rows = conn.execute(
+            "SELECT extracted_text FROM reply_style_images"
+            " WHERE shop_id = ? AND extracted_text IS NOT NULL"
+            " ORDER BY uploaded_at DESC LIMIT 5",
+            (shop_id,),
+        ).fetchall()
+        conn.close()
+        style_texts = [r["extracted_text"] for r in rows]
+
     try:
-        response_text = generate_review_response(review_text, business_type, rating)
+        response_text = generate_review_response(review_text, business_type, rating, style_texts or None)
         return jsonify({"success": True, "response": response_text})
     except Exception as e:
         return jsonify({"success": False, "error": f"AI返答生成に失敗しました: {str(e)}"})
+
+
+@app.route("/review/style-images", methods=["GET"])
+@payment_required
+def review_get_style_images():
+    """指定shop_idの返答スタイル画像一覧を返す"""
+    try:
+        shop_id = int(request.args.get("shop_id") or 0)
+    except ValueError:
+        shop_id = 0
+    if not shop_id:
+        return jsonify([])
+    conn = get_db()
+    shop = conn.execute(
+        "SELECT id FROM shops WHERE id = ? AND user_id = ?",
+        (shop_id, current_user.id),
+    ).fetchone()
+    if not shop:
+        conn.close()
+        return jsonify([])
+    rows = conn.execute(
+        "SELECT id, filename, extracted_text FROM reply_style_images"
+        " WHERE shop_id = ? ORDER BY uploaded_at DESC",
+        (shop_id,),
+    ).fetchall()
+    conn.close()
+    return jsonify([{"id": r["id"], "filename": r["filename"], "ok": bool(r["extracted_text"])} for r in rows])
+
+
+@app.route("/review/upload-style", methods=["POST"])
+@payment_required
+def review_upload_style():
+    """過去のGoogleレビュー返答スクリーンショットをアップロードしてテキスト抽出"""
+    try:
+        shop_id = int(request.form.get("shop_id") or 0)
+    except ValueError:
+        shop_id = 0
+    if not shop_id:
+        return jsonify({"success": False, "error": "店舗を選択してください。"})
+
+    conn = get_db()
+    shop = conn.execute(
+        "SELECT id FROM shops WHERE id = ? AND user_id = ?",
+        (shop_id, current_user.id),
+    ).fetchone()
+    if not shop:
+        conn.close()
+        return jsonify({"success": False, "error": "店舗が見つかりません。"})
+
+    os.makedirs(_REPLY_STYLE_UPLOAD_DIR, exist_ok=True)
+
+    files = request.files.getlist("images")
+    if not files or all(f.filename == "" for f in files):
+        conn.close()
+        return jsonify({"success": False, "error": "ファイルが選択されていません。"})
+
+    ALLOWED_EXT = {"jpg", "jpeg", "png"}
+    MAX_SIZE = 10 * 1024 * 1024
+    saved = 0
+
+    for f in files[:5]:
+        ext = f.filename.rsplit(".", 1)[-1].lower() if "." in f.filename else ""
+        if ext not in ALLOWED_EXT:
+            continue
+        data = f.read()
+        if len(data) > MAX_SIZE:
+            continue
+
+        ts = int(datetime.now().timestamp() * 1000)
+        save_ext = "png" if ext == "png" else "jpg"
+        filename = f"reply_{shop_id}_{ts}_{saved}.{save_ext}"
+        save_path = os.path.join(_REPLY_STYLE_UPLOAD_DIR, filename)
+        with open(save_path, "wb") as fp:
+            fp.write(data)
+
+        try:
+            extracted = call_openrouter_vision(
+                save_path,
+                "この画像はGoogleビジネスプロフィールのレビュー返答スクリーンショットです。"
+                "オーナーが返答した返答文のテキストをそのまま抽出してください。テキスト以外は出力しないでください。",
+            )
+        except Exception as e:
+            app.logger.warning(f"Reply style vision extraction failed: {e}")
+            extracted = None
+
+        if DB_TYPE == "postgresql":
+            conn.execute(
+                "INSERT INTO reply_style_images (shop_id, filename, extracted_text) VALUES (%s, %s, %s)",
+                (shop_id, filename, extracted),
+            )
+        else:
+            conn.execute(
+                "INSERT INTO reply_style_images (shop_id, filename, extracted_text) VALUES (?, ?, ?)",
+                (shop_id, filename, extracted),
+            )
+        if extracted:
+            saved += 1
+
+    conn.commit()
+    conn.close()
+
+    if saved == 0:
+        return jsonify({
+            "success": False,
+            "error": "テキスト抽出に失敗しました。返答文が写ったスクリーンショットをアップロードしてください。",
+            "count": 0,
+        })
+    return jsonify({"success": True, "count": saved})
+
+
+@app.route("/review/style-images/<int:image_id>", methods=["DELETE"])
+@payment_required
+def review_delete_style_image(image_id):
+    """返答スタイル画像を1枚削除"""
+    conn = get_db()
+    row = conn.execute(
+        "SELECT rsi.id, rsi.filename FROM reply_style_images rsi"
+        " JOIN shops s ON s.id = rsi.shop_id"
+        " WHERE rsi.id = ? AND s.user_id = ?",
+        (image_id, current_user.id),
+    ).fetchone()
+    if not row:
+        conn.close()
+        return jsonify({"success": False, "error": "画像が見つかりません。"})
+    file_path = os.path.join(_REPLY_STYLE_UPLOAD_DIR, row["filename"])
+    if os.path.exists(file_path):
+        os.remove(file_path)
+    conn.execute("DELETE FROM reply_style_images WHERE id = ?", (image_id,))
+    conn.commit()
+    conn.close()
+    return jsonify({"success": True})
 
 
 # ----- GBP最新情報 -----

@@ -73,9 +73,10 @@ _DEFAULT_PERSONA = {
 }
 
 
-def generate_reply(review: dict, business_type: str) -> str:
+def generate_reply(review: dict, business_type: str, style_texts: list = None) -> str:
     """
     口コミ1件に対して、サロンタイプ別のAI返答文を生成する。
+    style_texts: 過去の返答文テキストのリスト（文体・トーン参照用）
     """
     OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY")
     rating = review["rating"]
@@ -99,6 +100,11 @@ def generate_reply(review: dict, business_type: str) -> str:
 
     closing = "／".join(persona["closing_examples"])
 
+    style_section = ""
+    if style_texts:
+        combined = "\n---\n".join(style_texts)
+        style_section = f"\n【過去の返答例（文体・トーン・言い回しを必ず踏襲すること）】\n{combined}\n"
+
     prompt = f"""あなたは{persona["role"]}です。
 以下のGoogleレビューに対して返答文を{min_chars}〜{max_chars}文字で作成してください。
 
@@ -109,7 +115,7 @@ def generate_reply(review: dict, business_type: str) -> str:
 【返答の方向性】{tone}
 【文体・トーン】{persona["style"]}
 【クロージングの参考例】{closing}
-
+{style_section}
 条件：
 - 丁寧な敬語を使う
 - 書き出しのバリエーションを意識する（「ありがとうございます」「嬉しいお言葉」「貴重なご意見」「ご来店いただき」「{persona["keywords"][0]}についてお褒めの言葉」など）
@@ -117,6 +123,7 @@ def generate_reply(review: dict, business_type: str) -> str:
 - 店名・個人名は含めない
 - 定型文にならないよう自然に
 - 他店・競合との比較表現は一切使わない
+- 過去の返答例がある場合はその文体・トーン・言い回しを必ず踏襲する
 - 文字数：{min_chars}〜{max_chars}文字
 - 返答文のみを出力すること（前置き・説明・注釈は不要）
 """
