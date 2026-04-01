@@ -3638,6 +3638,10 @@ def gbp_posts_generate():
     themes_str = "、".join(themes) if themes else "（指定なし）"
     current_month = datetime.now().month
 
+    # 季節テーマが選択されているか判定
+    seasonal_themes = {"春の新スタイル", "梅雨のうねりケア", "夏のダメージ対策", "秋のカラーチェンジ", "冬の乾燥ケア", "年末年始の予約受付"}
+    has_seasonal_theme = any(t in seasonal_themes for t in themes)
+
     parts = [
         "あなたは美容室のGoogleビジネスプロフィール「最新情報」の投稿文を書くプロです。",
         "以下の情報をもとに、集客につながる投稿文を1つ生成してください。",
@@ -3662,6 +3666,7 @@ def gbp_posts_generate():
         parts.append(f"\n【過去の投稿例（文体・トーンを必ず踏襲すること）】\n{combined}")
     if use_ai and not use_shop_info and not use_style:
         parts.append("\nサロンの一般的な特徴を想定し、自由に魅力的な投稿文を生成してください。")
+    seasonal_instruction = f"- 選択したテーマに合わせて{current_month}月の季節感を盛り込む\n" if has_seasonal_theme else ""
     parts.append(f"""
 【生成条件】
 - 文字数：150〜300文字
@@ -3669,8 +3674,7 @@ def gbp_posts_generate():
 - 絵文字を適度に使用（1〜3個程度）
 - ハッシュタグは末尾に2〜3個
 - MEOを意識したキーワードを自然に含める
-- 現在の月（{current_month}月）の季節感を盛り込む
-- 過去の投稿例がある場合はその文体・トーン・構成を必ず踏襲する
+{seasonal_instruction}- 過去の投稿例がある場合はその文体・トーン・構成を必ず踏襲する
 
 【出力形式】
 投稿文のテキストのみを出力してください。
