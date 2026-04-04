@@ -95,7 +95,10 @@
                     <div>
                         <div style="font-size:0.85rem;font-weight:600;">過去の投稿スタイルを使う</div>
                         {% if style_extracted > 0 %}
-                        <div style="font-size:0.75rem;color:#9A9A9A;">アップロード済みスクショの文体・トーンを参照（{{ style_extracted }}枚）</div>
+                        <div style="font-size:0.75rem;color:#9A9A9A;">
+                            アップロード済みスクショの文体・トーンを参照（{{ style_extracted }}枚）
+                            <a href="/gbp-posts/setup?shop_id={{ shop.id }}" style="color:#C9A96E;margin-left:6px;">追加・管理 →</a>
+                        </div>
                         {% else %}
                         <div style="font-size:0.75rem;color:#ef4444;">
                             ※過去の投稿が未登録です。
