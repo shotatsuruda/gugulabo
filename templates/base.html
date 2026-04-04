@@ -23,7 +23,7 @@
 
     <!-- ナビゲーションバー（PCのみ表示） -->
     <nav class="navbar navbar-expand-md d-none d-md-flex">
-        <div class="container">
+        <div class="container-fluid px-3">
             <a class="navbar-brand" href="/">ググラボ</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu"
                 aria-controls="navMenu" aria-expanded="false" aria-label="メニューを開く">
@@ -32,7 +32,7 @@
             <div class="collapse navbar-collapse" id="navMenu">
                 {% if current_user.is_authenticated %}
                 <!-- 中央: メインメニュー -->
-                <ul class="navbar-nav mx-auto gap-1 align-items-md-center">
+                <ul class="navbar-nav mx-auto gap-0 align-items-md-center">
                     <li class="nav-item">
                         <a class="nav-link" href="/">
                             <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
