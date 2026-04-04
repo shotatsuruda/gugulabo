@@ -231,9 +231,19 @@
                 <th style="white-space:nowrap;">AI生成口コミ</th>
             </tr>
         </thead>
-        <tbody>
+        <tbody id="responseTableBody">
             {% for r in survey_responses %}
-            <tr>
+            <tr style="cursor:pointer;{% if loop.index > 10 %}display:none;{% endif %}"
+                class="response-row"
+                onclick="showDetail(this)"
+                data-submitted="{{ r.submitted_at }}"
+                data-shop="{{ r.shop_name | e }}"
+                data-menu="{{ r.menu | e }}"
+                data-satisfaction="{{ r.satisfaction | e }}"
+                data-good-points="{{ r.good_points | e }}"
+                data-revisit="{{ r.revisit | e }}"
+                data-comment="{{ r.comment | e }}"
+                data-ai-draft="{{ r.ai_draft | e }}">
                 <td style="white-space:nowrap;color:#888;">{{ r.submitted_at }}</td>
                 <td>{{ r.menu or '―' }}</td>
                 <td>
@@ -248,36 +258,77 @@
                 <td style="max-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ r.good_points or '―' }}</td>
                 <td style="white-space:nowrap;">{{ r.revisit or '―' }}</td>
                 <td style="max-width:160px;color:#555;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ r.comment or '―' }}</td>
-                <td style="white-space:nowrap;">
-                    {% if r.ai_draft %}
-                    <span style="color:#555;">{{ r.ai_draft[:50] }}…</span>
-                    <button type="button" class="btn btn-sm ms-1"
-                            style="font-size:0.7rem;padding:1px 7px;background:#F5EDE8;color:#C9A96E;border:1px solid #E8D8C8;border-radius:4px;"
-                            onclick="showAiDraft(this)" data-draft="{{ r.ai_draft | e }}">全文を見る</button>
-                    {% else %}―{% endif %}
+                <td style="white-space:nowrap;color:#aaa;font-size:0.78rem;">
+                    {% if r.ai_draft %}あり{% else %}―{% endif %}
                 </td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
 </div>
+{% if survey_responses | length > 10 %}
+<div class="text-center mt-2" id="showMoreWrap">
+    <button class="btn btn-sm btn-outline-secondary" onclick="showAllRows()">
+        すべて表示（{{ survey_responses | length }}件）
+    </button>
+</div>
+{% endif %}
 {% else %}
 <div class="text-center py-5 text-muted" style="background:#FBF8F5;border-radius:12px;border:1px solid #EDE8E0;">
     <p style="font-size:0.9rem;">この期間のアンケート回答はありません</p>
 </div>
 {% endif %}
 
-<!-- AI生成口コミ全文モーダル -->
-<div class="modal fade" id="aiDraftModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
+<!-- 回答詳細モーダル -->
+<div class="modal fade" id="detailModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
             <div class="modal-header" style="border-bottom:1px solid #f0ebe4;">
-                <h5 class="modal-title fw-bold" style="font-size:0.95rem;">AI生成口コミ 全文</h5>
+                <div>
+                    <h5 class="modal-title fw-bold mb-0" style="font-size:0.95rem;">回答詳細</h5>
+                    <div id="detailDate" style="font-size:0.78rem;color:#999;margin-top:2px;"></div>
+                </div>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body" style="font-size:0.88rem;line-height:1.8;white-space:pre-wrap;" id="aiDraftModalBody"></div>
+            <div class="modal-body" style="font-size:0.88rem;">
+                <div class="row g-3 mb-3">
+                    <div class="col-6">
+                        <div class="text-muted" style="font-size:0.72rem;margin-bottom:3px;">店舗</div>
+                        <div id="detailShop" class="fw-semibold"></div>
+                    </div>
+                    <div class="col-6">
+                        <div class="text-muted" style="font-size:0.72rem;margin-bottom:3px;">メニュー（Q1）</div>
+                        <div id="detailMenu"></div>
+                    </div>
+                    <div class="col-6">
+                        <div class="text-muted" style="font-size:0.72rem;margin-bottom:3px;">満足度（Q2）</div>
+                        <div id="detailSatisfaction"></div>
+                    </div>
+                    <div class="col-6">
+                        <div class="text-muted" style="font-size:0.72rem;margin-bottom:3px;">再来店意向（Q4）</div>
+                        <div id="detailRevisit"></div>
+                    </div>
+                    <div class="col-12">
+                        <div class="text-muted" style="font-size:0.72rem;margin-bottom:3px;">よかった点（Q3）</div>
+                        <div id="detailGoodPoints"></div>
+                    </div>
+                    <div class="col-12">
+                        <div class="text-muted" style="font-size:0.72rem;margin-bottom:3px;">お客様のメッセージ（Q5）</div>
+                        <div id="detailComment" style="line-height:1.7;color:#555;white-space:pre-wrap;"></div>
+                    </div>
+                </div>
+                <div id="detailAiSection" style="background:#FBF8F5;border:1px solid #EDE8E0;border-radius:8px;padding:12px;">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div class="text-muted" style="font-size:0.72rem;">AI生成口コミ</div>
+                        <button type="button" class="btn btn-sm" id="detailCopyBtn"
+                            style="font-size:0.72rem;padding:2px 10px;background:#F5EDE8;color:#C9A96E;border:1px solid #E8D8C8;border-radius:4px;">
+                            コピー
+                        </button>
+                    </div>
+                    <div id="detailAiDraft" style="font-size:0.85rem;line-height:1.8;white-space:pre-wrap;color:#333;"></div>
+                </div>
+            </div>
             <div class="modal-footer" style="border-top:1px solid #f0ebe4;">
-                <button type="button" class="btn btn-sm btn-outline-secondary" id="aiDraftCopyBtn">コピー</button>
                 <button type="button" class="btn btn-sm btn-dark" data-bs-dismiss="modal">閉じる</button>
             </div>
         </div>
@@ -412,16 +463,47 @@
 
 {% block scripts %}
 <script>
-function showAiDraft(btn) {
-    const draft = btn.getAttribute('data-draft');
-    document.getElementById('aiDraftModalBody').textContent = draft;
-    document.getElementById('aiDraftCopyBtn').onclick = function() {
-        navigator.clipboard.writeText(draft).then(() => {
-            this.textContent = 'コピーしました！';
-            setTimeout(() => { this.textContent = 'コピー'; }, 2000);
-        });
-    };
-    new bootstrap.Modal(document.getElementById('aiDraftModal')).show();
+function showDetail(tr) {
+    const d = tr.dataset;
+    document.getElementById('detailDate').textContent = d.submitted || '';
+    document.getElementById('detailShop').textContent = d.shop || '―';
+    document.getElementById('detailMenu').textContent = d.menu || '―';
+    document.getElementById('detailRevisit').textContent = d.revisit || '―';
+    document.getElementById('detailGoodPoints').textContent = d.goodPoints || '―';
+    document.getElementById('detailComment').textContent = d.comment || '―';
+
+    const sat = d.satisfaction || '';
+    const satEl = document.getElementById('detailSatisfaction');
+    if (sat === 'とても満足') {
+        satEl.innerHTML = '<span class="badge" style="background:#C9A96E;">とても満足</span>';
+    } else if (sat === '満足') {
+        satEl.innerHTML = '<span class="badge bg-secondary">満足</span>';
+    } else {
+        satEl.innerHTML = `<span class="badge bg-light text-dark border">${sat || '―'}</span>`;
+    }
+
+    const aiSection = document.getElementById('detailAiSection');
+    const aiDraft = d.aiDraft || '';
+    if (aiDraft) {
+        aiSection.style.display = '';
+        document.getElementById('detailAiDraft').textContent = aiDraft;
+        document.getElementById('detailCopyBtn').onclick = function() {
+            navigator.clipboard.writeText(aiDraft).then(() => {
+                this.textContent = 'コピーしました！';
+                setTimeout(() => { this.textContent = 'コピー'; }, 2000);
+            });
+        };
+    } else {
+        aiSection.style.display = 'none';
+    }
+
+    new bootstrap.Modal(document.getElementById('detailModal')).show();
+}
+
+function showAllRows() {
+    document.querySelectorAll('.response-row').forEach(tr => tr.style.display = '');
+    const wrap = document.getElementById('showMoreWrap');
+    if (wrap) wrap.style.display = 'none';
 }
 </script>
 {% endblock %}
