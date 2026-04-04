@@ -87,7 +87,8 @@ body {
     left: 0;
     width: 220px;
     height: 100vh;
-    background: #1C1C1C;
+    background: #F5F3F0;
+    border-right: 1px solid var(--border);
     flex-direction: column;
     z-index: 1000;
     overflow-y: auto;
@@ -97,11 +98,11 @@ body {
     font-family: var(--font-heading);
     font-size: 1.1rem;
     font-weight: 700;
-    color: #fff !important;
+    color: var(--dark) !important;
     text-decoration: none;
     display: block;
     padding: 1.25rem 1rem 1.1rem;
-    border-bottom: 1px solid rgba(255,255,255,0.07);
+    border-bottom: 1px solid var(--border);
     letter-spacing: 0.02em;
     flex-shrink: 0;
 }
@@ -114,7 +115,7 @@ body {
 .sidebar-section-label {
     font-size: 0.62rem;
     font-weight: 700;
-    color: rgba(255,255,255,0.28);
+    color: #AAAAAA;
     letter-spacing: 0.1em;
     text-transform: uppercase;
     padding: 0.9rem 0.6rem 0.25rem;
@@ -126,7 +127,7 @@ body {
     gap: 8px;
     padding: 0.42rem 0.6rem;
     border-radius: 6px;
-    color: rgba(255,255,255,0.62);
+    color: #5C5C5C;
     font-size: 0.845rem;
     font-weight: 500;
     text-decoration: none;
@@ -135,24 +136,25 @@ body {
 }
 
 .sidebar-link:hover {
-    background: rgba(255,255,255,0.08);
-    color: #fff;
+    background: rgba(0,0,0,0.05);
+    color: var(--dark);
 }
 
 .sidebar-link.active {
-    background: rgba(255,255,255,0.12);
-    color: #fff;
+    background: rgba(201,169,110,0.13);
+    color: var(--copper);
+    font-weight: 600;
 }
 
 .sidebar-footer {
     padding: 0.75rem 1rem;
-    border-top: 1px solid rgba(255,255,255,0.07);
+    border-top: 1px solid var(--border);
     flex-shrink: 0;
 }
 
 .sidebar-footer-user {
     font-size: 0.78rem;
-    color: rgba(255,255,255,0.42);
+    color: #999;
     display: flex;
     align-items: center;
     gap: 6px;
@@ -161,7 +163,7 @@ body {
 
 .sidebar-footer-logout {
     font-size: 0.8rem;
-    color: rgba(255,255,255,0.5);
+    color: #666;
     text-decoration: none;
     display: flex;
     align-items: center;
@@ -172,8 +174,8 @@ body {
 }
 
 .sidebar-footer-logout:hover {
-    background: rgba(255,255,255,0.08);
-    color: rgba(255,255,255,0.85);
+    background: rgba(0,0,0,0.05);
+    color: var(--dark);
 }
 
 .app-main-content {
