@@ -151,6 +151,19 @@
         <!-- アップロードエラー -->
         <div id="style_upload_error" class="alert alert-danger mt-3 d-none" style="font-size:0.82rem;"></div>
 
+        <!-- テキスト直接入力 -->
+        <div style="border-top:1px solid #EDE8E0;padding-top:0.75rem;margin-top:0.75rem;">
+            <p class="mb-2" style="font-size:0.78rem;color:#9A9A9A;">または返答文を直接貼り付け</p>
+            <textarea id="style_text_input" class="form-control" rows="3" style="font-size:0.82rem;"
+                      placeholder="過去の返答文をここに貼り付けてください..."></textarea>
+            <div class="d-flex align-items-center gap-2 mt-2">
+                <button class="btn btn-outline-secondary btn-sm" onclick="uploadStyleText()">テキストを登録</button>
+                <div id="style_text_spinner" class="spinner-border spinner-border-sm d-none" style="width:16px;height:16px;color:#C9A96E;" role="status"></div>
+                <span id="style_text_msg" style="font-size:0.78rem;color:#22c55e;display:none;"></span>
+            </div>
+            <div id="style_text_error" class="alert alert-danger d-none mt-2" style="font-size:0.82rem;"></div>
+        </div>
+
         <!-- 登録済み画像一覧 -->
         <div id="style_images_list" class="mt-3"></div>
     </div>
@@ -333,9 +346,11 @@
             <div class="d-flex flex-wrap gap-2">
                 ${images.map(img => `
                     <div class="d-flex align-items-center gap-1 px-2 py-1 rounded" style="background:#F0EDE9;font-size:0.78rem;">
-                        ${img.ok
-                            ? '<span style="color:#4CAF50;font-weight:700;">✓</span>'
-                            : '<span style="color:#E57373;font-weight:700;">✗</span>'
+                        ${img.is_text
+                            ? '<span style="color:#C9A96E;" title="テキスト入力">T</span>'
+                            : (img.ok
+                                ? '<span style="color:#4CAF50;font-weight:700;">✓</span>'
+                                : '<span style="color:#E57373;font-weight:700;">✗</span>')
                         }
                         <span style="color:#5C5C5C;">返答例 #${img.id}</span>
                         <button type="button" onclick="deleteStyleImage(${img.id})" style="background:none;border:none;padding:0;cursor:pointer;color:#B0A89E;font-size:0.85rem;line-height:1;" title="削除">×</button>
@@ -343,6 +358,41 @@
                 `).join('')}
             </div>
         `;
+    }
+
+    async function uploadStyleText() {
+        const shopId = getSelectedShopId();
+        if (!shopId) { alert('先に店舗を選択してください。'); return; }
+        const text = document.getElementById('style_text_input').value.trim();
+        if (!text) { alert('テキストを入力してください。'); return; }
+        const spinner = document.getElementById('style_text_spinner');
+        const msg = document.getElementById('style_text_msg');
+        const errEl = document.getElementById('style_text_error');
+        spinner.classList.remove('d-none');
+        msg.style.display = 'none';
+        errEl.classList.add('d-none');
+        try {
+            const formData = new FormData();
+            formData.append('shop_id', shopId);
+            formData.append('text', text);
+            const res = await fetch('/review/upload-style-text', { method: 'POST', body: formData });
+            const data = await res.json();
+            if (data.success) {
+                document.getElementById('style_text_input').value = '';
+                msg.textContent = '登録しました';
+                msg.style.display = 'inline';
+                setTimeout(() => { msg.style.display = 'none'; }, 3000);
+                await loadStyleImages(shopId);
+            } else {
+                errEl.textContent = data.error || '登録に失敗しました。';
+                errEl.classList.remove('d-none');
+            }
+        } catch (e) {
+            errEl.textContent = '通信エラーが発生しました。';
+            errEl.classList.remove('d-none');
+        } finally {
+            spinner.classList.add('d-none');
+        }
     }
 
     async function deleteStyleImage(imageId) {

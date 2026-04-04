@@ -119,12 +119,36 @@
         <!-- エラー -->
         <div id="upload-error" class="alert alert-danger d-none mb-3" style="font-size:0.82rem;"></div>
 
+        <!-- テキスト直接入力 -->
+        <div style="border-top:1px solid var(--border);padding-top:0.75rem;margin-top:0.25rem;">
+            <p class="mb-2" style="font-size:0.78rem;color:#9A9A9A;">または投稿文を直接貼り付け</p>
+            <textarea id="text-input" class="form-control" rows="3" style="font-size:0.82rem;"
+                      placeholder="過去のGBP投稿文をここに貼り付けてください..."></textarea>
+            <div class="d-flex align-items-center gap-2 mt-2">
+                <button class="btn btn-outline-secondary btn-sm" onclick="uploadStyleText()">テキストを登録</button>
+                <div id="text-spinner" class="spinner-border spinner-border-sm d-none" style="width:16px;height:16px;color:#C9A96E;" role="status"></div>
+                <span id="text-msg" style="font-size:0.78rem;color:#22c55e;display:none;"></span>
+            </div>
+            <div id="text-error" class="alert alert-danger d-none mt-2" style="font-size:0.82rem;"></div>
+        </div>
+
         <!-- 登録済み画像一覧 -->
         <div id="style-images-list">
             {% if style_images %}
             <div style="font-size:0.78rem;color:#9A9A9A;margin-bottom:8px;">登録済み {{ style_images|length }}枚</div>
             <div class="d-flex flex-wrap gap-2" id="thumbs-container">
                 {% for img in style_images %}
+                {% if img.filename.endswith('.txt') %}
+                <div class="position-relative thumb-item d-flex flex-column align-items-center justify-content-center"
+                     id="thumb-{{ img.id }}"
+                     style="width:80px;height:80px;border-radius:6px;border:1px solid var(--border);background:#F5F3F0;padding:4px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#C9A96E" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                    <div style="font-size:0.55rem;color:#9A9A9A;margin-top:2px;text-align:center;">テキスト</div>
+                    <div style="position:absolute;bottom:0;left:0;right:0;background:rgba(34,197,94,0.8);text-align:center;padding:1px;font-size:0.6rem;color:#fff;">登録済み</div>
+                    <button onclick="deleteImage({{ img.id }})"
+                            style="position:absolute;top:2px;right:2px;background:rgba(0,0,0,0.5);border:none;color:#fff;border-radius:50%;width:18px;height:18px;font-size:10px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
+                </div>
+                {% else %}
                 <div class="position-relative thumb-item" id="thumb-{{ img.id }}"
                      style="width:80px;height:80px;border-radius:6px;overflow:hidden;border:1px solid var(--border);">
                     <img src="/static/uploads/post_styles/{{ img.filename }}"
@@ -138,6 +162,7 @@
                     <button onclick="deleteImage({{ img.id }})"
                             style="position:absolute;top:2px;right:2px;background:rgba(0,0,0,0.5);border:none;color:#fff;border-radius:50%;width:18px;height:18px;font-size:10px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
                 </div>
+                {% endif %}
                 {% endfor %}
             </div>
             {% else %}
@@ -189,6 +214,37 @@
                 location.reload();
             } else {
                 errEl.textContent = data.error || 'アップロードに失敗しました。';
+                errEl.classList.remove('d-none');
+            }
+        } catch (e) {
+            errEl.textContent = '通信エラーが発生しました。';
+            errEl.classList.remove('d-none');
+        } finally {
+            spinner.classList.add('d-none');
+        }
+    }
+
+    async function uploadStyleText() {
+        const text = document.getElementById('text-input').value.trim();
+        if (!text) { alert('テキストを入力してください。'); return; }
+        const spinner = document.getElementById('text-spinner');
+        const msg = document.getElementById('text-msg');
+        const errEl = document.getElementById('text-error');
+        spinner.classList.remove('d-none');
+        msg.style.display = 'none';
+        errEl.classList.add('d-none');
+        try {
+            const formData = new FormData();
+            formData.append('text', text);
+            const res = await fetch('/gbp-posts/upload-style-text', { method: 'POST', body: formData });
+            const data = await res.json();
+            if (data.success) {
+                msg.textContent = '登録しました';
+                msg.style.display = 'inline';
+                setTimeout(() => { msg.style.display = 'none'; }, 3000);
+                location.reload();
+            } else {
+                errEl.textContent = data.error || '登録に失敗しました。';
                 errEl.classList.remove('d-none');
             }
         } catch (e) {

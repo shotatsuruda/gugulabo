@@ -3276,7 +3276,12 @@ def review_get_style_images():
         (shop_id,),
     ).fetchall()
     conn.close()
-    return jsonify([{"id": r["id"], "filename": r["filename"], "ok": bool(r["extracted_text"])} for r in rows])
+    return jsonify([{
+        "id": r["id"],
+        "filename": r["filename"],
+        "ok": bool(r["extracted_text"]),
+        "is_text": r["filename"].endswith(".txt"),
+    } for r in rows])
 
 
 @app.route("/review/upload-style", methods=["POST"])
@@ -3381,6 +3386,47 @@ def review_delete_style_image(image_id):
     conn.commit()
     conn.close()
     return jsonify({"success": True})
+
+
+@app.route("/review/upload-style-text", methods=["POST"])
+@payment_required
+def review_upload_style_text():
+    """返答スタイルをテキスト直接入力で登録"""
+    text = (request.form.get("text") or "").strip()
+    if not text:
+        return jsonify({"success": False, "error": "テキストを入力してください。"})
+    try:
+        shop_id = int(request.form.get("shop_id") or 0)
+    except ValueError:
+        shop_id = 0
+    if not shop_id:
+        return jsonify({"success": False, "error": "店舗を選択してください。"})
+    conn = get_db()
+    shop = conn.execute(
+        "SELECT id FROM shops WHERE id = ? AND user_id = ?",
+        (shop_id, current_user.id),
+    ).fetchone()
+    if not shop:
+        conn.close()
+        return jsonify({"success": False, "error": "店舗が見つかりません。"})
+    os.makedirs(_REPLY_STYLE_UPLOAD_DIR, exist_ok=True)
+    ts = int(datetime.now().timestamp() * 1000)
+    filename = f"text_reply_{shop_id}_{ts}.txt"
+    with open(os.path.join(_REPLY_STYLE_UPLOAD_DIR, filename), "w", encoding="utf-8") as fp:
+        fp.write(text)
+    if DB_TYPE == "postgresql":
+        conn.execute(
+            "INSERT INTO reply_style_images (shop_id, filename, extracted_text) VALUES (%s, %s, %s)",
+            (shop_id, filename, text),
+        )
+    else:
+        conn.execute(
+            "INSERT INTO reply_style_images (shop_id, filename, extracted_text) VALUES (?, ?, ?)",
+            (shop_id, filename, text),
+        )
+    conn.commit()
+    conn.close()
+    return jsonify({"success": True, "count": 1})
 
 
 # ----- GBP最新情報 -----
@@ -3604,6 +3650,38 @@ def gbp_posts_delete_style_image(image_id):
     conn.commit()
     conn.close()
     return jsonify({"success": True})
+
+
+@app.route("/gbp-posts/upload-style-text", methods=["POST"])
+@payment_required
+def gbp_posts_upload_style_text():
+    """GBP投稿スタイルをテキスト直接入力で登録"""
+    text = (request.form.get("text") or "").strip()
+    if not text:
+        return jsonify({"success": False, "error": "テキストを入力してください。"})
+    conn = get_db()
+    shop = _get_current_gbp_shop(conn, current_user.id)
+    if not shop:
+        conn.close()
+        return jsonify({"success": False, "error": "店舗が見つかりません。"})
+    os.makedirs(_STYLE_UPLOAD_DIR, exist_ok=True)
+    ts = int(datetime.now().timestamp() * 1000)
+    filename = f"text_{shop['id']}_{ts}.txt"
+    with open(os.path.join(_STYLE_UPLOAD_DIR, filename), "w", encoding="utf-8") as fp:
+        fp.write(text)
+    if DB_TYPE == "postgresql":
+        conn.execute(
+            "INSERT INTO post_style_images (shop_id, filename, extracted_text) VALUES (%s, %s, %s)",
+            (shop["id"], filename, text),
+        )
+    else:
+        conn.execute(
+            "INSERT INTO post_style_images (shop_id, filename, extracted_text) VALUES (?, ?, ?)",
+            (shop["id"], filename, text),
+        )
+    conn.commit()
+    conn.close()
+    return jsonify({"success": True, "count": 1})
 
 
 @app.route("/gbp-posts/generate", methods=["POST"])
