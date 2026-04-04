@@ -1137,6 +1137,9 @@ def index():
     if current_user.is_authenticated:
         if not current_user.is_paid:
             return redirect(url_for("subscribe"))
+        period = request.args.get("period", "month")
+        satisfaction_filter = request.args.get("satisfaction_filter", "all")
+        survey_ctx = _get_survey_stats_and_responses(current_user.id, period, satisfaction_filter)
         conn = get_db()
         feedbacks = conn.execute(
             """
@@ -1245,6 +1248,7 @@ def index():
             daily_trend=daily_trend,
             coupon_total=coupon_total,
             monthly_count=monthly_count,
+            **survey_ctx,
         )
     resp = make_response(render_template("landing.html"))
     resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"

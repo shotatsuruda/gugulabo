@@ -31,168 +31,129 @@
 </div>
 {% endif %}
 
-<!-- ヒーローセクション（PC用） -->
-<div class="home-hero d-none d-md-block">
-    <hr class="home-divider">
-</div>
-
-
-<!-- 機能カード（PC用 3枚） -->
+<!-- アンケート回答一覧（PC用） -->
 <div class="d-none d-md-block">
-<div class="row g-4 justify-content-center">
 
-    {# 来店アラート機能は一時非表示
-    <!-- 顧客管理カード -->
-    <div class="col-md-4">
-        <div class="card h-100 hover-card" style="overflow:hidden;">
-            <span class="feature-card-accent"></span>
-            <div class="card-body text-center p-4">
-                <h3 class="card-title fw-bold" style="font-size:1.1rem;">顧客・来店管理</h3>
-                <div class="d-flex gap-2 justify-content-center">
-                    <a href="/reminder/customers/view" class="btn btn-dark btn-sm px-3">顧客一覧</a>
-                    <a href="/reminder/alerts/view"   class="btn btn-outline-secondary btn-sm px-3">アラート</a>
-                </div>
-            </div>
+<!-- 統計サマリー -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card text-center p-3">
+            <div style="font-size:1.8rem;font-weight:bold;color:#C9A96E;">{{ total_count }}</div>
+            <div class="text-muted small">今月の回答数</div>
         </div>
     </div>
-    #}
-
-    <!-- 最新情報カード -->
-    <div class="col-md-4">
-        <div class="card h-100 hover-card" style="overflow:hidden;">
-            <span class="feature-card-accent"></span>
-            <div class="card-body text-center p-4">
-                <div class="mb-4 d-flex justify-content-center">
-                    <svg class="feature-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="3" y="3" width="18" height="18" rx="2"/>
-                        <line x1="3" y1="9" x2="21" y2="9"/>
-                        <line x1="9" y1="21" x2="9" y2="9"/>
-                    </svg>
-                </div>
-                <h3 class="card-title fw-bold" style="font-size:1.1rem;">最新情報を投稿</h3>
-                <p class="card-text mt-3" style="font-size:0.875rem;color:#9A9A9A;line-height:1.7;">
-                    Googleビジネスプロフィールに<br>お知らせや最新情報を投稿します。
-                </p>
-                <ul class="list-unstyled text-start mt-3 mb-4" style="font-size:0.8rem;color:#9A9A9A;">
-                    <li class="d-flex align-items-start gap-2 mb-2">
-                        <svg class="feature-check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="20 6 9 17 4 12" />
-                        </svg>
-                        キャンペーン・お知らせを投稿
-                    </li>
-                    <li class="d-flex align-items-start gap-2 mb-2">
-                        <svg class="feature-check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="20 6 9 17 4 12" />
-                        </svg>
-                        AIが文章を自動生成
-                    </li>
-                    <li class="d-flex align-items-start gap-2">
-                        <svg class="feature-check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="20 6 9 17 4 12" />
-                        </svg>
-                        MEO対策・検索順位向上に貢献
-                    </li>
-                </ul>
-                <a href="/gbp-posts" class="btn btn-dark btn-lg w-100">最新情報を投稿する</a>
-            </div>
+    <div class="col-md-3">
+        <div class="card text-center p-3">
+            <div style="font-size:1.8rem;font-weight:bold;color:#C9A96E;">{{ satisfaction_rate }}%</div>
+            <div class="text-muted small">とても満足率</div>
         </div>
     </div>
-
-    <!-- AI返答生成カード -->
-    <div class="col-md-4">
-        <div class="card h-100 hover-card" style="overflow:hidden;">
-            <span class="feature-card-accent"></span>
-            <div class="card-body text-center p-4">
-                <div class="mb-4 d-flex justify-content-center">
-                    <svg class="feature-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                        <line x1="8" y1="10" x2="16" y2="10" />
-                        <line x1="8" y1="14" x2="13" y2="14" />
-                    </svg>
-                </div>
-                <h3 class="card-title fw-bold" style="font-size:1.1rem;">AI返答生成</h3>
-                <p class="card-text mt-3" style="font-size:0.875rem;color:#9A9A9A;line-height:1.7;">
-                    Googleレビューに対する返答文を<br>AIが自動で生成します。
-                </p>
-                <ul class="list-unstyled text-start mt-3 mb-4" style="font-size:0.8rem;color:#9A9A9A;">
-                    <li class="d-flex align-items-start gap-2 mb-2">
-                        <svg class="feature-check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="20 6 9 17 4 12" />
-                        </svg>
-                        レビュー内容を貼り付けるだけ
-                    </li>
-                    <li class="d-flex align-items-start gap-2 mb-2">
-                        <svg class="feature-check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="20 6 9 17 4 12" />
-                        </svg>
-                        丁寧な敬語で返答文を自動生成
-                    </li>
-                    <li class="d-flex align-items-start gap-2">
-                        <svg class="feature-check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="20 6 9 17 4 12" />
-                        </svg>
-                        生成後に自由に編集・コピー可能
-                    </li>
-                </ul>
-                <a href="/review" class="btn btn-success btn-lg w-100">AI返答画面へ</a>
-            </div>
+    <div class="col-md-3">
+        <div class="card text-center p-3">
+            <div style="font-size:1.8rem;font-weight:bold;color:#C9A96E;">{{ revisit_rate }}%</div>
+            <div class="text-muted small">また来たい率</div>
         </div>
     </div>
-
-    <!-- アンケート設定カード -->
-    <div class="col-md-4">
-        <div class="card h-100 hover-card" style="overflow:hidden;">
-            <span class="feature-card-accent"></span>
-            <div class="card-body text-center p-4">
-                <div class="mb-4 d-flex justify-content-center">
-                    <svg class="feature-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M9 11l3 3L22 4" />
-                        <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
-                    </svg>
-                </div>
-                <h3 class="card-title fw-bold" style="font-size:1.1rem;">アンケート設定</h3>
-                <p class="card-text mt-3" style="font-size:0.875rem;color:#9A9A9A;line-height:1.7;">
-                    お客様アンケートの質問・選択肢を<br>店舗に合わせてカスタマイズします。
-                </p>
-                <ul class="list-unstyled text-start mt-3 mb-4" style="font-size:0.8rem;color:#9A9A9A;">
-                    <li class="d-flex align-items-start gap-2 mb-2">
-                        <svg class="feature-check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="20 6 9 17 4 12" />
-                        </svg>
-                        メニュー選択肢の追加・削除
-                    </li>
-                    <li class="d-flex align-items-start gap-2 mb-2">
-                        <svg class="feature-check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="20 6 9 17 4 12" />
-                        </svg>
-                        よかった点の選択肢をカスタマイズ
-                    </li>
-                    <li class="d-flex align-items-start gap-2">
-                        <svg class="feature-check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="20 6 9 17 4 12" />
-                        </svg>
-                        サブタイトル・ガイドテキスト設定
-                    </li>
-                </ul>
-                <a href="/shop/survey-settings" class="btn btn-dark btn-lg w-100">アンケート設定へ</a>
-            </div>
+    <div class="col-md-3">
+        <div class="card text-center p-3">
+            <div style="font-size:1.2rem;font-weight:bold;color:#C9A96E;line-height:1.3;">{{ popular_menu }}</div>
+            <div class="text-muted small">人気メニュー（今月）</div>
         </div>
     </div>
-
 </div>
+
+<!-- フィルターバー -->
+<div class="d-flex flex-wrap gap-3 align-items-center mb-3" style="font-size:0.85rem;">
+    <div class="d-flex gap-1 align-items-center">
+        <span class="text-muted me-1">期間:</span>
+        {% for p, label in [('today','今日'),('week','今週'),('month','今月'),('all','全期間')] %}
+        <a href="/?period={{ p }}&satisfaction_filter={{ satisfaction_filter }}"
+           class="btn btn-sm {% if period == p %}btn-dark{% else %}btn-outline-secondary{% endif %} py-1 px-2">
+            {{ label }}
+        </a>
+        {% endfor %}
+    </div>
+    <div class="d-flex gap-1 align-items-center">
+        <span class="text-muted me-1">満足度:</span>
+        {% for sf, label in [('all','すべて'),('とても満足','とても満足'),('満足','満足'),('普通以下','普通以下')] %}
+        <a href="/?period={{ period }}&satisfaction_filter={{ sf }}"
+           class="btn btn-sm {% if satisfaction_filter == sf %}btn-dark{% else %}btn-outline-secondary{% endif %} py-1 px-2">
+            {{ label }}
+        </a>
+        {% endfor %}
+    </div>
 </div>
+
+<!-- 回答一覧テーブル -->
+{% if survey_responses %}
+<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
+    <table class="table table-hover align-middle" style="font-size:0.82rem;min-width:900px;">
+        <thead style="background:#FBF8F5;">
+            <tr>
+                <th style="white-space:nowrap;">受付日時</th>
+                <th style="white-space:nowrap;">メニュー（Q1）</th>
+                <th style="white-space:nowrap;">満足度（Q2）</th>
+                <th style="white-space:nowrap;">よかった点（Q3）</th>
+                <th style="white-space:nowrap;">再来店意向（Q4）</th>
+                <th style="white-space:nowrap;">お客様のメッセージ（Q5）</th>
+                <th style="white-space:nowrap;">AI生成口コミ</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for r in survey_responses %}
+            <tr>
+                <td style="white-space:nowrap;color:#888;">{{ r.submitted_at }}</td>
+                <td>{{ r.menu or '―' }}</td>
+                <td>
+                    {% if r.satisfaction == 'とても満足' %}
+                    <span class="badge" style="background:#C9A96E;">{{ r.satisfaction }}</span>
+                    {% elif r.satisfaction == '満足' %}
+                    <span class="badge bg-secondary">{{ r.satisfaction }}</span>
+                    {% elif r.satisfaction %}
+                    <span class="badge bg-light text-dark border">{{ r.satisfaction }}</span>
+                    {% else %}―{% endif %}
+                </td>
+                <td style="max-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ r.good_points or '―' }}</td>
+                <td style="white-space:nowrap;">{{ r.revisit or '―' }}</td>
+                <td style="max-width:160px;color:#555;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ r.comment or '―' }}</td>
+                <td style="white-space:nowrap;">
+                    {% if r.ai_draft %}
+                    <span style="color:#555;">{{ r.ai_draft[:50] }}…</span>
+                    <button type="button" class="btn btn-sm ms-1"
+                            style="font-size:0.7rem;padding:1px 7px;background:#F5EDE8;color:#C9A96E;border:1px solid #E8D8C8;border-radius:4px;"
+                            onclick="showAiDraft(this)" data-draft="{{ r.ai_draft | e }}">全文を見る</button>
+                    {% else %}―{% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="text-center py-5 text-muted" style="background:#FBF8F5;border-radius:12px;border:1px solid #EDE8E0;">
+    <p style="font-size:0.9rem;">この期間のアンケート回答はありません</p>
+</div>
+{% endif %}
+
+<!-- AI生成口コミ全文モーダル -->
+<div class="modal fade" id="aiDraftModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" style="border-bottom:1px solid #f0ebe4;">
+                <h5 class="modal-title fw-bold" style="font-size:0.95rem;">AI生成口コミ 全文</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" style="font-size:0.88rem;line-height:1.8;white-space:pre-wrap;" id="aiDraftModalBody"></div>
+            <div class="modal-footer" style="border-top:1px solid #f0ebe4;">
+                <button type="button" class="btn btn-sm btn-outline-secondary" id="aiDraftCopyBtn">コピー</button>
+                <button type="button" class="btn btn-sm btn-dark" data-bs-dismiss="modal">閉じる</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+</div><!-- /PC用 -->
+
 
 <!-- 機能カード（スマホ用 2×2グリッド） -->
 <div class="d-md-none" style="margin-top:0.5rem;">
@@ -277,8 +238,8 @@
 </div>
 </div>
 
-<!-- レポート・回答一覧への導線 -->
-<div class="mt-3 d-flex flex-column gap-2">
+<!-- レポート・回答一覧への導線（スマホ用） -->
+<div class="d-md-none mt-3 d-flex flex-column gap-2">
     <a href="/dashboard/report" class="card text-decoration-none d-flex flex-row align-items-center justify-content-between p-3 gap-3" style="border-color:var(--border);">
         <div class="d-flex align-items-center gap-3">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
@@ -315,4 +276,20 @@
     </a>
 </div>
 
+{% endblock %}
+
+{% block scripts %}
+<script>
+function showAiDraft(btn) {
+    const draft = btn.getAttribute('data-draft');
+    document.getElementById('aiDraftModalBody').textContent = draft;
+    document.getElementById('aiDraftCopyBtn').onclick = function() {
+        navigator.clipboard.writeText(draft).then(() => {
+            this.textContent = 'コピーしました！';
+            setTimeout(() => { this.textContent = 'コピー'; }, 2000);
+        });
+    };
+    new bootstrap.Modal(document.getElementById('aiDraftModal')).show();
+}
+</script>
 {% endblock %}
