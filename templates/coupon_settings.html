@@ -15,18 +15,8 @@
     <h2 class="mb-0 fw-bold" style="font-size:1.2rem;">クーポン付与設定</h2>
 </div>
 
-<!-- 店舗選択カード -->
-<div class="card mb-4">
-    <div class="card-body p-3">
-        <label class="form-label fw-bold" style="font-size:0.875rem;">対象店舗</label>
-        <select class="form-select form-select-sm" id="shop_select">
-            <option value="">-- 店舗を選択してください --</option>
-        </select>
-    </div>
-</div>
-
-<!-- クーポン設定カード（店舗選択後に表示） -->
-<div class="card d-none" id="coupon_settings_card">
+<!-- クーポン設定カード -->
+<div class="card" id="coupon_settings_card">
     <div class="card-header">
         <h5 class="mb-0">クーポン設定</h5>
     </div>
@@ -110,40 +100,21 @@
 
 {% block scripts %}
 <script>
-    let shops = [];
+    let shopId = null;
 
-    // ===== 初期化 =====
-    loadShops();
-
-    async function loadShops() {
+    // ===== 初期化: 最初の店舗を自動ロード =====
+    (async function init() {
         const res = await fetch('/qr/shops');
-        shops = await res.json();
-        const sel = document.getElementById('shop_select');
-        sel.innerHTML = '<option value="">-- 店舗を選択してください --</option>' +
-            shops.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
-
-        // 店舗が1件のみなら自動選択
-        if (shops.length === 1) {
-            sel.value = shops[0].id;
-            await loadCoupon(shops[0].id);
-            document.getElementById('coupon_settings_card').classList.remove('d-none');
+        const shops = await res.json();
+        if (shops.length > 0) {
+            shopId = shops[0].id;
+            await loadCoupon(shopId);
         }
-    }
-
-    // ===== 店舗選択イベント =====
-    document.getElementById('shop_select').addEventListener('change', async function () {
-        const shopId = this.value;
-        if (!shopId) {
-            document.getElementById('coupon_settings_card').classList.add('d-none');
-            return;
-        }
-        await loadCoupon(shopId);
-        document.getElementById('coupon_settings_card').classList.remove('d-none');
-    });
+    })();
 
     // ===== クーポン設定の読み込み =====
-    async function loadCoupon(shopId) {
-        const res = await fetch(`/qr/shops/${shopId}/coupon`);
+    async function loadCoupon(id) {
+        const res = await fetch(`/qr/shops/${id}/coupon`);
         const data = await res.json();
         document.getElementById('coupon_active').checked = !!data.is_active;
         document.getElementById('coupon_name').value = data.coupon_name || '';
@@ -176,7 +147,6 @@
 
     // ===== クーポン設定の保存 =====
     async function saveCoupon() {
-        const shopId = document.getElementById('shop_select').value;
         if (!shopId) return;
 
         const isActive = document.getElementById('coupon_active').checked;

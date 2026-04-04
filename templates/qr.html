@@ -190,87 +190,6 @@
             </div>
         </div>
 
-        <!-- ===== クーポン設定カード（店舗選択後に表示） ===== -->
-        <div class="card mt-4 d-none" id="coupon_settings_card">
-            <div class="card-header">
-                <h5 class="mb-0">クーポン設定</h5>
-            </div>
-            <div class="card-body p-4">
-
-                <!-- クーポン有効/無効トグル -->
-                <div class="form-check form-switch mb-3">
-                    <input class="form-check-input" type="checkbox" id="coupon_active" role="switch"
-                        onchange="toggleCouponFields()">
-                    <label class="form-check-label" for="coupon_active" style="font-size:0.875rem;">
-                        クーポンを有効にする
-                        <span style="color:#9A9A9A;font-size:0.78rem;">（アンケートページに表示されます）</span>
-                    </label>
-                </div>
-
-                <!-- クーポン詳細フォーム -->
-                <div id="coupon_fields">
-                    <div class="row g-3">
-
-                        <div class="col-sm-6">
-                            <label class="form-label">クーポン名</label>
-                            <input type="text" class="form-control form-control-sm" id="coupon_name"
-                                placeholder="例：ご来店感謝クーポン">
-                        </div>
-
-                        <div class="col-sm-6">
-                            <label class="form-label">割引内容</label>
-                            <input type="text" class="form-control form-control-sm" id="coupon_discount"
-                                placeholder="例：次回施術10%オフ、ドリンク1杯無料">
-                        </div>
-
-                        <div class="col-sm-6">
-                            <label class="form-label">有効日数</label>
-                            <div class="input-group input-group-sm">
-                                <input type="number" class="form-control" id="coupon_valid_days" value="30" min="1"
-                                    max="365">
-                                <span class="input-group-text"
-                                    style="background:#F5F3F0;border-color:#E8E4DF;color:#9A9A9A;font-size:0.8rem;">日間</span>
-                            </div>
-                            <div class="form-text">発行日から数えた有効期限日数</div>
-                        </div>
-
-                        <!-- クーポンプレビュー -->
-                        <div class="col-sm-6">
-                            <label class="form-label">プレビュー</label>
-                            <div class="coupon-preview-box">
-                                <div class="coupon-preview-name" id="preview_coupon_name">クーポン名</div>
-                                <div class="coupon-preview-discount" id="preview_coupon_discount">割引内容</div>
-                                <div class="coupon-preview-expiry" id="preview_coupon_expiry">有効期限: 〇〇日間</div>
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-
-                <!-- 保存ボタン -->
-                <div class="d-grid mt-3">
-                    <button class="btn btn-primary" onclick="saveCoupon()">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                            style="vertical-align:-1px;margin-right:5px;">
-                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
-                            <polyline points="17 21 17 13 7 13 7 21" />
-                            <polyline points="7 3 7 8 15 8" />
-                        </svg>クーポン設定を保存
-                    </button>
-                </div>
-
-                <!-- 保存完了メッセージ -->
-                <div id="coupon_save_msg" class="alert alert-success mt-2 d-none py-2" style="font-size:0.82rem;">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
-                        style="vertical-align:-1px;margin-right:5px;">
-                        <polyline points="20 6 9 17 4 12" />
-                    </svg>保存しました。
-                </div>
-
-            </div>
-        </div>
 
         <!-- プレビューエリア（生成後に表示） -->
         <div class="card mt-4 d-none" id="preview_card">
@@ -481,7 +400,6 @@
         const shopId = this.value;
 
         if (!shopId) {
-            document.getElementById('coupon_settings_card').classList.add('d-none');
             document.getElementById('survey_url_hint').classList.add('d-none');
             return;
         }
@@ -494,81 +412,8 @@
         linkEl.textContent = surveyUrl;
         document.getElementById('survey_url_hint').classList.remove('d-none');
 
-        await loadCoupon(shopId);
-        document.getElementById('coupon_settings_card').classList.remove('d-none');
         triggerAutoPreview();
     });
-
-    // ===== クーポン設定の読み込み =====
-    async function loadCoupon(shopId) {
-        const res = await fetch(`/qr/shops/${shopId}/coupon`);
-        const data = await res.json();
-
-        document.getElementById('coupon_active').checked = !!data.is_active;
-        document.getElementById('coupon_name').value = data.coupon_name || '';
-        document.getElementById('coupon_discount').value = data.discount_text || '';
-        document.getElementById('coupon_valid_days').value = data.valid_days || 30;
-
-        toggleCouponFields();
-        updateCouponPreview();
-    }
-
-    // ===== クーポン有効/無効に応じてフィールドを切替 =====
-    function toggleCouponFields() {
-        const isActive = document.getElementById('coupon_active').checked;
-        document.getElementById('coupon_fields').querySelectorAll('input').forEach(el => {
-            el.disabled = !isActive;
-        });
-    }
-
-    // ===== クーポンプレビューのリアルタイム更新 =====
-    function updateCouponPreview() {
-        const name = document.getElementById('coupon_name').value || 'クーポン名';
-        const discount = document.getElementById('coupon_discount').value || '割引内容';
-        const days = document.getElementById('coupon_valid_days').value || '?';
-        document.getElementById('preview_coupon_name').textContent = name;
-        document.getElementById('preview_coupon_discount').textContent = discount;
-        document.getElementById('preview_coupon_expiry').textContent = `有効期限: 発行日から ${days} 日間`;
-    }
-    ['coupon_name', 'coupon_discount', 'coupon_valid_days'].forEach(id => {
-        document.getElementById(id).addEventListener('input', updateCouponPreview);
-    });
-
-    // ===== クーポン設定の保存 =====
-    async function saveCoupon() {
-        const shopId = document.getElementById('shop_select').value;
-        if (!shopId) return;
-
-        const isActive = document.getElementById('coupon_active').checked;
-        const couponName = document.getElementById('coupon_name').value.trim();
-        const discountTxt = document.getElementById('coupon_discount').value.trim();
-        const validDays = parseInt(document.getElementById('coupon_valid_days').value) || 30;
-
-        if (isActive && (!couponName || !discountTxt)) {
-            alert('クーポンを有効にするには、クーポン名と割引内容を入力してください。');
-            return;
-        }
-
-        const res = await fetch(`/qr/shops/${shopId}/coupon`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                coupon_name: couponName,
-                discount_text: discountTxt,
-                valid_days: validDays,
-                is_active: isActive,
-            }),
-        });
-
-        if (res.ok) {
-            const msgEl = document.getElementById('coupon_save_msg');
-            msgEl.classList.remove('d-none');
-            setTimeout(() => msgEl.classList.add('d-none'), 2500);
-        } else {
-            const err = await res.json();
-            alert('保存に失敗しました: ' + (err.error || ''));
-        }
-    }
 
     // ===== QRコード生成 =====
     async function generateQR() {
