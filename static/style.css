@@ -80,6 +80,112 @@ body {
     display: inline-block;
 }
 
+/* ===== PCサイドバー ===== */
+.app-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 220px;
+    height: 100vh;
+    background: #1C1C1C;
+    flex-direction: column;
+    z-index: 1000;
+    overflow-y: auto;
+}
+
+.sidebar-brand {
+    font-family: var(--font-heading);
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #fff !important;
+    text-decoration: none;
+    display: block;
+    padding: 1.25rem 1rem 1.1rem;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    letter-spacing: 0.02em;
+    flex-shrink: 0;
+}
+
+.sidebar-nav {
+    padding: 0.6rem 0.5rem;
+    overflow-y: auto;
+}
+
+.sidebar-section-label {
+    font-size: 0.62rem;
+    font-weight: 700;
+    color: rgba(255,255,255,0.28);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.9rem 0.6rem 0.25rem;
+}
+
+.sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0.42rem 0.6rem;
+    border-radius: 6px;
+    color: rgba(255,255,255,0.62);
+    font-size: 0.845rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: background 0.13s, color 0.13s;
+    white-space: nowrap;
+}
+
+.sidebar-link:hover {
+    background: rgba(255,255,255,0.08);
+    color: #fff;
+}
+
+.sidebar-link.active {
+    background: rgba(255,255,255,0.12);
+    color: #fff;
+}
+
+.sidebar-footer {
+    padding: 0.75rem 1rem;
+    border-top: 1px solid rgba(255,255,255,0.07);
+    flex-shrink: 0;
+}
+
+.sidebar-footer-user {
+    font-size: 0.78rem;
+    color: rgba(255,255,255,0.42);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0.2rem 0.1rem 0.5rem;
+}
+
+.sidebar-footer-logout {
+    font-size: 0.8rem;
+    color: rgba(255,255,255,0.5);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0.38rem 0.5rem;
+    border-radius: 6px;
+    transition: background 0.13s, color 0.13s;
+}
+
+.sidebar-footer-logout:hover {
+    background: rgba(255,255,255,0.08);
+    color: rgba(255,255,255,0.85);
+}
+
+.app-main-content {
+    margin-left: 0;
+}
+
+@media (min-width: 768px) {
+    .app-main-content {
+        margin-left: 220px;
+    }
+}
+
 /* ===== コンテナ余白 ===== */
 .container.my-4 {
     margin-top: 1rem !important;
