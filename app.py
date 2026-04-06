@@ -3750,6 +3750,25 @@ def gbp_posts_generate():
         parts.append(f"\n【過去の投稿例（文体・トーンを必ず踏襲すること）】\n{combined}")
     if use_ai and not use_shop_info and not use_style:
         parts.append("\nサロンの一般的な特徴を想定し、自由に魅力的な投稿文を生成してください。")
+    # ローカルSEOキーワードを登録情報から構築
+    seo_keywords = []
+    if use_shop_info and shop.get("nearest_station"):
+        station  = shop["nearest_station"].strip()
+        biz_type = (shop.get("business_type") or "").strip()
+        menus_raw = (shop.get("main_menus") or "").strip()
+        menu_list = [m.strip() for m in menus_raw.replace("、", ",").replace("・", ",").split(",") if m.strip()]
+        if biz_type:
+            seo_keywords.append(f"{station} {biz_type}")
+        for menu in menu_list[:2]:
+            seo_keywords.append(f"{station} {menu}")
+        if biz_type and menu_list:
+            seo_keywords.append(f"{station} {biz_type} {menu_list[0]}")
+
+    seo_instruction = ""
+    if seo_keywords:
+        kw_str = "、".join(seo_keywords)
+        seo_instruction = f"- 以下のローカル検索キーワードを投稿文中に1〜2個、自然な形で組み込む（キーワードの羅列はNG）\n  対象キーワード：{kw_str}\n"
+
     seasonal_instruction = f"- 選択したテーマに合わせて{current_month}月の季節感を盛り込む\n" if has_seasonal_theme else ""
     parts.append(f"""
 【生成条件】
@@ -3757,8 +3776,7 @@ def gbp_posts_generate():
 - 語尾は丁寧語（です・ます調）
 - 絵文字を適度に使用（1〜3個程度）
 - ハッシュタグは末尾に2〜3個
-- MEOを意識したキーワードを自然に含める
-{seasonal_instruction}- 過去の投稿例がある場合はその文体・トーン・構成を必ず踏襲する
+{seo_instruction}{seasonal_instruction}- 過去の投稿例がある場合はその文体・トーン・構成を必ず踏襲する
 
 【出力形式】
 投稿文のテキストのみを出力してください。
