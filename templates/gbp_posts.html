@@ -150,10 +150,16 @@
                 <textarea id="post-content" class="form-control" rows="8"></textarea>
                 <div class="d-flex justify-content-between align-items-center mt-1 mb-3">
                     <span style="font-size:0.75rem;color:#9A9A9A;"><span id="char-count">0</span> 文字 <span style="color:#C9A96E;">（目安：150〜300文字）</span></span>
-                    <button class="btn btn-sm btn-outline-secondary" onclick="generate()" style="font-size:0.78rem;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:3px;"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-                        再生成
-                    </button>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-outline-secondary" onclick="copyText(document.getElementById('post-content').value, this)" style="font-size:0.78rem;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:3px;"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                            コピー
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary" onclick="generate()" style="font-size:0.78rem;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:3px;"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                            再生成
+                        </button>
+                    </div>
                 </div>
                 <div class="d-grid gap-2">
                     <button class="btn btn-outline-primary" onclick="saveDraft()">
@@ -197,6 +203,11 @@
                         <p class="mb-0" style="font-size:0.82rem;color:#2C2C2C;white-space:pre-wrap;word-break:break-all;">{{ post.content }}</p>
                     </div>
                     <div class="d-flex flex-column gap-1 flex-shrink-0">
+                        <button class="btn btn-outline-secondary btn-sm"
+                                onclick="copyText({{ post.content|tojson }}, this)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:2px;"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                            コピー
+                        </button>
                         <button class="btn btn-outline-secondary btn-sm"
                                 onclick="loadDraft({{ post.id }}, {{ post.content|tojson }})">
                             <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
@@ -363,6 +374,20 @@
     function updateCharCount() {
         document.getElementById('char-count').textContent =
             document.getElementById('post-content').value.length;
+    }
+
+    function copyText(text, btn) {
+        navigator.clipboard.writeText(text).then(() => {
+            const orig = btn.innerHTML;
+            btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:2px;"><polyline points="20 6 9 17 4 12"/></svg>コピー済み';
+            btn.classList.add('btn-success');
+            btn.classList.remove('btn-outline-secondary');
+            setTimeout(() => {
+                btn.innerHTML = orig;
+                btn.classList.remove('btn-success');
+                btn.classList.add('btn-outline-secondary');
+            }, 1500);
+        });
     }
 
     document.getElementById('post-content').addEventListener('input', updateCharCount);
