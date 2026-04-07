@@ -2578,18 +2578,14 @@ def cancel_subscription():
             customer=user["stripe_customer_id"], limit=1, status="active"
         )
         if subs.data:
-            stripe.Subscription.cancel(subs.data[0].id)
-        conn.execute(
-            "UPDATE users SET plan = NULL WHERE id = ?", (current_user.id,)
-        )
-        conn.commit()
+            stripe.Subscription.modify(subs.data[0].id, cancel_at_period_end=True)
         conn.close()
     except Exception as e:
         conn.close()
         flash(f"解約処理に失敗しました: {e}", "error")
         return redirect(url_for("settings"))
 
-    flash("サブスクリプションを解約しました。", "success")
+    flash("解約手続きが完了しました。現在の契約期間終了時にサービスが停止します。", "success")
     return redirect(url_for("subscribe"))
 
 
