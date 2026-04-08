@@ -783,6 +783,18 @@
             const btn = document.getElementById('copy-btn');
             btn.textContent = "✅ コピー完了！Googleが開きます";
             setTimeout(() => { btn.textContent = "📝 コピーしてGoogleを開く"; }, 3000);
+
+            openPasteGuideModal();
+        }
+
+        function openPasteGuideModal() {
+            const modal = document.getElementById('pasteGuideModal');
+            modal.style.display = 'flex';
+        }
+
+        function closePasteGuideModal() {
+            const modal = document.getElementById('pasteGuideModal');
+            modal.style.display = 'none';
         }
 
         async function requestCoupon() {
@@ -846,6 +858,27 @@
             document.body.classList.add('demo-mode');
         }
     </script>
+
+<!-- ペーストガイドモーダル -->
+<div id="pasteGuideModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
+  <div style="background:#fff; border-radius:12px; padding:24px; margin:16px; max-width:360px; width:100%;">
+    <h3 style="font-size:16px; font-weight:bold; margin-bottom:12px;">📋 返信テキストをコピーしました</h3>
+    <p style="font-size:14px; color:#444; margin-bottom:8px;">
+      Googleマップ<strong>アプリ</strong>ではペーストできない場合があります。
+    </p>
+    <p style="font-size:14px; color:#444; margin-bottom:16px;">
+      以下のボタンからブラウザでGoogleビジネスプロフィールを開き、返信画面に直接ペーストしてください。
+    </p>
+    <a href="https://business.google.com/reviews" target="_blank"
+       style="display:block; background:#4285F4; color:#fff; text-align:center; padding:12px; border-radius:8px; text-decoration:none; font-size:15px; font-weight:bold; margin-bottom:12px;">
+      🌐 ブラウザで口コミ返信画面を開く
+    </a>
+    <button onclick="closePasteGuideModal()"
+            style="display:block; width:100%; padding:10px; border:1px solid #ccc; border-radius:8px; background:#fff; font-size:14px; color:#666; cursor:pointer;">
+      閉じる
+    </button>
+  </div>
+</div>
 </body>
 
 </html>
