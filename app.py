@@ -3684,6 +3684,7 @@ def gbp_posts_generate():
     if not shop:
         conn.close()
         return jsonify({"error": "店舗が見つかりません。"})
+    shop = dict(shop)
 
     data = request.get_json() or {}
     themes        = data.get("themes") or []
