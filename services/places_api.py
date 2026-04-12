@@ -12,7 +12,7 @@ def _translate_to_japanese(text: str) -> str:
             "Content-Type": "application/json",
         },
         json={
-            "model": "anthropic/claude-haiku-4-5",
+            "model": "anthropic/claude-haiku-4.5",
             "messages": [{"role": "user", "content": f"次のテキストを日本語に翻訳してください。翻訳文のみ返してください。\n\n{text}"}],
             "max_tokens": 500,
         },

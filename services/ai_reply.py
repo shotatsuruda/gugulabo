@@ -132,7 +132,7 @@ def generate_reply(review: dict, business_type: str, style_texts: list = None) -
         "https://openrouter.ai/api/v1/chat/completions",
         headers={"Authorization": f"Bearer {OPENROUTER_API_KEY}"},
         json={
-            "model": "anthropic/claude-haiku-4-5",
+            "model": "anthropic/claude-haiku-4.5",
             "messages": [{"role": "user", "content": prompt}],
             "max_tokens": 300,
         },

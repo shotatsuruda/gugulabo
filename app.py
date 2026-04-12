@@ -939,7 +939,7 @@ def generate_review_response(review_text: str, business_type: str = "", rating: 
     return result
 
 
-_GBP_MODEL = "anthropic/claude-haiku-4-5"
+_GBP_MODEL = "anthropic/claude-haiku-4.5"
 _OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 _STYLE_UPLOAD_DIR = os.path.join(os.path.dirname(__file__), "static", "uploads", "post_styles")
 _REPLY_STYLE_UPLOAD_DIR = os.path.join(os.path.dirname(__file__), "static", "uploads", "reply_styles")
