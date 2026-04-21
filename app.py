@@ -2400,9 +2400,9 @@ def settings():
             )
             if subs.data:
                 from datetime import datetime as _dt
-                next_billing_date = _dt.fromtimestamp(
-                    subs.data[0].current_period_end
-                ).strftime("%Y年%m月%d日")
+                sub = subs.data[0]
+                ts = sub.billing_cycle_anchor
+                next_billing_date = _dt.fromtimestamp(ts).strftime("%Y年%m月%d日")
         except Exception:
             pass
 
@@ -2609,9 +2609,10 @@ def cancel_subscription():
         )
         if subs.data:
             sub = subs.data[0]
-            stripe.Subscription.modify(sub.id, cancel_at_period_end=True)
+            updated = stripe.Subscription.modify(sub.id, cancel_at_period_end=True)
             from datetime import datetime as _dt
-            period_end = _dt.fromtimestamp(sub.current_period_end).strftime("%Y-%m-%d %H:%M:%S")
+            ts = updated.cancel_at or updated.billing_cycle_anchor
+            period_end = _dt.fromtimestamp(ts).strftime("%Y-%m-%d %H:%M:%S")
             conn.execute(
                 "UPDATE users SET plan_expires_at = ? WHERE id = ?",
                 (period_end, current_user.id),
