@@ -3460,7 +3460,8 @@ def gbp_posts_setup():
 
     if not shop:
         conn.close()
-        return redirect(url_for("index"))
+        flash("最新情報を使うには、先に店舗を登録してください。", "warning")
+        return redirect(url_for("shops_page"))
 
     session["gbp_shop_id"] = shop["id"]
 
@@ -3510,7 +3511,8 @@ def gbp_posts_page():
 
     if not shop:
         conn.close()
-        return redirect(url_for("index"))
+        flash("最新情報を使うには、先に店舗を登録してください。", "warning")
+        return redirect(url_for("shops_page"))
 
     if not shop["profile_completed"] and not request.args.get("skip"):
         conn.close()
