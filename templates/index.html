@@ -31,6 +31,22 @@
 </div>
 {% endif %}
 
+{% if is_canceling %}
+<div class="d-flex align-items-center gap-2 px-3 py-2 mb-4 rounded" style="font-size:0.82rem;
+     background:#fffbeb;border:1px solid #fde68a;color:#92400e;">
+    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">
+        <circle cx="12" cy="12" r="10" />
+        <line x1="12" y1="8" x2="12" y2="12" />
+        <line x1="12" y1="16" x2="12.01" y2="16" />
+    </svg>
+    <span>
+        解約手続き済みです。残り <strong>{{ canceling_days_remaining }}日</strong> でサービスが終了します。
+        &nbsp;—&nbsp;<a href="/settings" style="color:inherit;font-weight:600;">詳細を確認する →</a>
+    </span>
+</div>
+{% endif %}
+
 <!-- 機能カード（PC用） -->
 <div class="d-none d-md-block mb-4">
 <div class="row g-4 justify-content-center">

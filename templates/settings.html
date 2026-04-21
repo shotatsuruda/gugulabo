@@ -130,9 +130,11 @@
 
         {% if not current_user.is_admin and (current_plan or is_trial) %}
         <!-- サブスクリプション管理 -->
-        <div class="card mb-4" style="border-color:#fecaca;">
-            <div class="card-header" style="background:#fef2f2;">
-                <h5 class="mb-0" style="color:#dc2626;font-size:0.95rem;">サブスクリプションの解約</h5>
+        <div class="card mb-4" style="border-color:{% if is_canceling %}#fde68a{% else %}#fecaca{% endif %};">
+            <div class="card-header" style="background:{% if is_canceling %}#fffbeb{% else %}#fef2f2{% endif %};">
+                <h5 class="mb-0" style="color:{% if is_canceling %}#92400e{% else %}#dc2626{% endif %};font-size:0.95rem;">
+                    {% if is_canceling %}解約手続き済み{% else %}サブスクリプションの解約{% endif %}
+                </h5>
             </div>
             <div class="card-body p-4">
 
@@ -141,6 +143,15 @@
                     <div style="font-size:0.9rem;color:#2C2C2C;">{{ current_plan if current_plan else 'トライアル中' }}</div>
                 </div>
 
+                {% if is_canceling %}
+                <div class="p-3 rounded mb-2" style="background:#fffbeb;border:1px solid #fde68a;">
+                    <div class="fw-bold mb-1" style="color:#92400e;font-size:0.88rem;">⚠️ 解約手続きが完了しています</div>
+                    <div style="font-size:0.85rem;color:#78350f;line-height:1.7;">
+                        {{ service_ends_at }} にサービスが終了します。<br>
+                        残り <strong>{{ service_ends_days }}日</strong> はご利用いただけます。
+                    </div>
+                </div>
+                {% else %}
                 {% if next_billing_date %}
                 <div class="mb-4">
                     <div class="fw-semibold mb-1" style="font-size:0.85rem;">次回請求日</div>
@@ -160,6 +171,7 @@
                         <line x1="9" y1="9" x2="15" y2="15" />
                     </svg>解約する
                 </button>
+                {% endif %}
 
             </div>
         </div>

@@ -1208,6 +1208,19 @@ def index():
         ).fetchone()
         coupon_total = coupon_row["total"] if coupon_row else 0
 
+        # 解約申請状態の確認
+        user_row = conn.execute(
+            "SELECT plan, plan_expires_at FROM users WHERE id = ?", (current_user.id,)
+        ).fetchone()
+        is_canceling = bool(user_row and user_row["plan"] and user_row["plan_expires_at"])
+        canceling_days_remaining = None
+        if is_canceling:
+            try:
+                end_dt = datetime.fromisoformat(str(user_row["plan_expires_at"]))
+                canceling_days_remaining = max(0, (end_dt.date() - date.today()).days)
+            except Exception:
+                pass
+
         # 今月の口コミ投稿数
         if DB_TYPE == "postgresql":
             monthly_count = conn.execute(
@@ -1249,6 +1262,8 @@ def index():
             daily_trend=daily_trend,
             coupon_total=coupon_total,
             monthly_count=monthly_count,
+            is_canceling=is_canceling,
+            canceling_days_remaining=canceling_days_remaining,
             **survey_ctx,
         )
     resp = make_response(render_template("landing.html"))
@@ -2354,7 +2369,7 @@ def settings():
         return redirect(url_for("settings"))
 
     user = conn.execute(
-        "SELECT notify_enabled, email, plan, stripe_customer_id, trial_ends_at FROM users WHERE id = ?",
+        "SELECT notify_enabled, email, plan, stripe_customer_id, trial_ends_at, plan_expires_at FROM users WHERE id = ?",
         (current_user.id,),
     ).fetchone()
     conn.close()
@@ -2363,10 +2378,22 @@ def settings():
     current_plan        = user["plan"] if user else None
     stripe_customer_id  = user["stripe_customer_id"] if user else None
     trial_ends_at_val   = user["trial_ends_at"] if user else None
+    plan_expires_at_val = user["plan_expires_at"] if user else None
     is_trial            = bool(trial_ends_at_val) and not bool(current_plan)
+    is_canceling        = bool(current_plan) and bool(plan_expires_at_val)
+
+    service_ends_at   = None
+    service_ends_days = None
+    if is_canceling and plan_expires_at_val:
+        try:
+            end_dt = datetime.fromisoformat(str(plan_expires_at_val))
+            service_ends_at   = end_dt.strftime("%Y年%m月%d日")
+            service_ends_days = max(0, (end_dt.date() - date.today()).days)
+        except Exception:
+            pass
 
     next_billing_date = None
-    if stripe_customer_id and STRIPE_SECRET_KEY:
+    if stripe_customer_id and STRIPE_SECRET_KEY and not is_canceling:
         try:
             subs = stripe.Subscription.list(
                 customer=stripe_customer_id, limit=1, status="active"
@@ -2386,6 +2413,9 @@ def settings():
         current_plan=current_plan,
         next_billing_date=next_billing_date,
         is_trial=is_trial,
+        is_canceling=is_canceling,
+        service_ends_at=service_ends_at,
+        service_ends_days=service_ends_days,
     )
 
 
@@ -2578,7 +2608,15 @@ def cancel_subscription():
             customer=user["stripe_customer_id"], limit=1, status="active"
         )
         if subs.data:
-            stripe.Subscription.modify(subs.data[0].id, cancel_at_period_end=True)
+            sub = subs.data[0]
+            stripe.Subscription.modify(sub.id, cancel_at_period_end=True)
+            from datetime import datetime as _dt
+            period_end = _dt.fromtimestamp(sub.current_period_end).strftime("%Y-%m-%d %H:%M:%S")
+            conn.execute(
+                "UPDATE users SET plan_expires_at = ? WHERE id = ?",
+                (period_end, current_user.id),
+            )
+            conn.commit()
         conn.close()
     except Exception as e:
         conn.close()
@@ -2586,7 +2624,7 @@ def cancel_subscription():
         return redirect(url_for("settings"))
 
     flash("解約手続きが完了しました。現在の契約期間終了時にサービスが停止します。", "success")
-    return redirect(url_for("subscribe"))
+    return redirect(url_for("settings"))
 
 
 @app.route("/webhook", methods=["POST"])
